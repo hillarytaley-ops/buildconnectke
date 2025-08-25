@@ -5,9 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Package, Search, Filter, Download, Eye, Calendar, MapPin } from "lucide-react";
+import { Package, Search, Filter, Download, Eye, Calendar, MapPin, CreditCard, ShoppingCart } from "lucide-react";
 
 interface MaterialEntry {
   id: string;
@@ -23,6 +25,8 @@ interface MaterialEntry {
   condition: string;
   received_by: string;
   notes?: string;
+  price?: number;
+  available_for_purchase?: boolean;
 }
 
 const SiteMaterialRegister = () => {
@@ -32,15 +36,35 @@ const SiteMaterialRegister = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [materialTypeFilter, setMaterialTypeFilter] = useState("all");
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [showPaymentSection, setShowPaymentSection] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
+    checkUserProfile();
     fetchMaterials();
   }, []);
 
   useEffect(() => {
     filterMaterials();
   }, [materials, searchTerm, statusFilter, materialTypeFilter]);
+
+  const checkUserProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+        setUserProfile(profile);
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
 
   const fetchMaterials = async () => {
     try {
@@ -54,12 +78,14 @@ const SiteMaterialRegister = () => {
           unit: "bags",
           supplier_name: "BuildMax Supplies",
           delivery_date: "2024-01-15",
-          status: "received",
+          status: "available",
           location: "Warehouse A - Bay 1",
           batch_number: "CM2024001",
           condition: "good",
           received_by: "John Smith",
-          notes: "Good quality cement, stored properly"
+          notes: "Good quality cement, stored properly",
+          price: 800,
+          available_for_purchase: true
         },
         {
           id: "2",
@@ -68,12 +94,14 @@ const SiteMaterialRegister = () => {
           unit: "pieces",
           supplier_name: "Steel Works Ltd",
           delivery_date: "2024-01-14",
-          status: "in_use",
+          status: "available",
           location: "Site Storage - Section B",
           batch_number: "SB2024002",
           condition: "good",
           received_by: "Mike Johnson",
-          notes: "12mm steel bars, grade 60"
+          notes: "12mm steel bars, grade 60",
+          price: 1200,
+          available_for_purchase: true
         },
         {
           id: "3",
@@ -82,12 +110,14 @@ const SiteMaterialRegister = () => {
           unit: "pieces",
           supplier_name: "Block Masters",
           delivery_date: "2024-01-13",
-          status: "damaged",
+          status: "available",
           location: "Yard Area C",
           batch_number: "CB2024003",
-          condition: "damaged",
+          condition: "good",
           received_by: "Sarah Wilson",
-          notes: "Some blocks damaged during transport - 20 pieces affected"
+          notes: "Standard concrete blocks",
+          price: 50,
+          available_for_purchase: true
         },
         {
           id: "4",
@@ -96,11 +126,13 @@ const SiteMaterialRegister = () => {
           unit: "cubic_meters",
           supplier_name: "Desert Sands Co",
           delivery_date: "2024-01-12",
-          status: "received",
+          status: "available",
           location: "Material Yard - North",
           condition: "good",
           received_by: "Tom Brown",
-          notes: "Fine sand for concrete mixing"
+          notes: "Fine sand for concrete mixing",
+          price: 2500,
+          available_for_purchase: true
         }
       ];
 
@@ -165,6 +197,36 @@ const SiteMaterialRegister = () => {
       default:
         return "secondary";
     }
+  };
+
+  const isIndividualBuilder = userProfile && 
+    userProfile.role === 'builder' && 
+    !userProfile.is_professional && 
+    userProfile.user_type !== 'company';
+
+  const handleItemSelection = (itemId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedItems(prev => [...prev, itemId]);
+    } else {
+      setSelectedItems(prev => prev.filter(id => id !== itemId));
+    }
+  };
+
+  const getSelectedItemsTotal = () => {
+    const selectedMaterials = materials.filter(m => selectedItems.includes(m.id));
+    return selectedMaterials.reduce((total, material) => total + (material.price || 0), 0);
+  };
+
+  const handleProceedToPayment = () => {
+    if (selectedItems.length === 0) {
+      toast({
+        title: "No Items Selected",
+        description: "Please select items to purchase before proceeding to payment.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setShowPaymentSection(true);
   };
 
   const exportToCSV = () => {
@@ -279,8 +341,9 @@ const SiteMaterialRegister = () => {
           <div className="border rounded-lg overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Material</TableHead>
+               <TableRow>
+                 <TableHead></TableHead>
+                 <TableHead>Material</TableHead>
                   <TableHead>Quantity</TableHead>
                   <TableHead>Supplier</TableHead>
                   <TableHead>Delivery Date</TableHead>
@@ -289,13 +352,14 @@ const SiteMaterialRegister = () => {
                   <TableHead>Location</TableHead>
                   <TableHead>Batch #</TableHead>
                   <TableHead>Received By</TableHead>
-                  <TableHead>Actions</TableHead>
+                 <TableHead>Actions</TableHead>
+                 {isIndividualBuilder && <TableHead>Price</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredMaterials.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={10} className="text-center py-8">
+                   <TableRow>
+                     <TableCell colSpan={isIndividualBuilder ? 12 : 11} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2 text-muted-foreground">
                         <Package className="h-8 w-8" />
                         <p>No materials found</p>
@@ -303,8 +367,16 @@ const SiteMaterialRegister = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredMaterials.map((material) => (
-                    <TableRow key={material.id}>
+                   filteredMaterials.map((material) => (
+                     <TableRow key={material.id}>
+                       <TableCell>
+                         {isIndividualBuilder && material.available_for_purchase && (
+                           <Checkbox
+                             checked={selectedItems.includes(material.id)}
+                             onCheckedChange={(checked) => handleItemSelection(material.id, checked as boolean)}
+                           />
+                         )}
+                       </TableCell>
                       <TableCell className="font-medium">
                         {material.material_type}
                       </TableCell>
@@ -340,17 +412,140 @@ const SiteMaterialRegister = () => {
                       <TableCell className="text-sm">
                         {material.received_by}
                       </TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
+                       <TableCell>
+                         <Button variant="ghost" size="sm">
+                           <Eye className="h-4 w-4" />
+                         </Button>
+                       </TableCell>
+                       {isIndividualBuilder && (
+                         <TableCell className="font-medium">
+                           {material.price ? `KSh ${material.price.toLocaleString()}` : 'N/A'}
+                         </TableCell>
+                       )}
                     </TableRow>
                   ))
                 )}
               </TableBody>
             </Table>
           </div>
+
+          {/* Individual Builder Purchase Section */}
+          {isIndividualBuilder && selectedItems.length > 0 && (
+            <Card className="mt-6 border-primary">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ShoppingCart className="h-5 w-5" />
+                  Selected Items for Purchase
+                </CardTitle>
+                <CardDescription>
+                  Review your selected items and proceed to payment
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="border rounded-lg p-4">
+                    {materials
+                      .filter(m => selectedItems.includes(m.id))
+                      .map(material => (
+                        <div key={material.id} className="flex justify-between items-center py-2">
+                          <div>
+                            <span className="font-medium">{material.material_type}</span>
+                            <span className="text-muted-foreground ml-2">
+                              ({material.quantity} {material.unit})
+                            </span>
+                          </div>
+                          <span className="font-medium">
+                            KSh {material.price?.toLocaleString()}
+                          </span>
+                        </div>
+                      ))}
+                    <div className="border-t pt-2 flex justify-between items-center font-bold">
+                      <span>Total:</span>
+                      <span>KSh {getSelectedItemsTotal().toLocaleString()}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-4">
+                    <Button 
+                      onClick={handleProceedToPayment}
+                      className="flex-1"
+                      size="lg"
+                    >
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Proceed to Payment
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setSelectedItems([])}
+                      size="lg"
+                    >
+                      Clear Selection
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Payment Section */}
+          {showPaymentSection && isIndividualBuilder && (
+            <Card className="mt-6 border-green-200 bg-green-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-green-800">
+                  <CreditCard className="h-5 w-5" />
+                  Payment Processing
+                </CardTitle>
+                <CardDescription className="text-green-700">
+                  Complete your payment for the selected items
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="p-4 bg-white rounded-lg border">
+                    <h4 className="font-semibold mb-2">Payment Options</h4>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Choose your preferred payment method for KSh {getSelectedItemsTotal().toLocaleString()}
+                    </p>
+                    <div className="space-y-2">
+                      <Button variant="outline" className="w-full justify-start">
+                        Bank Transfer
+                      </Button>
+                      <Button variant="outline" className="w-full justify-start">
+                        Mobile Banking (M-Pesa, Airtel Money)
+                      </Button>
+                      <Button variant="outline" className="w-full justify-start">
+                        Cash Payment
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-4">
+                    <Button 
+                      className="flex-1" 
+                      size="lg"
+                      onClick={() => {
+                        toast({
+                          title: "Payment Initiated",
+                          description: "Your payment is being processed. You will receive a confirmation shortly.",
+                        });
+                        setShowPaymentSection(false);
+                        setSelectedItems([]);
+                      }}
+                    >
+                      Complete Payment
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowPaymentSection(false)}
+                      size="lg"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Summary Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
