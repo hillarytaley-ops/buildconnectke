@@ -14,6 +14,7 @@ import SourcingQuotationForm from "@/components/SourcingQuotationForm";
 import ComprehensivePurchaseOrder from "@/components/ComprehensivePurchaseOrder";
 import BuilderDeliveryNotes from "@/components/BuilderDeliveryNotes";
 import GoodsReceivedNote from "@/components/GoodsReceivedNote";
+import DeliveryAcknowledgment from "@/components/DeliveryAcknowledgment";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -221,7 +222,7 @@ const Builders = () => {
             </div>
             
             <Tabs defaultValue="materials" className="w-full">
-              <TabsList className="grid w-full grid-cols-6">
+              <TabsList className="grid w-full grid-cols-7">
                 <TabsTrigger value="materials" className="text-sm">
                   Material Calculation
                 </TabsTrigger>
@@ -236,6 +237,9 @@ const Builders = () => {
                 </TabsTrigger>
                 <TabsTrigger value="delivery" className="text-sm">
                   Delivery Notes
+                </TabsTrigger>
+                <TabsTrigger value="acknowledgment" className="text-sm">
+                  Acknowledge & Pay
                 </TabsTrigger>
                 <TabsTrigger value="grn" className="text-sm">
                   Goods Received Note
@@ -260,6 +264,10 @@ const Builders = () => {
               
               <TabsContent value="delivery" className="mt-6">
                 <BuilderDeliveryNotes />
+              </TabsContent>
+
+              <TabsContent value="acknowledgment" className="mt-6">
+                <DeliveryAcknowledgment />
               </TabsContent>
 
               <TabsContent value="grn" className="mt-6">
