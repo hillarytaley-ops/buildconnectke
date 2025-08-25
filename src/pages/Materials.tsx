@@ -6,8 +6,8 @@ const Materials = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Redirect to suppliers page since materials are now part of supplies
-    navigate('/suppliers', { replace: true });
+    // Redirect to suppliers page with materials tab active
+    navigate('/suppliers?tab=materials', { replace: true });
   }, [navigate]);
   return null; // This will redirect automatically
 };

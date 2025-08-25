@@ -11,7 +11,11 @@ import { useState } from "react";
 
 const Suppliers = () => {
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
-  const [activeTab, setActiveTab] = useState("suppliers");
+  const [activeTab, setActiveTab] = useState(() => {
+    // Check if materials tab should be active from URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('tab') === 'materials' ? 'materials' : 'suppliers';
+  });
 
   // Materials data from the Materials page
   const materials = [
