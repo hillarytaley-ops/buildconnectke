@@ -6,6 +6,7 @@ import DeliveryRequest from "@/components/DeliveryRequest";
 import DeliveryProviders from "@/components/DeliveryProviders";
 import DelivererApplication from "@/components/DelivererApplication";
 import DeliveryAcknowledgment from "@/components/DeliveryAcknowledgment";
+import IndividualBuilderPayment from "@/components/IndividualBuilderPayment";
 import SiteMaterialRegister from "@/components/SiteMaterialRegister";
 
 const Delivery = () => {
@@ -25,7 +26,7 @@ const Delivery = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="request" className="text-sm">
               Request Delivery
             </TabsTrigger>
@@ -37,6 +38,9 @@ const Delivery = () => {
             </TabsTrigger>
             <TabsTrigger value="acknowledgment" className="text-sm">
               Acknowledge & Pay
+            </TabsTrigger>
+            <TabsTrigger value="individual-payment" className="text-sm">
+              Individual Payment
             </TabsTrigger>
             <TabsTrigger value="register" className="text-sm">
               Material Register
@@ -57,6 +61,10 @@ const Delivery = () => {
 
           <TabsContent value="acknowledgment" className="space-y-6">
             <DeliveryAcknowledgment />
+          </TabsContent>
+
+          <TabsContent value="individual-payment" className="space-y-6">
+            <IndividualBuilderPayment />
           </TabsContent>
 
           <TabsContent value="register" className="space-y-6">
