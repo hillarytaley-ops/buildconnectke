@@ -22,7 +22,7 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold mb-4">For Builders</h4>
             <ul className="space-y-2 text-gray-400">
-              <li><Link to="/materials" className="hover:text-white">Find Materials</Link></li>
+              <li><Link to="/suppliers?tab=materials" className="hover:text-white">Find Materials</Link></li>
               <li>Request Quotes</li>
               <li>Compare Prices</li>
               <li>Read Reviews</li>
