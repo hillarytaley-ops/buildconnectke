@@ -16,7 +16,7 @@ const Tracking = () => {
       <main className="flex-1 bg-background">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-4">JengaPro Tracking & Monitoring Center</h1>
+            <h1 className="text-4xl font-bold mb-4">UjenziPro Tracking & Monitoring Center</h1>
             <p className="text-lg text-muted-foreground">Track deliveries, monitor sites with drones, and communicate with your team</p>
           </div>
 

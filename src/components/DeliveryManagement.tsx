@@ -412,7 +412,7 @@ const DeliveryManagement: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className={`grid w-full ${user && (userRole === 'admin' || userRole === 'supplier') ? 'grid-cols-6' : 'grid-cols-4'}`}>
+        <TabsList className={`grid w-full ${user && (userRole === 'admin' || userRole === 'supplier') ? 'grid-cols-7' : 'grid-cols-5'}`}>
           <TabsTrigger value="tracker" className="flex items-center gap-2">
             <Eye className="h-4 w-4" />
             Track Delivery
@@ -427,10 +427,16 @@ const DeliveryManagement: React.FC = () => {
           <TabsTrigger value="qr-scanner">QR Scanner</TabsTrigger>
           <TabsTrigger value="monitor">Live Monitor</TabsTrigger>
           {user && userRole && (
-            <TabsTrigger value="deliveries" className="flex items-center gap-2">
-              <Package className="h-4 w-4" />
-              Manage Deliveries
-            </TabsTrigger>
+            <>
+              <TabsTrigger value="deliveries" className="flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                Manage Deliveries
+              </TabsTrigger>
+              <TabsTrigger value="material-register" className="flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                Material Register
+              </TabsTrigger>
+            </>
           )}
         </TabsList>
 
@@ -741,6 +747,121 @@ const DeliveryManagement: React.FC = () => {
             <RoleAssignment />
           </TabsContent>
         )}
+
+        <TabsContent value="material-register" className="space-y-6">
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold">Material Register</h2>
+            <p className="text-muted-foreground">
+              Track all materials on site for the construction project
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Total Materials</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-primary">1,245</div>
+                <p className="text-sm text-muted-foreground">Items registered</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Materials In Stock</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-green-600">890</div>
+                <p className="text-sm text-muted-foreground">Available for use</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Low Stock Alert</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-orange-500">23</div>
+                <p className="text-sm text-muted-foreground">Items need restocking</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Material Inventory</CardTitle>
+              <div className="flex gap-2">
+                <Button size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Material
+                </Button>
+                <Button variant="outline" size="sm">
+                  Export Report
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Material ID</TableHead>
+                    <TableHead>Material Type</TableHead>
+                    <TableHead>Quantity</TableHead>
+                    <TableHead>Unit</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Last Updated</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-mono">MAT-001</TableCell>
+                    <TableCell>Cement 50kg</TableCell>
+                    <TableCell>150</TableCell>
+                    <TableCell>Bags</TableCell>
+                    <TableCell>Warehouse A</TableCell>
+                    <TableCell>
+                      <Badge className="bg-green-500 text-white">In Stock</Badge>
+                    </TableCell>
+                    <TableCell>2 hours ago</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-mono">MAT-002</TableCell>
+                    <TableCell>Steel Rebar 12mm</TableCell>
+                    <TableCell>25</TableCell>
+                    <TableCell>Pieces</TableCell>
+                    <TableCell>Storage Yard</TableCell>
+                    <TableCell>
+                      <Badge className="bg-orange-500 text-white">Low Stock</Badge>
+                    </TableCell>
+                    <TableCell>1 day ago</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-mono">MAT-003</TableCell>
+                    <TableCell>Ceramic Tiles</TableCell>
+                    <TableCell>500</TableCell>
+                    <TableCell>Sq.ft</TableCell>
+                    <TableCell>Warehouse B</TableCell>
+                    <TableCell>
+                      <Badge className="bg-green-500 text-white">In Stock</Badge>
+                    </TableCell>
+                    <TableCell>3 hours ago</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-mono">MAT-004</TableCell>
+                    <TableCell>Paint - White</TableCell>
+                    <TableCell>12</TableCell>
+                    <TableCell>Gallons</TableCell>
+                    <TableCell>Storage Room</TableCell>
+                    <TableCell>
+                      <Badge className="bg-green-500 text-white">In Stock</Badge>
+                    </TableCell>
+                    <TableCell>5 hours ago</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );

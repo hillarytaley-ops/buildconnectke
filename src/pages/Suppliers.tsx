@@ -2,7 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Star, Package, Store, Filter, Grid, List } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Search, MapPin, Star, Package, Store, Filter, Grid, List, Building, ShoppingBag } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SupplierRegistrationForm from "@/components/SupplierRegistrationForm";
@@ -10,6 +11,7 @@ import { useState } from "react";
 
 const Suppliers = () => {
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
+  const [activeTab, setActiveTab] = useState("suppliers");
 
   // Materials data from the Materials page
   const materials = [
@@ -309,6 +311,19 @@ const Suppliers = () => {
           <h1 className="text-4xl font-bold mb-4">Construction Materials & Supplies Marketplace</h1>
           <p className="text-xl mb-8 opacity-90">Find the best prices for quality construction materials and connect with verified suppliers nationwide</p>
           
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-md mx-auto mb-8">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="suppliers" className="flex items-center gap-2">
+                <Building className="h-4 w-4" />
+                Suppliers
+              </TabsTrigger>
+              <TabsTrigger value="materials" className="flex items-center gap-2">
+                <ShoppingBag className="h-4 w-4" />
+                Materials
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          
           {/* Search Bar */}
           <div className="max-w-3xl mx-auto">
             <div className="flex gap-4 mb-6">
@@ -340,85 +355,173 @@ const Suppliers = () => {
         </div>
       </section>
 
-      {/* Filters and View Options */}
-      <section className="py-6 bg-muted border-b">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <Button variant="outline" size="sm">
-                <Filter className="h-4 w-4 mr-2" />
-                Filters
-              </Button>
-              <span className="text-sm text-gray-600">Showing 1,245 materials & suppliers</span>
+      <main className="container mx-auto px-4 py-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsContent value="suppliers" className="space-y-8">
+            {/* Filters and View Options */}
+            <div className="flex justify-between items-center py-6 bg-muted rounded-lg px-4">
+              <div className="flex items-center gap-4">
+                <Button variant="outline" size="sm">
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filters
+                </Button>
+                <span className="text-sm text-gray-600">Showing {suppliers.length} suppliers</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm">
+                  <Grid className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="sm">
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                <Grid className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="sm">
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Featured Materials Section */}
-      <section className="py-16 bg-secondary">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Featured Construction Materials</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {materials.map((material, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="aspect-video bg-muted rounded-lg mb-4 overflow-hidden">
-                    <img 
-                      src={material.image} 
-                      alt={material.name}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg">{material.name}</CardTitle>
-                      <CardDescription className="mt-1">
-                        by {material.supplier}
-                      </CardDescription>
+            {/* Suppliers Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {suppliers.map((supplier, index) => (
+                <Card key={index} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted">
+                        <img 
+                          src={supplier.logo} 
+                          alt={supplier.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <CardTitle className="text-lg">{supplier.name}</CardTitle>
+                        <CardDescription className="flex items-center gap-1">
+                          <MapPin className="h-4 w-4" />
+                          {supplier.location}
+                        </CardDescription>
+                      </div>
                     </div>
-                    <Badge variant="secondary">{material.category}</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2 mb-3">
-                    <MapPin className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">{material.location}</span>
-                    <div className="flex items-center gap-1 ml-auto">
-                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                      <span className="text-sm font-medium">{material.rating}</span>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Products</span>
+                        <span className="font-medium">{supplier.products}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Rating</span>
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                          <span className="font-medium">{supplier.rating}</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {supplier.categories.slice(0, 3).map((category, idx) => (
+                          <Badge key={idx} variant="outline" className="text-xs">
+                            {category}
+                          </Badge>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" className="flex-1">
+                          View Products
+                        </Button>
+                        <Button size="sm" className="flex-1">
+                          Contact
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="text-xl font-bold text-green-600">{material.price}</div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">Quote</Button>
-                      <Button size="sm" className="bg-primary hover:bg-primary/90">
-                        Contact
-                      </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            
+            {/* Join as Supplier Section */}
+            <div className="bg-accent rounded-lg p-8 text-center">
+              <h3 className="text-2xl font-bold mb-4">Ready to Grow Your Business?</h3>
+              <p className="text-lg mb-6 opacity-90">Join our marketplace and connect with builders across Kenya</p>
+              <Button 
+                size="lg" 
+                onClick={() => setShowRegistrationForm(true)}
+                className="bg-primary hover:bg-primary/90"
+              >
+                <Store className="h-5 w-5 mr-2" />
+                Register as Supplier
+              </Button>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="materials" className="space-y-8">
+            {/* Filters and View Options for Materials */}
+            <div className="flex justify-between items-center py-6 bg-muted rounded-lg px-4">
+              <div className="flex items-center gap-4">
+                <Button variant="outline" size="sm">
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filters
+                </Button>
+                <span className="text-sm text-gray-600">Showing {materials.length} materials</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm">
+                  <Grid className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="sm">
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Featured Materials */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {materials.map((material, index) => (
+                <Card key={index} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="aspect-video bg-muted rounded-lg mb-4 overflow-hidden">
+                      <img 
+                        src={material.image} 
+                        alt={material.name}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      />
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          
-          {/* Load More Button */}
-          <div className="text-center mt-12">
-            <Button variant="outline" size="lg" className="border-green-600 text-green-600 hover:bg-green-50">
-              View All Materials
-            </Button>
-          </div>
-        </div>
-      </section>
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <CardTitle className="text-lg">{material.name}</CardTitle>
+                        <CardDescription className="mt-1">
+                          by {material.supplier}
+                        </CardDescription>
+                      </div>
+                      <Badge variant="secondary">{material.category}</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-2 mb-3">
+                      <MapPin className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm text-gray-600">{material.location}</span>
+                      <div className="flex items-center gap-1 ml-auto">
+                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                        <span className="text-sm font-medium">{material.rating}</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="text-xl font-bold text-green-600">{material.price}</div>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm">Quote</Button>
+                        <Button size="sm" className="bg-primary hover:bg-primary/90">
+                          Contact
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            
+            {/* Load More Button */}
+            <div className="text-center">
+              <Button variant="outline" size="lg" className="border-green-600 text-green-600 hover:bg-green-50">
+                View All Materials
+              </Button>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </main>
 
       {/* Categories Section */}
       <section className="py-12 bg-muted">
