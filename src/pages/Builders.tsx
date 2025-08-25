@@ -1,13 +1,51 @@
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Star, Users, Hammer, Building } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Search, MapPin, Star, Users, Hammer, Building, Calculator, CheckCircle, ShoppingCart, FileText } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import MaterialCalculationForm from "@/components/MaterialCalculationForm";
+import ApprovalRequestForm from "@/components/ApprovalRequestForm";
+import SourcingQuotationForm from "@/components/SourcingQuotationForm";
+import ComprehensivePurchaseOrder from "@/components/ComprehensivePurchaseOrder";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Builders = () => {
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    checkUserAccess();
+  }, []);
+
+  const checkUserAccess = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+        
+        setUserProfile(profile);
+      }
+    } catch (error) {
+      console.error('Error checking user access:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isAuthorizedBuilder = userProfile && 
+    userProfile.role === 'builder' && 
+    (userProfile.user_type === 'company' || userProfile.is_professional);
+
   const builders = [
     {
       name: "Kamau Construction Ltd",
@@ -168,6 +206,57 @@ const Builders = () => {
           </Button>
         </div>
       </section>
+
+      {/* Professional Builder Tools Section */}
+      {isAuthorizedBuilder && (
+        <section className="py-16 bg-background">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-foreground mb-4">Professional Builder Tools</h2>
+              <p className="text-xl text-muted-foreground">
+                Comprehensive tools for professional builders and companies
+              </p>
+            </div>
+            
+            <Tabs defaultValue="materials" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="materials" className="flex items-center gap-2">
+                  <Calculator className="h-4 w-4" />
+                  Material Calculation
+                </TabsTrigger>
+                <TabsTrigger value="approval" className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  Request Approval
+                </TabsTrigger>
+                <TabsTrigger value="sourcing" className="flex items-center gap-2">
+                  <ShoppingCart className="h-4 w-4" />
+                  Sourcing & Quotation
+                </TabsTrigger>
+                <TabsTrigger value="purchase" className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Purchase Orders
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="materials" className="mt-6">
+                <MaterialCalculationForm />
+              </TabsContent>
+              
+              <TabsContent value="approval" className="mt-6">
+                <ApprovalRequestForm />
+              </TabsContent>
+              
+              <TabsContent value="sourcing" className="mt-6">
+                <SourcingQuotationForm />
+              </TabsContent>
+              
+              <TabsContent value="purchase" className="mt-6">
+                <ComprehensivePurchaseOrder />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </section>
+      )}
 
       <Footer />
     </div>
