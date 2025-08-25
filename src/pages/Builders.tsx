@@ -13,6 +13,7 @@ import ApprovalRequestForm from "@/components/ApprovalRequestForm";
 import SourcingQuotationForm from "@/components/SourcingQuotationForm";
 import ComprehensivePurchaseOrder from "@/components/ComprehensivePurchaseOrder";
 import BuilderDeliveryNotes from "@/components/BuilderDeliveryNotes";
+import GoodsReceivedNote from "@/components/GoodsReceivedNote";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -220,26 +221,24 @@ const Builders = () => {
             </div>
             
             <Tabs defaultValue="materials" className="w-full">
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="materials" className="flex items-center gap-2">
-                  <Calculator className="h-4 w-4" />
+              <TabsList className="grid w-full grid-cols-6">
+                <TabsTrigger value="materials" className="text-sm">
                   Material Calculation
                 </TabsTrigger>
-                <TabsTrigger value="approval" className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4" />
-                  Request Approval
+                <TabsTrigger value="approval" className="text-sm">
+                  Approval Request
                 </TabsTrigger>
-                <TabsTrigger value="sourcing" className="flex items-center gap-2">
-                  <ShoppingCart className="h-4 w-4" />
+                <TabsTrigger value="sourcing" className="text-sm">
                   Sourcing & Quotation
                 </TabsTrigger>
-                <TabsTrigger value="purchase" className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Purchase Orders
+                <TabsTrigger value="purchase" className="text-sm">
+                  Purchase Order
                 </TabsTrigger>
-                <TabsTrigger value="delivery-notes" className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
+                <TabsTrigger value="delivery" className="text-sm">
                   Delivery Notes
+                </TabsTrigger>
+                <TabsTrigger value="grn" className="text-sm">
+                  Goods Received Note
                 </TabsTrigger>
               </TabsList>
               
@@ -259,8 +258,12 @@ const Builders = () => {
                 <ComprehensivePurchaseOrder />
               </TabsContent>
               
-              <TabsContent value="delivery-notes" className="mt-6">
+              <TabsContent value="delivery" className="mt-6">
                 <BuilderDeliveryNotes />
+              </TabsContent>
+
+              <TabsContent value="grn" className="mt-6">
+                <GoodsReceivedNote />
               </TabsContent>
             </Tabs>
           </div>
