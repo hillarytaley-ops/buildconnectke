@@ -162,7 +162,10 @@ const DeliveryTracker: React.FC = () => {
         setDelivery(null);
         setUpdates([]);
       } else {
-        setDelivery(data as Delivery);
+        setDelivery({
+          ...data,
+          estimated_delivery: data.estimated_delivery_time
+        } as Delivery);
         await fetchUpdates(data.id);
         toast({
           title: "Delivery Found",
@@ -198,7 +201,10 @@ const DeliveryTracker: React.FC = () => {
           variant: "destructive",
         });
       } else {
-        setProjectDeliveries(data as Delivery[]);
+        setProjectDeliveries(data?.map(d => ({
+          ...d,
+          estimated_delivery: d.estimated_delivery_time
+        })) as Delivery[]);
         if (data.length === 0) {
           toast({
             title: "No Deliveries",

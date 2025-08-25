@@ -72,11 +72,14 @@ const CameraSetup: React.FC<CameraSetupProps> = ({ onCameraConnected }) => {
       }
 
       // Check if user has admin or supplier role
-      const { data: roleData, error: roleError } = await supabase
-        .rpc('get_user_role', { _user_id: user.id });
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
       
-      if (roleError) {
-        console.error('Error checking authorization:', roleError);
+      if (profileError) {
+        console.error('Error checking authorization:', profileError);
         setIsAuthorized(false);
       } else {
         setIsAuthorized(roleData === 'admin' || roleData === 'supplier');

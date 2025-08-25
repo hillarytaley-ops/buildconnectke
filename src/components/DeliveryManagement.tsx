@@ -126,19 +126,22 @@ const DeliveryManagement: React.FC = () => {
       if (user) {
         setUser(user);
         
-        // Get user role
-        const { data: roleData, error: roleError } = await supabase
-          .rpc('get_user_role', { _user_id: user.id });
+        // Get user profile and role
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('user_id', user.id)
+          .single();
         
-        if (roleError) {
-          console.error('Error fetching user role:', roleError);
+        if (profileError) {
+          console.error('Error fetching user profile:', profileError);
           toast({
             title: "Error",
             description: "Could not determine user role. Please contact support.",
             variant: "destructive",
           });
         } else {
-          setUserRole(roleData);
+          setUserRole(profileData?.role as UserRole);
         }
       }
     } catch (error) {
@@ -150,25 +153,23 @@ const DeliveryManagement: React.FC = () => {
 
   const fetchBuilders = async () => {
     try {
-      // Get builders from user_roles, then fetch their details from auth
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('user_id')
+      // Get builders from profiles table
+      const { data: buildersData, error: buildersError } = await supabase
+        .from('profiles')
+        .select('id, full_name, company_name')
         .eq('role', 'builder');
 
-      if (roleError) {
-        console.error('Error fetching builder roles:', roleError);
+      if (buildersError) {
+        console.error('Error fetching builders:', buildersError);
         return;
       }
 
-      if (roleData && roleData.length > 0) {
-        // For now, we'll use user IDs since we can't easily join with auth.users
-        // In a real app, you'd want to store user info in a profiles table
-        const buildersData = roleData.map(item => ({
-          id: item.user_id,
-          email: `User ${item.user_id.slice(-8)}` // Display last 8 chars of ID
+      if (buildersData && buildersData.length > 0) {
+        const builders = buildersData.map(builder => ({
+          id: builder.id,
+          email: builder.full_name || builder.company_name || `Builder ${builder.id.slice(-8)}`
         }));
-        setBuilders(buildersData);
+        setBuilders(builders);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -216,7 +217,11 @@ const DeliveryManagement: React.FC = () => {
           variant: "destructive",
         });
       } else {
-        setDeliveries(data as Delivery[]);
+        const transformedDeliveries = data?.map(delivery => ({
+          ...delivery,
+          estimated_delivery: delivery.estimated_delivery_time
+        })) as Delivery[];
+        setDeliveries(transformedDeliveries);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -234,13 +239,9 @@ const DeliveryManagement: React.FC = () => {
     }
 
     try {
-      // Generate tracking number
-      const { data: trackingData, error: trackingError } = await supabase
-        .rpc('generate_tracking_number');
+      // Generate simple tracking number
+      const trackingData = 'JG' + Date.now().toString().slice(-8);
 
-      if (trackingError) {
-        throw trackingError;
-      }
 
       const deliveryData = {
         tracking_number: trackingData,

@@ -82,7 +82,10 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({ onProjectSelect, select
           variant: "destructive",
         });
       } else {
-        setProjects(data as Project[]);
+        setProjects(data?.map(p => ({
+          ...p,
+          owner_id: p.builder_id
+        })) as Project[]);
         // Show message if no projects are available for this user
         if (data.length === 0) {
           toast({
