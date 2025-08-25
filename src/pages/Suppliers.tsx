@@ -8,11 +8,51 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SupplierRegistrationForm from "@/components/SupplierRegistrationForm";
 import QRCodeManager from "@/components/QRCodeManager";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from '@/integrations/supabase/client';
 
 const Suppliers = () => {
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
-  const [activeTab, setActiveTab] = useState("qr-codes");
+  const [user, setUser] = useState<any>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("suppliers");
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUser(user);
+        
+        // Get user role
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (profileError) {
+          console.error('Error fetching user role:', profileError);
+        } else {
+          setUserRole(profileData?.role);
+          // Set default tab based on role
+          if (profileData?.role === 'supplier') {
+            setActiveTab("qr-codes");
+          } else {
+            setActiveTab("suppliers");
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Auth check error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Materials data from the Materials page
   const materials = [
@@ -313,7 +353,7 @@ const Suppliers = () => {
           <p className="text-xl mb-8 opacity-90">Find the best prices for quality construction materials and connect with verified suppliers nationwide</p>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-md mx-auto mb-8">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className={`grid w-full ${userRole === 'supplier' ? 'grid-cols-3' : 'grid-cols-2'}`}>
               <TabsTrigger value="suppliers" className="flex items-center gap-2">
                 <Building className="h-4 w-4" />
                 Suppliers
@@ -322,10 +362,12 @@ const Suppliers = () => {
                 <ShoppingBag className="h-4 w-4" />
                 Materials
               </TabsTrigger>
-              <TabsTrigger value="qr-codes" className="flex items-center gap-2">
-                <Package className="h-4 w-4" />
-                QR Codes
-              </TabsTrigger>
+              {userRole === 'supplier' && (
+                <TabsTrigger value="qr-codes" className="flex items-center gap-2">
+                  <Package className="h-4 w-4" />
+                  QR Codes
+                </TabsTrigger>
+              )}
             </TabsList>
           </Tabs>
           
@@ -362,9 +404,11 @@ const Suppliers = () => {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsContent value="qr-codes" className="space-y-8">
-            <QRCodeManager />
-          </TabsContent>
+          {userRole === 'supplier' && (
+            <TabsContent value="qr-codes" className="space-y-8">
+              <QRCodeManager />
+            </TabsContent>
+          )}
           
           <TabsContent value="suppliers" className="space-y-8">
             {/* Filters and View Options */}
