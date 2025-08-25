@@ -5,6 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DeliveryRequest from "@/components/DeliveryRequest";
 import DeliveryProviders from "@/components/DeliveryProviders";
 import DelivererApplication from "@/components/DelivererApplication";
+import GoodsReceivedNote from "@/components/GoodsReceivedNote";
+import SiteMaterialRegister from "@/components/SiteMaterialRegister";
 
 const Delivery = () => {
   const [activeTab, setActiveTab] = useState("request");
@@ -23,7 +25,7 @@ const Delivery = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="request" className="text-sm">
               Request Delivery
             </TabsTrigger>
@@ -32,6 +34,12 @@ const Delivery = () => {
             </TabsTrigger>
             <TabsTrigger value="application" className="text-sm">
               Deliverer Application
+            </TabsTrigger>
+            <TabsTrigger value="grn" className="text-sm">
+              Goods Received Note
+            </TabsTrigger>
+            <TabsTrigger value="register" className="text-sm">
+              Material Register
             </TabsTrigger>
           </TabsList>
 
@@ -45,6 +53,14 @@ const Delivery = () => {
 
           <TabsContent value="application" className="space-y-6">
             <DelivererApplication />
+          </TabsContent>
+
+          <TabsContent value="grn" className="space-y-6">
+            <GoodsReceivedNote />
+          </TabsContent>
+
+          <TabsContent value="register" className="space-y-6">
+            <SiteMaterialRegister />
           </TabsContent>
         </Tabs>
       </main>
