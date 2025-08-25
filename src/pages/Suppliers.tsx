@@ -487,10 +487,10 @@ const Suppliers = () => {
                       </div>
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" className="flex-1">
-                          View Products
+                          Quote
                         </Button>
                         <Button size="sm" className="flex-1">
-                          Contact
+                          Select
                         </Button>
                       </div>
                     </div>
@@ -570,7 +570,7 @@ const Suppliers = () => {
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm">Quote</Button>
                         <Button size="sm" className="bg-primary hover:bg-primary/90">
-                          Contact
+                          Select
                         </Button>
                       </div>
                     </div>
