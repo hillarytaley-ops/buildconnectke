@@ -10,43 +10,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { MapPin, Package, Truck, Calendar } from "lucide-react";
 
 const DeliveryRequest = () => {
-  const [purchaseOrders, setPurchaseOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    purchaseOrderId: "",
     pickupAddress: "",
     deliveryAddress: "",
     preferredDate: "",
     preferredTime: "",
     specialInstructions: "",
     budgetRange: "",
-    requiredVehicleType: ""
+    requiredVehicleType: "",
+    materialType: ""
   });
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchPurchaseOrders();
-  }, []);
-
-  const fetchPurchaseOrders = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('purchase_orders')
-        .select('id, po_number, supplier_id, status, total_amount, items')
-        .eq('status', 'confirmed')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setPurchaseOrders(data || []);
-    } catch (error) {
-      console.error('Error fetching purchase orders:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load purchase orders"
-      });
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,7 +53,7 @@ const DeliveryRequest = () => {
           special_instructions: formData.specialInstructions,
           budget_range: formData.budgetRange,
           required_vehicle_type: formData.requiredVehicleType,
-          material_type: 'Mixed Materials', // Default for now
+          material_type: formData.materialType || 'Mixed Materials',
           quantity: 1,
           status: 'pending'
         });
@@ -91,14 +67,14 @@ const DeliveryRequest = () => {
 
       // Reset form
       setFormData({
-        purchaseOrderId: "",
         pickupAddress: "",
         deliveryAddress: "",
         preferredDate: "",
         preferredTime: "",
         specialInstructions: "",
         budgetRange: "",
-        requiredVehicleType: ""
+        requiredVehicleType: "",
+        materialType: ""
       });
     } catch (error) {
       console.error('Error submitting delivery request:', error);
@@ -121,27 +97,29 @@ const DeliveryRequest = () => {
             Request Delivery Service
           </CardTitle>
           <CardDescription>
-            Submit a delivery request for your confirmed purchase orders
+            Submit a delivery request for construction materials - Open to all buyers and stakeholders
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="purchaseOrder">Purchase Order</Label>
+                <Label htmlFor="materialType">Material Type</Label>
                 <Select
-                  value={formData.purchaseOrderId}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, purchaseOrderId: value }))}
+                  value={formData.materialType}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, materialType: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a purchase order" />
+                    <SelectValue placeholder="Select material type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {purchaseOrders.map((po: any) => (
-                      <SelectItem key={po.id} value={po.id}>
-                        {po.po_number} - ${po.total_amount}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="cement">Cement</SelectItem>
+                    <SelectItem value="steel">Steel Bars</SelectItem>
+                    <SelectItem value="bricks">Bricks</SelectItem>
+                    <SelectItem value="sand">Sand</SelectItem>
+                    <SelectItem value="gravel">Gravel</SelectItem>
+                    <SelectItem value="timber">Timber</SelectItem>
+                    <SelectItem value="mixed">Mixed Materials</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

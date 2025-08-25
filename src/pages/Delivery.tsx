@@ -23,22 +23,52 @@ const Delivery = () => {
           </p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="request" className="text-sm">
+        <div className="mb-6 border-b border-border">
+          <nav className="flex space-x-8" aria-label="Delivery Management">
+            <button
+              onClick={() => setActiveTab("request")}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === "request"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+              }`}
+            >
               Request Delivery
-            </TabsTrigger>
-            <TabsTrigger value="providers" className="text-sm">
+            </button>
+            <button
+              onClick={() => setActiveTab("providers")}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === "providers"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+              }`}
+            >
               Delivery Providers
-            </TabsTrigger>
-            <TabsTrigger value="application" className="text-sm">
+            </button>
+            <button
+              onClick={() => setActiveTab("application")}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === "application"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+              }`}
+            >
               Deliverer Application
-            </TabsTrigger>
-            <TabsTrigger value="register" className="text-sm">
+            </button>
+            <button
+              onClick={() => setActiveTab("register")}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === "register"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+              }`}
+            >
               Material Register
-            </TabsTrigger>
-          </TabsList>
+            </button>
+          </nav>
+        </div>
 
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsContent value="request" className="space-y-6">
             <DeliveryRequest />
           </TabsContent>
