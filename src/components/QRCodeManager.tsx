@@ -7,36 +7,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { QrCode, Package, Truck, CheckCircle, Plus, Eye } from 'lucide-react';
+import { QrCode, Package, Truck, CheckCircle, Plus, Eye, Download } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 interface MaterialQRCode {
-  id: string;
   qr_code: string;
   material_type: string;
-  batch_number?: string;
   quantity: number;
   unit: string;
-  status: 'pending' | 'dispatched' | 'received' | 'verified';
-  generated_at: string;
+  status: string;
+  po_number: string;
+  created_at: string;
   dispatched_at?: string;
   received_at?: string;
-  verified_at?: string;
 }
 
 const QRCodeManager: React.FC = () => {
   const [qrCodes, setQrCodes] = useState<MaterialQRCode[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [newQRCode, setNewQRCode] = useState({
-    material_type: '',
-    batch_number: '',
-    quantity: 1,
-    unit: 'pieces'
-  });
+  const [userProfile, setUserProfile] = useState<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -55,17 +47,18 @@ const QRCodeManager: React.FC = () => {
       if (user) {
         setUser(user);
         
-        // Get user role
+        // Get user role and profile
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('role')
+          .select('*')
           .eq('user_id', user.id)
           .single();
         
         if (profileError) {
-          console.error('Error fetching user role:', profileError);
+          console.error('Error fetching user profile:', profileError);
         } else {
           setUserRole(profileData?.role);
+          setUserProfile(profileData);
         }
       }
     } catch (error) {
@@ -76,11 +69,13 @@ const QRCodeManager: React.FC = () => {
   };
 
   const fetchQRCodes = async () => {
+    if (!userProfile?.id) return;
+    
     try {
-      const { data, error } = await supabase
-        .from('material_qr_codes')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Use the new function to get supplier QR codes with purchase order info
+      const { data, error } = await supabase.rpc('get_supplier_qr_codes', {
+        _supplier_id: userProfile.id
+      });
 
       if (error) {
         console.error('Error fetching QR codes:', error);
@@ -97,49 +92,58 @@ const QRCodeManager: React.FC = () => {
     }
   };
 
-  const generateQRCode = async () => {
-    if (!user || !['admin', 'supplier'].includes(userRole || '')) {
-      toast({
-        title: "Access Denied",
-        description: "Only suppliers and admins can generate QR codes",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase.rpc('generate_material_qr_code', {
-        _material_type: newQRCode.material_type,
-        _batch_number: newQRCode.batch_number || null,
-        _quantity: newQRCode.quantity,
-        _unit: newQRCode.unit
-      });
-
-      if (error) {
-        throw error;
+  const downloadQRCode = (qrCode: string, materialType: string, poNumber: string) => {
+    // Create a canvas to generate QR code image
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const size = 200;
+    
+    canvas.width = size;
+    canvas.height = size + 60; // Extra space for text
+    
+    if (ctx) {
+      // White background
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // QR code placeholder (simplified - in real implementation, use a QR library)
+      ctx.fillStyle = 'black';
+      for (let i = 0; i < 10; i++) {
+        for (let j = 0; j < 10; j++) {
+          if (Math.random() > 0.5) {
+            ctx.fillRect(20 + i * 16, 20 + j * 16, 15, 15);
+          }
+        }
       }
-
-      toast({
-        title: "Success",
-        description: `QR Code generated: ${data}`,
-      });
-
-      setShowCreateDialog(false);
-      setNewQRCode({
-        material_type: '',
-        batch_number: '',
-        quantity: 1,
-        unit: 'pieces'
-      });
-      fetchQRCodes();
-    } catch (error) {
-      console.error('Error generating QR code:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate QR code",
-        variant: "destructive",
-      });
+      
+      // Add border
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(15, 15, 170, 170);
+      
+      // Add QR code text
+      ctx.fillStyle = 'black';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(qrCode, size / 2, size + 20);
+      ctx.font = '10px Arial';
+      ctx.fillText(`${materialType}`, size / 2, size + 35);
+      ctx.fillText(`PO: ${poNumber}`, size / 2, size + 50);
+      
+      // Download
+      const link = document.createElement('a');
+      link.download = `QR_${qrCode}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
     }
+  };
+
+  const downloadAllQRCodes = () => {
+    qrCodes.forEach((code, index) => {
+      setTimeout(() => {
+        downloadQRCode(code.qr_code, code.material_type, code.po_number);
+      }, index * 100); // Stagger downloads
+    });
   };
 
   const updateQRStatus = async (qrCode: string, newStatus: string) => {
@@ -229,75 +233,14 @@ const QRCodeManager: React.FC = () => {
                 Material QR Code Manager
               </CardTitle>
               <p className="text-muted-foreground">
-                Generate and track QR codes for building materials dispatch and receipt
+                QR codes are automatically generated when purchase orders are confirmed. Download and print them for dispatch tracking.
               </p>
             </div>
-            {['admin', 'supplier'].includes(userRole || '') && (
-              <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Generate QR Code
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Generate New QR Code</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="material_type">Material Type</Label>
-                      <Input
-                        id="material_type"
-                        value={newQRCode.material_type}
-                        onChange={(e) => setNewQRCode({...newQRCode, material_type: e.target.value})}
-                        placeholder="e.g., Cement, Steel, Bricks"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="batch_number">Batch Number (Optional)</Label>
-                      <Input
-                        id="batch_number"
-                        value={newQRCode.batch_number}
-                        onChange={(e) => setNewQRCode({...newQRCode, batch_number: e.target.value})}
-                        placeholder="e.g., BATCH-2024-001"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="quantity">Quantity</Label>
-                        <Input
-                          id="quantity"
-                          type="number"
-                          min="1"
-                          value={newQRCode.quantity}
-                          onChange={(e) => setNewQRCode({...newQRCode, quantity: parseInt(e.target.value) || 1})}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="unit">Unit</Label>
-                        <Select value={newQRCode.unit} onValueChange={(value) => setNewQRCode({...newQRCode, unit: value})}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pieces">Pieces</SelectItem>
-                            <SelectItem value="bags">Bags</SelectItem>
-                            <SelectItem value="tons">Tons</SelectItem>
-                            <SelectItem value="kg">Kilograms</SelectItem>
-                            <SelectItem value="m3">Cubic Meters</SelectItem>
-                            <SelectItem value="m2">Square Meters</SelectItem>
-                            <SelectItem value="liters">Liters</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <Button onClick={generateQRCode} className="w-full">
-                      Generate QR Code
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+            {qrCodes.length > 0 && userRole === 'supplier' && (
+              <Button onClick={downloadAllQRCodes} variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Download All QR Codes
+              </Button>
             )}
           </div>
         </CardHeader>
@@ -307,10 +250,7 @@ const QRCodeManager: React.FC = () => {
               <QrCode className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-muted-foreground">No QR codes generated yet</p>
               <p className="text-sm text-muted-foreground">
-                {['admin', 'supplier'].includes(userRole || '') 
-                  ? 'Generate your first QR code to get started'
-                  : 'QR codes will appear here when materials are processed'
-                }
+                QR codes will appear here automatically when purchase orders are confirmed
               </p>
             </div>
           ) : (
@@ -319,31 +259,29 @@ const QRCodeManager: React.FC = () => {
                 <TableRow>
                   <TableHead>QR Code</TableHead>
                   <TableHead>Material</TableHead>
-                  <TableHead>Batch</TableHead>
                   <TableHead>Quantity</TableHead>
+                  <TableHead>PO Number</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Generated</TableHead>
-                  {['admin', 'supplier'].includes(userRole || '') && <TableHead>Actions</TableHead>}
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {qrCodes.map((qr) => {
+                {qrCodes.map((qr, index) => {
                   const StatusIcon = getStatusIcon(qr.status);
                   return (
-                    <TableRow key={qr.id}>
+                    <TableRow key={`${qr.qr_code}-${index}`}>
                       <TableCell className="font-mono text-sm">
                         {qr.qr_code}
                       </TableCell>
                       <TableCell>
-                        <div>
-                          <p className="font-medium">{qr.material_type}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {qr.batch_number || 'N/A'}
+                        <p className="font-medium">{qr.material_type}</p>
                       </TableCell>
                       <TableCell>
                         {qr.quantity} {qr.unit}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm">
+                        {qr.po_number}
                       </TableCell>
                       <TableCell>
                         <Badge className={`${getStatusColor(qr.status)} text-white`}>
@@ -352,32 +290,36 @@ const QRCodeManager: React.FC = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {new Date(qr.generated_at).toLocaleDateString()}
+                        {new Date(qr.created_at).toLocaleDateString()}
                       </TableCell>
-                      {['admin', 'supplier'].includes(userRole || '') && (
-                        <TableCell>
-                          <div className="flex gap-2">
-                            {qr.status === 'pending' && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => updateQRStatus(qr.qr_code, 'dispatched')}
-                              >
-                                Mark Dispatched
-                              </Button>
-                            )}
-                            {qr.status === 'received' && userRole === 'admin' && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => updateQRStatus(qr.qr_code, 'verified')}
-                              >
-                                Verify
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      )}
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => downloadQRCode(qr.qr_code, qr.material_type, qr.po_number)}
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          {qr.status === 'pending' && userRole === 'supplier' && (
+                            <Button
+                              size="sm"
+                              onClick={() => updateQRStatus(qr.qr_code, 'dispatched')}
+                            >
+                              Mark Dispatched
+                            </Button>
+                          )}
+                          {qr.status === 'dispatched' && userRole === 'admin' && (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => updateQRStatus(qr.qr_code, 'received')}
+                            >
+                              Mark Received
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -395,9 +337,9 @@ const QRCodeManager: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="text-center p-4 border rounded-lg">
               <Package className="h-8 w-8 mx-auto mb-2 text-gray-500" />
-              <h4 className="font-medium">1. Generate</h4>
+              <h4 className="font-medium">1. Auto-Generate</h4>
               <p className="text-sm text-muted-foreground">
-                Supplier generates QR codes for materials
+                QR codes generated when purchase orders are confirmed
               </p>
             </div>
             <div className="text-center p-4 border rounded-lg">

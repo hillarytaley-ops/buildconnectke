@@ -1967,6 +1967,20 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_supplier_qr_codes: {
+        Args: { _supplier_id: string }
+        Returns: {
+          created_at: string
+          dispatched_at: string
+          material_type: string
+          po_number: string
+          qr_code: string
+          quantity: number
+          received_at: string
+          status: string
+          unit: string
+        }[]
+      }
       get_user_deliveries: {
         Args: Record<PropertyKey, never>
         Returns: {
