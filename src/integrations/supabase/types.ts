@@ -1017,6 +1017,68 @@ export type Database = {
           },
         ]
       }
+      material_qr_codes: {
+        Row: {
+          batch_number: string | null
+          created_at: string | null
+          dispatched_at: string | null
+          generated_at: string | null
+          id: string
+          material_type: string
+          purchase_order_id: string | null
+          qr_code: string
+          quantity: number
+          received_at: string | null
+          status: string | null
+          supplier_id: string | null
+          unit: string | null
+          updated_at: string | null
+          verified_at: string | null
+        }
+        Insert: {
+          batch_number?: string | null
+          created_at?: string | null
+          dispatched_at?: string | null
+          generated_at?: string | null
+          id?: string
+          material_type: string
+          purchase_order_id?: string | null
+          qr_code: string
+          quantity: number
+          received_at?: string | null
+          status?: string | null
+          supplier_id?: string | null
+          unit?: string | null
+          updated_at?: string | null
+          verified_at?: string | null
+        }
+        Update: {
+          batch_number?: string | null
+          created_at?: string | null
+          dispatched_at?: string | null
+          generated_at?: string | null
+          id?: string
+          material_type?: string
+          purchase_order_id?: string | null
+          qr_code?: string
+          quantity?: number
+          received_at?: string | null
+          status?: string | null
+          supplier_id?: string | null
+          unit?: string | null
+          updated_at?: string | null
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_qr_codes_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_materials: {
         Row: {
           batch_number: string | null
@@ -1724,6 +1786,17 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      generate_material_qr_code: {
+        Args: {
+          _batch_number?: string
+          _material_type: string
+          _purchase_order_id?: string
+          _quantity?: number
+          _supplier_id?: string
+          _unit?: string
+        }
+        Returns: string
+      }
       get_delivery_summaries: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -1922,6 +1995,10 @@ export type Database = {
           weight_kg: number
         }[]
       }
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: string
+      }
       log_driver_info_access: {
         Args: { access_type_param: string; delivery_uuid: string }
         Returns: undefined
@@ -1945,6 +2022,10 @@ export type Database = {
       log_profile_access: {
         Args: { access_type_param: string; viewed_profile_uuid: string }
         Returns: undefined
+      }
+      update_qr_status: {
+        Args: { _new_status: string; _qr_code: string }
+        Returns: boolean
       }
     }
     Enums: {

@@ -90,7 +90,7 @@ const QRCodeManager: React.FC = () => {
           variant: "destructive",
         });
       } else {
-        setQrCodes(data || []);
+        setQrCodes((data || []) as MaterialQRCode[]);
       }
     } catch (error) {
       console.error('Error:', error);

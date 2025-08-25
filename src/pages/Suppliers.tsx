@@ -7,16 +7,12 @@ import { Search, MapPin, Star, Package, Store, Filter, Grid, List, Building, Sho
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SupplierRegistrationForm from "@/components/SupplierRegistrationForm";
+import QRCodeManager from "@/components/QRCodeManager";
 import { useState } from "react";
 
 const Suppliers = () => {
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
-  const [activeTab, setActiveTab] = useState(() => {
-    // Check if materials tab should be active from URL params or if accessed via /materials route
-    const urlParams = new URLSearchParams(window.location.search);
-    const currentPath = window.location.pathname;
-    return urlParams.get('tab') === 'materials' || currentPath === '/materials' ? 'materials' : 'suppliers';
-  });
+  const [activeTab, setActiveTab] = useState("qr-codes");
 
   // Materials data from the Materials page
   const materials = [
@@ -317,7 +313,7 @@ const Suppliers = () => {
           <p className="text-xl mb-8 opacity-90">Find the best prices for quality construction materials and connect with verified suppliers nationwide</p>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-md mx-auto mb-8">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="suppliers" className="flex items-center gap-2">
                 <Building className="h-4 w-4" />
                 Suppliers
@@ -325,6 +321,10 @@ const Suppliers = () => {
               <TabsTrigger value="materials" className="flex items-center gap-2">
                 <ShoppingBag className="h-4 w-4" />
                 Materials
+              </TabsTrigger>
+              <TabsTrigger value="qr-codes" className="flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                QR Codes
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -362,6 +362,10 @@ const Suppliers = () => {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsContent value="qr-codes" className="space-y-8">
+            <QRCodeManager />
+          </TabsContent>
+          
           <TabsContent value="suppliers" className="space-y-8">
             {/* Filters and View Options */}
             <div className="flex justify-between items-center py-6 bg-muted rounded-lg px-4">

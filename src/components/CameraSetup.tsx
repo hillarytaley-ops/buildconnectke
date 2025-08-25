@@ -82,7 +82,9 @@ const CameraSetup: React.FC<CameraSetupProps> = ({ onCameraConnected }) => {
         console.error('Error checking authorization:', profileError);
         setIsAuthorized(false);
       } else {
-        setIsAuthorized(roleData === 'admin' || roleData === 'supplier');
+        const userRole = profileData?.role;
+        setIsAuthorized(userRole === 'admin' || userRole === 'supplier');
+        
       }
     } catch (error) {
       console.error('Authorization check error:', error);
