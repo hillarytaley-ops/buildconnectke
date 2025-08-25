@@ -3,8 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import DeliveryManagement from '@/components/DeliveryManagement';
-import DroneMonitor from '@/components/DroneMonitor';
-import DeliveryCommunication from '@/components/DeliveryCommunication';
+import SiteMaterialRegister from '@/components/SiteMaterialRegister';
 import { Package, Plane, MessageCircle, Truck } from 'lucide-react';
 
 const Tracking = () => {
@@ -21,18 +20,14 @@ const Tracking = () => {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-8">
+            <TabsList className="grid w-full grid-cols-2 mb-8">
               <TabsTrigger value="delivery" className="flex items-center gap-2">
                 <Package className="h-4 w-4" />
-                Delivery Management
+                Delivery Management Hub
               </TabsTrigger>
-              <TabsTrigger value="drone" className="flex items-center gap-2">
-                <Plane className="h-4 w-4" />
-                Drone Monitoring
-              </TabsTrigger>
-              <TabsTrigger value="communication" className="flex items-center gap-2">
-                <MessageCircle className="h-4 w-4" />
-                Communication Hub
+              <TabsTrigger value="register" className="flex items-center gap-2">
+                <Truck className="h-4 w-4" />
+                Material Register
               </TabsTrigger>
             </TabsList>
 
@@ -40,12 +35,8 @@ const Tracking = () => {
               <DeliveryManagement />
             </TabsContent>
 
-            <TabsContent value="drone" className="space-y-6">
-              <DroneMonitor />
-            </TabsContent>
-
-            <TabsContent value="communication" className="space-y-6">
-              <DeliveryCommunication />
+            <TabsContent value="register" className="space-y-6">
+              <SiteMaterialRegister />
             </TabsContent>
           </Tabs>
         </div>

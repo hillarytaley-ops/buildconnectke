@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DeliveryRequest from "@/components/DeliveryRequest";
 import DeliveryProviders from "@/components/DeliveryProviders";
 import DelivererApplication from "@/components/DelivererApplication";
-import SiteMaterialRegister from "@/components/SiteMaterialRegister";
+
 
 const Delivery = () => {
   const [activeTab, setActiveTab] = useState("request");
@@ -55,16 +55,6 @@ const Delivery = () => {
             >
               Deliverer Application
             </button>
-            <button
-              onClick={() => setActiveTab("register")}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === "register"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
-              }`}
-            >
-              Material Register
-            </button>
           </nav>
         </div>
 
@@ -81,9 +71,6 @@ const Delivery = () => {
             <DelivererApplication />
           </TabsContent>
 
-          <TabsContent value="register" className="space-y-6">
-            <SiteMaterialRegister />
-          </TabsContent>
         </Tabs>
       </main>
       <Footer />
