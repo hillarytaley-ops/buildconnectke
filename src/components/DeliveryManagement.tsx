@@ -62,12 +62,18 @@ const statusConfig = {
   cancelled: { label: 'Cancelled', color: 'bg-red-500' }
 };
 
-const DeliveryManagement: React.FC = () => {
+interface DeliveryManagementProps {
+  userRole?: string | null;
+  user?: any;
+}
+
+const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propUserRole, user: propUser }) => {
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [builders, setBuilders] = useState<Builder[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState<UserRole | null>(null);
-  const [user, setUser] = useState<any>(null);
+  const [userRole, setUserRole] = useState<UserRole | null>(propUserRole as UserRole);
+  const [user, setUser] = useState<any>(propUser);
+  const [builderUniqueNumber, setBuilderUniqueNumber] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('tracker'); // Default to tracker (public)
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newDelivery, setNewDelivery] = useState({
@@ -88,8 +94,14 @@ const DeliveryManagement: React.FC = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    checkAuth();
-  }, []);
+    if (propUserRole && propUser) {
+      setUserRole(propUserRole as UserRole);
+      setUser(propUser);
+      generateBuilderUniqueNumber();
+    } else {
+      checkAuth();
+    }
+  }, [propUserRole, propUser]);
 
   useEffect(() => {
     if (user && userRole) {
@@ -150,6 +162,41 @@ const DeliveryManagement: React.FC = () => {
       console.error('Auth check error:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const generateBuilderUniqueNumber = async () => {
+    if (!user) return;
+    
+    try {
+      // Check if builder already has a unique number
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('business_license')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+
+      let uniqueNumber = profileData?.business_license;
+      
+      // If no unique number exists, generate one
+      if (!uniqueNumber && userRole === 'builder') {
+        uniqueNumber = `BLD-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
+        
+        // Update profile with unique number
+        await supabase
+          .from('profiles')
+          .update({ business_license: uniqueNumber })
+          .eq('user_id', user.id);
+      }
+      
+      setBuilderUniqueNumber(uniqueNumber);
+    } catch (error) {
+      console.error('Error generating builder unique number:', error);
     }
   };
 
@@ -429,8 +476,8 @@ const DeliveryManagement: React.FC = () => {
           <TabsTrigger value="camera">AI Camera</TabsTrigger>
           <TabsTrigger value="qr-scanner">QR Scanner</TabsTrigger>
           <TabsTrigger value="monitor">Live Monitor</TabsTrigger>
-          <TabsTrigger value="drone" className="mr-4">Drone Monitor</TabsTrigger>
-          <TabsTrigger value="communication">Communication</TabsTrigger>
+          <TabsTrigger value="drone" className="ml-4">Drone Monitor</TabsTrigger>
+          <TabsTrigger value="communication" className="ml-4">Communication</TabsTrigger>
           {user && userRole && (
             <TabsTrigger value="deliveries" className="flex items-center gap-2">
               <Package className="h-4 w-4" />
@@ -459,30 +506,82 @@ const DeliveryManagement: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="camera">
-            <CameraControls 
-              onQRCodeScanned={(data) => {
-                toast({ description: `QR Code Detected: ${data}` });
-              }}
-              onMaterialDetected={(material) => {
-                toast({ description: `Material Detected: ${material.type}` });
-              }}
-            />
+            {(userRole === 'admin' || (userRole === 'builder' && builderUniqueNumber)) ? (
+              <div className="space-y-4">
+                {builderUniqueNumber && userRole === 'builder' && (
+                  <div className="bg-muted p-4 rounded-lg">
+                    <p className="text-sm font-medium">Builder Access ID: <span className="font-mono">{builderUniqueNumber}</span></p>
+                  </div>
+                )}
+                <CameraControls 
+                  onQRCodeScanned={(data) => {
+                    toast({ description: `QR Code Detected: ${data}` });
+                  }}
+                  onMaterialDetected={(material) => {
+                    toast({ description: `Material Detected: ${material.type}` });
+                  }}
+                />
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Access restricted. Builder unique number required.</p>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="qr-scanner">
-            <QRScanner 
-              onMaterialScanned={(material) => {
-                toast({ description: `Material Scanned: ${material.materialType}` });
-              }}
-            />
+            {(userRole === 'admin' || (userRole === 'builder' && builderUniqueNumber)) ? (
+              <div className="space-y-4">
+                {builderUniqueNumber && userRole === 'builder' && (
+                  <div className="bg-muted p-4 rounded-lg">
+                    <p className="text-sm font-medium">Builder Access ID: <span className="font-mono">{builderUniqueNumber}</span></p>
+                  </div>
+                )}
+                <QRScanner 
+                  onMaterialScanned={(material) => {
+                    toast({ description: `Material Scanned: ${material.materialType}` });
+                  }}
+                />
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Access restricted. Builder unique number required.</p>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="monitor">
-            <LiveStreamMonitor />
+            {(userRole === 'admin' || (userRole === 'builder' && builderUniqueNumber)) ? (
+              <div className="space-y-4">
+                {builderUniqueNumber && userRole === 'builder' && (
+                  <div className="bg-muted p-4 rounded-lg">
+                    <p className="text-sm font-medium">Builder Access ID: <span className="font-mono">{builderUniqueNumber}</span></p>
+                  </div>
+                )}
+                <LiveStreamMonitor />
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Access restricted. Builder unique number required.</p>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="drone">
-            <DroneMonitor userRole={userRole} user={user} />
+            {(userRole === 'admin' || (userRole === 'builder' && builderUniqueNumber)) ? (
+              <div className="space-y-4">
+                {builderUniqueNumber && userRole === 'builder' && (
+                  <div className="bg-muted p-4 rounded-lg">
+                    <p className="text-sm font-medium">Builder Access ID: <span className="font-mono">{builderUniqueNumber}</span></p>
+                  </div>
+                )}
+                <DroneMonitor userRole={userRole} user={user} builderUniqueNumber={builderUniqueNumber} />
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Access restricted. Builder unique number required.</p>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="communication">

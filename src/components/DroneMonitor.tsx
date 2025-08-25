@@ -33,9 +33,10 @@ interface DroneData {
 interface DroneMonitorProps {
   userRole?: string | null;
   user?: any;
+  builderUniqueNumber?: string | null;
 }
 
-const DroneMonitor: React.FC<DroneMonitorProps> = ({ userRole, user }) => {
+const DroneMonitor: React.FC<DroneMonitorProps> = ({ userRole, user, builderUniqueNumber }) => {
   const [drones, setDrones] = useState<DroneData[]>([
     {
       id: 'drone-001',
