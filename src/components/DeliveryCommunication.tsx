@@ -37,7 +37,12 @@ interface Contact {
   phone?: string;
 }
 
-const DeliveryCommunication = () => {
+interface DeliveryCommunicationProps {
+  userRole?: string | null;
+  user?: any;
+}
+
+const DeliveryCommunication: React.FC<DeliveryCommunicationProps> = ({ userRole, user }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',

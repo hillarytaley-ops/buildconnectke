@@ -429,7 +429,7 @@ const DeliveryManagement: React.FC = () => {
           <TabsTrigger value="camera">AI Camera</TabsTrigger>
           <TabsTrigger value="qr-scanner">QR Scanner</TabsTrigger>
           <TabsTrigger value="monitor">Live Monitor</TabsTrigger>
-          <TabsTrigger value="drone">Drone Monitor</TabsTrigger>
+          <TabsTrigger value="drone" className="mr-4">Drone Monitor</TabsTrigger>
           <TabsTrigger value="communication">Communication</TabsTrigger>
           {user && userRole && (
             <TabsTrigger value="deliveries" className="flex items-center gap-2">
@@ -482,11 +482,11 @@ const DeliveryManagement: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="drone">
-            <DroneMonitor />
+            <DroneMonitor userRole={userRole} user={user} />
           </TabsContent>
 
           <TabsContent value="communication">
-            <DeliveryCommunication />
+            <DeliveryCommunication userRole={userRole} user={user} />
           </TabsContent>
 
         {user && userRole ? (

@@ -26,9 +26,16 @@ interface DroneData {
   cameraActive: boolean;
   flightTime: number;
   maxFlightTime: number;
+  projectId?: string;
+  assignedBuilderIds?: string[];
 }
 
-const DroneMonitor = () => {
+interface DroneMonitorProps {
+  userRole?: string | null;
+  user?: any;
+}
+
+const DroneMonitor: React.FC<DroneMonitorProps> = ({ userRole, user }) => {
   const [drones, setDrones] = useState<DroneData[]>([
     {
       id: 'drone-001',
@@ -40,7 +47,9 @@ const DroneMonitor = () => {
       signal: 95,
       cameraActive: true,
       flightTime: 18,
-      maxFlightTime: 45
+      maxFlightTime: 45,
+      projectId: 'project-001',
+      assignedBuilderIds: ['builder-001']
     },
     {
       id: 'drone-002', 
@@ -52,7 +61,9 @@ const DroneMonitor = () => {
       signal: 88,
       cameraActive: false,
       flightTime: 0,
-      maxFlightTime: 45
+      maxFlightTime: 45,
+      projectId: 'project-002',
+      assignedBuilderIds: ['builder-002']
     },
     {
       id: 'drone-003',
@@ -64,9 +75,25 @@ const DroneMonitor = () => {
       signal: 0,
       cameraActive: false,
       flightTime: 0,
-      maxFlightTime: 45
+      maxFlightTime: 45,
+      projectId: 'project-003',
+      assignedBuilderIds: ['builder-003']
     }
   ]);
+
+  // Filter drones based on user role and access
+  const accessibleDrones = React.useMemo(() => {
+    if (userRole === 'admin') {
+      return drones; // Admin can see all drones
+    } else if (userRole === 'builder' && user) {
+      // Builders can only see drones assigned to their projects
+      return drones.filter(drone => 
+        drone.assignedBuilderIds?.includes(user.id) || 
+        (drone.projectId && user.projects?.includes(drone.projectId))
+      );
+    }
+    return []; // Other roles have no access
+  }, [drones, userRole, user]);
 
   const [selectedDrone, setSelectedDrone] = useState<string | null>(null);
 
@@ -101,6 +128,14 @@ const DroneMonitor = () => {
               return { ...drone, status: 'standby' as const, altitude: 0, cameraActive: false, flightTime: 0 };
             case 'toggleCamera':
               return { ...drone, cameraActive: !drone.cameraActive };
+            case 'setAltitude':
+              return { ...drone, altitude: Math.min(drone.altitude + 20, 200) };
+            case 'lowerAltitude':
+              return { ...drone, altitude: Math.max(drone.altitude - 20, 0) };
+            case 'returnToBase':
+              return { ...drone, status: 'standby' as const, altitude: 0, flightTime: 0 };
+            case 'emergencyLand':
+              return { ...drone, status: 'maintenance' as const, altitude: 0, cameraActive: false, flightTime: 0 };
             default:
               return drone;
           }
@@ -139,12 +174,12 @@ const DroneMonitor = () => {
           <h2 className="text-2xl font-bold">Aerial Monitoring - Drone Fleet</h2>
         </div>
         <Badge variant="secondary" className="text-sm">
-          {drones.filter(d => d.status === 'active').length} Active Drones
+          {accessibleDrones.filter(d => d.status === 'active').length} Active Drones
         </Badge>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {drones.map((drone) => (
+        {accessibleDrones.map((drone) => (
           <Card 
             key={drone.id} 
             className={`cursor-pointer transition-all hover:shadow-lg ${
@@ -226,30 +261,73 @@ const DroneMonitor = () => {
                   </Button>
                 )}
                 {drone.status === 'active' && (
-                  <Button 
-                    size="sm" 
-                    variant="destructive"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      controlDrone(drone.id, 'land');
-                    }}
-                    className="text-xs"
-                  >
-                    Land
-                  </Button>
+                  <>
+                    <Button 
+                      size="sm" 
+                      variant="destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        controlDrone(drone.id, 'land');
+                      }}
+                      className="text-xs"
+                    >
+                      Land
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        controlDrone(drone.id, 'toggleCamera');
+                      }}
+                      className="text-xs"
+                    >
+                      <Camera className="h-3 w-3 mr-1" />
+                      {drone.cameraActive ? 'Stop' : 'Start'}
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="secondary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        controlDrone(drone.id, 'setAltitude');
+                      }}
+                      className="text-xs"
+                    >
+                      ↑ Alt
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="secondary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        controlDrone(drone.id, 'lowerAltitude');
+                      }}
+                      className="text-xs"
+                    >
+                      ↓ Alt
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        controlDrone(drone.id, 'returnToBase');
+                      }}
+                      className="text-xs col-span-2"
+                    >
+                      Return to Base
+                    </Button>
+                  </>
                 )}
-                {drone.status === 'active' && (
+                {drone.status === 'maintenance' && (
                   <Button 
                     size="sm" 
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      controlDrone(drone.id, 'toggleCamera');
-                    }}
-                    className="text-xs"
+                    variant="secondary"
+                    className="text-xs col-span-2"
+                    disabled
                   >
-                    <Camera className="h-3 w-3 mr-1" />
-                    {drone.cameraActive ? 'Stop' : 'Start'}
+                    Under Maintenance
                   </Button>
                 )}
               </div>
@@ -271,7 +349,7 @@ const DroneMonitor = () => {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Live Aerial Feed - {drones.find(d => d.id === selectedDrone)?.name}</CardTitle>
+              <CardTitle>Live Aerial Feed - {accessibleDrones.find(d => d.id === selectedDrone)?.name}</CardTitle>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                 <span className="text-sm text-red-600">LIVE</span>
