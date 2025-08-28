@@ -166,27 +166,30 @@ const PrivateBuilderDirectPurchase = () => {
     return purchaseItems.reduce((sum, item) => sum + item.total_price, 0);
   };
 
-  const generateReceipt = async (purchaseData: any) => {
+  const generateReceipt = async () => {
     try {
-      const receiptNumber = `RCP-${Date.now()}`;
-      const { data, error } = await supabase
-        .from('purchase_receipts')
-        .insert({
-          receipt_number: receiptNumber,
-          buyer_id: userProfile.id,
-          supplier_id: selectedSupplier?.id,
-          items: JSON.stringify(purchaseItems),
-          total_amount: calculateTotal(),
-          payment_method: selectedPaymentMethod,
-          payment_reference: paymentReference,
-          delivery_address: deliveryAddress,
-          special_instructions: specialInstructions,
-          delivery_required: deliveryRequired,
-          delivery_requested_at: deliveryRequired ? new Date().toISOString() : null,
-          status: 'completed'
-        })
-        .select()
-        .single();
+      // Get user email for receipt sending
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) throw new Error('User email not found');
+
+      // Generate receipt via edge function
+      const { data, error } = await supabase.functions.invoke('generate-receipt', {
+        body: {
+          purchase_data: {
+            buyer_id: userProfile.id,
+            supplier_id: selectedSupplier?.id || selectedSupplier?.company_name,
+            items: purchaseItems,
+            total_amount: calculateTotal(),
+            payment_method: selectedPaymentMethod,
+            payment_reference: paymentReference,
+            delivery_address: deliveryAddress,
+            special_instructions: specialInstructions
+          },
+          builder_email: user.email,
+          builder_name: userProfile.full_name || userProfile.company_name || 'Builder',
+          supplier_name: selectedSupplier?.company_name || 'Supplier'
+        }
+      });
 
       if (error) throw error;
       return data;
@@ -229,24 +232,11 @@ const PrivateBuilderDirectPurchase = () => {
 
     setIsProcessing(true);
     try {
-      // Process direct payment
-      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('process-direct-payment', {
-        body: {
-          supplier_id: selectedSupplier.id,
-          payment_method: selectedPaymentMethod,
-          payment_reference: paymentReference,
-          amount: calculateTotal(),
-          items: purchaseItems
-        }
-      });
-
-      if (paymentError) throw paymentError;
-
-      // Generate receipt
-      const receipt = await generateReceipt(paymentData);
+      // Generate receipt and automatically send to builder
+      const receipt = await generateReceipt();
 
       // Generate QR codes for all items
-      await generateQRCodes(receipt.id);
+      await generateQRCodes(receipt.receipt_id);
 
       // If delivery is required, notify delivery providers
       if (deliveryRequired && deliveryAddress) {
@@ -254,7 +244,7 @@ const PrivateBuilderDirectPurchase = () => {
           await supabase.functions.invoke('notify-delivery-providers', {
             body: {
               request_type: 'private_purchase',
-              request_id: receipt.id,
+              request_id: receipt.receipt_id,
               pickup_address: selectedSupplier?.address || "Supplier location",
               delivery_address: deliveryAddress,
               material_details: purchaseItems.map(item => ({
@@ -280,7 +270,7 @@ const PrivateBuilderDirectPurchase = () => {
       setDeliveryAddress("");
       setSpecialInstructions("");
 
-      toast.success(`Purchase completed! Receipt #${receipt.receipt_number}`);
+      toast.success(`Purchase completed! Receipt #${receipt.receipt_number} sent to your email.`);
     } catch (error) {
       console.error('Error processing purchase:', error);
       toast.error('Failed to process purchase');

@@ -289,7 +289,7 @@ const InvoiceManager = () => {
 
       toast({
         title: "Success",
-        description: "Invoice sent to supplier successfully.",
+        description: "Invoice sent to supplier successfully. Payment processing is now available.",
       });
 
       fetchInvoices();
@@ -298,6 +298,36 @@ const InvoiceManager = () => {
       toast({
         title: "Error",
         description: "Failed to send invoice.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const processInvoicePayment = async (invoiceId: string, paymentMethod: string, paymentReference: string, amount: number) => {
+    try {
+      // Process payment via edge function
+      const { data, error } = await supabase.functions.invoke('process-payment', {
+        body: { 
+          invoice_id: invoiceId,
+          payment_method: paymentMethod,
+          payment_reference: paymentReference,
+          amount: amount
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Payment processed successfully! Invoice marked as paid.`,
+      });
+
+      fetchInvoices();
+    } catch (error) {
+      console.error('Error processing payment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process payment.",
         variant: "destructive",
       });
     }
