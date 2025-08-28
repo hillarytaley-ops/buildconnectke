@@ -52,6 +52,7 @@ const PrivateBuilderDirectPurchase = () => {
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [deliveryRequired, setDeliveryRequired] = useState(true);
 
   useEffect(() => {
     checkUserAccess();
@@ -180,6 +181,8 @@ const PrivateBuilderDirectPurchase = () => {
           payment_reference: paymentReference,
           delivery_address: deliveryAddress,
           special_instructions: specialInstructions,
+          delivery_required: deliveryRequired,
+          delivery_requested_at: deliveryRequired ? new Date().toISOString() : null,
           status: 'completed'
         })
         .select()

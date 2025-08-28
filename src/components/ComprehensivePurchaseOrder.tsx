@@ -50,6 +50,7 @@ const ComprehensivePurchaseOrder = () => {
   const [paymentTerms, setPaymentTerms] = useState("");
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [deliveryRequired, setDeliveryRequired] = useState(true);
 
   useEffect(() => {
     fetchSuppliers();
@@ -168,6 +169,8 @@ const ComprehensivePurchaseOrder = () => {
           delivery_address: deliveryAddress,
           payment_terms: paymentTerms,
           special_instructions: specialInstructions,
+          delivery_required: deliveryRequired,
+          delivery_requested_at: deliveryRequired ? new Date().toISOString() : null,
           status: 'pending'
         });
 
@@ -196,6 +199,7 @@ const ComprehensivePurchaseOrder = () => {
       setPaymentTerms("");
       setSpecialInstructions("");
       setTermsAccepted(false);
+      setDeliveryRequired(true);
       generatePONumber();
       
     } catch (error) {
@@ -317,17 +321,38 @@ const ComprehensivePurchaseOrder = () => {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="deliveryAddress">Delivery Address</Label>
-            <Textarea
-              id="deliveryAddress"
-              value={deliveryAddress}
-              onChange={(e) => setDeliveryAddress(e.target.value)}
-              placeholder="Enter complete delivery address with landmarks"
-              rows={3}
-              required
-            />
+          {/* Delivery Required Option */}
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="deliveryRequired"
+                checked={deliveryRequired}
+                onChange={(e) => setDeliveryRequired(e.target.checked)}
+                className="rounded border-gray-300"
+              />
+              <Label htmlFor="deliveryRequired" className="text-sm font-medium">
+                Delivery Required
+              </Label>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Check this if you need delivery service for your order. Nearby delivery providers will be automatically notified.
+            </p>
           </div>
+
+          {deliveryRequired && (
+            <div className="space-y-2">
+              <Label htmlFor="deliveryAddress">Delivery Address</Label>
+              <Textarea
+                id="deliveryAddress"
+                value={deliveryAddress}
+                onChange={(e) => setDeliveryAddress(e.target.value)}
+                placeholder="Enter complete delivery address with landmarks"
+                rows={3}
+                required
+              />
+            </div>
+          )}
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
