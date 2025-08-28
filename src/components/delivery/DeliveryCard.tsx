@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { 
   Package, 
   MapPin, 
@@ -9,8 +10,10 @@ import {
   Phone, 
   Truck,
   Eye,
-  MoreHorizontal 
+  MoreHorizontal,
+  Star
 } from "lucide-react";
+import DeliveryRating from "./DeliveryRating";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -53,6 +56,7 @@ const DeliveryCard: React.FC<DeliveryCardProps> = ({
   onViewDetails,
   onTrack
 }) => {
+  const [showRating, setShowRating] = useState(false);
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -215,6 +219,31 @@ const DeliveryCard: React.FC<DeliveryCardProps> = ({
               <Eye className="h-4 w-4 mr-2" />
               View Details
             </Button>
+          )}
+          {delivery.status === 'delivered' && (
+            <Dialog open={showRating} onOpenChange={setShowRating}>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="flex-1"
+                >
+                  <Star className="h-4 w-4 mr-2" />
+                  Rate
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DeliveryRating
+                  deliveryId={delivery.id}
+                  deliveryData={{
+                    tracking_number: delivery.tracking_number,
+                    material_type: delivery.material_type,
+                    driver_name: delivery.driver_name
+                  }}
+                  onRatingSubmitted={() => setShowRating(false)}
+                />
+              </DialogContent>
+            </Dialog>
           )}
         </div>
       </CardContent>
