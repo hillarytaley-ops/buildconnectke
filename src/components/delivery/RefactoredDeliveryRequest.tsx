@@ -103,24 +103,30 @@ const RefactoredDeliveryRequest: React.FC = () => {
           throw new Error('User profile not found');
         }
 
-        const requestData = {
+        // Validate user has builder role for additional security
+        if (user.profile.role !== 'builder' && user.profile.role !== 'admin') {
+          throw new Error('Only builders can submit delivery requests');
+        }
+
+        // Sanitize and validate input data
+        const sanitizedData = {
           builder_id: user.profile.id,
-          pickup_address: formData.pickupAddress,
-          delivery_address: formData.deliveryAddress,
+          pickup_address: formData.pickupAddress.trim().substring(0, 500), // Limit length
+          delivery_address: formData.deliveryAddress.trim().substring(0, 500), // Limit length
           pickup_date: formData.preferredDate,
           preferred_time: formData.preferredTime || null,
-          special_instructions: formData.specialInstructions || null,
+          special_instructions: formData.specialInstructions ? formData.specialInstructions.trim().substring(0, 1000) : null,
           budget_range: formData.budgetRange || null,
           required_vehicle_type: formData.requiredVehicleType || null,
-          material_type: formData.materialType,
-          quantity: parseInt(formData.quantity) || 1,
-          weight_kg: formData.weight ? parseFloat(formData.weight) : null,
+          material_type: formData.materialType.trim(),
+          quantity: Math.max(1, Math.min(10000, parseInt(formData.quantity) || 1)), // Limit quantity
+          weight_kg: formData.weight ? Math.max(0, Math.min(100000, parseFloat(formData.weight))) : null, // Limit weight
           status: 'pending'
         };
 
         const { error } = await supabase
           .from('delivery_requests')
-          .insert(requestData);
+          .insert(sanitizedData);
 
         if (error) throw error;
 
@@ -129,7 +135,7 @@ const RefactoredDeliveryRequest: React.FC = () => {
           description: "Your delivery request has been submitted successfully. You'll be notified when providers respond.",
         });
 
-        // Reset form
+        // Reset form after successful submission
         setFormData({
           pickupAddress: "",
           deliveryAddress: "",
@@ -144,9 +150,10 @@ const RefactoredDeliveryRequest: React.FC = () => {
         });
       } catch (error) {
         console.error('Error submitting delivery request:', error);
+        const errorMessage = error instanceof Error ? error.message : "Failed to submit delivery request. Please try again.";
         toast({
           title: "Submission Failed",
-          description: "Failed to submit delivery request. Please try again.",
+          description: errorMessage,
           variant: "destructive",
         });
       } finally {

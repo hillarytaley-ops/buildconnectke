@@ -10,12 +10,41 @@ const DeliveryProviders = () => {
   const [providers, setProviders] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchProviders();
-    fetchPendingRequests();
+    checkAuthAndFetchData();
   }, []);
+
+  const checkAuthAndFetchData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to view delivery providers",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Get user profile to check if they're a delivery provider
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, role')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profile) {
+        setCurrentUserId(profile.id);
+        await fetchProviders();
+        await fetchPendingRequests(profile.id);
+      }
+    } catch (error) {
+      console.error('Error checking authentication:', error);
+    }
+  };
 
   const fetchProviders = async () => {
     try {
@@ -38,8 +67,21 @@ const DeliveryProviders = () => {
     }
   };
 
-  const fetchPendingRequests = async () => {
+  const fetchPendingRequests = async (profileId: string) => {
     try {
+      // Only fetch requests if user is a delivery provider
+      const { data: providerData } = await supabase
+        .from('delivery_providers')
+        .select('id')
+        .eq('user_id', profileId)
+        .single();
+
+      if (!providerData) {
+        // User is not a delivery provider, no need to fetch requests
+        setPendingRequests([]);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('delivery_requests')
         .select('*')
@@ -47,25 +89,51 @@ const DeliveryProviders = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPendingRequests(data || []);
+      
+      // Filter to only show requests that haven't been claimed by other providers
+      const availableRequests = (data || []).filter(request => !request.provider_id);
+      setPendingRequests(availableRequests);
     } catch (error) {
       console.error('Error fetching pending requests:', error);
+      setPendingRequests([]);
     }
   };
 
-  const handleProviderResponse = async (requestId: string, providerId: string, response: 'accept' | 'reject') => {
+  const handleProviderResponse = async (requestId: string, response: 'accept' | 'reject') => {
+    if (!currentUserId) {
+      toast({
+        title: "Authentication Error",
+        description: "User authentication required",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
+      // Get the current user's delivery provider profile
+      const { data: providerData, error: providerError } = await supabase
+        .from('delivery_providers')
+        .select('id')
+        .eq('user_id', currentUserId)
+        .single();
+
+      if (providerError || !providerData) {
+        throw new Error('Delivery provider profile not found');
+      }
+
+      // Update the delivery request with proper provider ID
       const { error } = await supabase
         .from('delivery_requests')
         .update({
-          provider_id: response === 'accept' ? providerId : null,
+          provider_id: response === 'accept' ? providerData.id : null,
           status: response === 'accept' ? 'accepted' : 'rejected',
           provider_response: response,
           response_date: new Date().toISOString(),
           response_notes: response === 'accept' ? 'Request accepted by provider' : 'Request declined by provider'
         })
-        .eq('id', requestId);
+        .eq('id', requestId)
+        .eq('status', 'pending'); // Additional security check
 
       if (error) throw error;
 
@@ -74,13 +142,14 @@ const DeliveryProviders = () => {
         description: `Delivery request ${response}ed successfully`
       });
 
-      fetchPendingRequests();
+      // Refresh the pending requests list
+      await fetchPendingRequests(currentUserId);
     } catch (error) {
       console.error('Error updating request:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to update delivery request"
+        description: "Failed to update delivery request. You may not have permission to perform this action."
       });
     } finally {
       setLoading(false);
@@ -135,8 +204,8 @@ const DeliveryProviders = () => {
                   <div className="flex gap-2">
                     <Button
                       size="sm"
-                      onClick={() => handleProviderResponse(request.id, 'provider-id', 'accept')}
-                      disabled={loading}
+                      onClick={() => handleProviderResponse(request.id, 'accept')}
+                      disabled={loading || !currentUserId}
                       className="bg-green-600 hover:bg-green-700"
                     >
                       <CheckCircle className="h-4 w-4 mr-1" />
@@ -145,8 +214,8 @@ const DeliveryProviders = () => {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleProviderResponse(request.id, 'provider-id', 'reject')}
-                      disabled={loading}
+                      onClick={() => handleProviderResponse(request.id, 'reject')}
+                      disabled={loading || !currentUserId}
                       className="border-red-500 text-red-500 hover:bg-red-50"
                     >
                       <XCircle className="h-4 w-4 mr-1" />

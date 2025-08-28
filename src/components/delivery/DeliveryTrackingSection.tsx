@@ -26,6 +26,8 @@ interface DeliveryData {
   driver_phone?: string;
   vehicle_number?: string;
   created_at: string;
+  can_view_locations?: boolean;
+  can_view_driver_contact?: boolean;
 }
 
 interface DeliveryTrackingSectionProps {
@@ -80,24 +82,35 @@ const DeliveryTrackingSection: React.FC<DeliveryTrackingSectionProps> = ({
     try {
       setLoading(true);
       
-      let query = supabase
-        .from('deliveries')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (selectedStatus !== 'all') {
-        query = query.eq('status', selectedStatus);
-      }
-
-      const { data, error } = await query;
+      // Use secure function to get user's deliveries with proper access control
+      const { data, error } = await supabase.rpc('get_user_deliveries');
 
       if (error) throw error;
 
-      // Transform data to match interface
-      const transformedDeliveries = (data || []).map(delivery => ({
-        ...delivery,
-        estimated_delivery: delivery.estimated_delivery_time || delivery.estimated_delivery_time,
-        actual_delivery: delivery.actual_delivery_time
+      // Filter by status if selected
+      let filteredDeliveries = data || [];
+      if (selectedStatus !== 'all') {
+        filteredDeliveries = filteredDeliveries.filter(delivery => delivery.status === selectedStatus);
+      }
+
+      // Transform data to match interface with proper data masking
+      const transformedDeliveries = filteredDeliveries.map(delivery => ({
+        id: delivery.id,
+        tracking_number: delivery.tracking_number,
+        material_type: delivery.material_type,
+        quantity: delivery.quantity,
+        weight_kg: delivery.weight_kg,
+        pickup_address: delivery.pickup_address, // Already masked by security function
+        delivery_address: delivery.delivery_address, // Already masked by security function
+        estimated_delivery: delivery.estimated_delivery_time,
+        actual_delivery: delivery.actual_delivery_time,
+        status: delivery.status as DeliveryStatus,
+        driver_name: delivery.driver_name, // Already masked by security function
+        driver_phone: delivery.driver_phone, // Already masked by security function
+        vehicle_number: delivery.vehicle_details,
+        created_at: delivery.created_at,
+        can_view_locations: delivery.can_view_locations,
+        can_view_driver_contact: delivery.can_view_driver_contact
       })) as DeliveryData[];
 
       setDeliveries(transformedDeliveries);
@@ -126,32 +139,47 @@ const DeliveryTrackingSection: React.FC<DeliveryTrackingSectionProps> = ({
     try {
       setSearchLoading(true);
       
-      const { data, error } = await supabase
-        .from('deliveries')
-        .select('*')
-        .eq('tracking_number', trackingNumber.trim())
-        .maybeSingle();
+      // Use secure function to search for delivery by tracking number
+      const { data: allDeliveries, error } = await supabase.rpc('get_user_deliveries');
 
       if (error) throw error;
 
-      if (data) {
+      // Find delivery by tracking number from user's accessible deliveries
+      const foundDelivery = (allDeliveries || []).find(
+        delivery => delivery.tracking_number === trackingNumber.trim()
+      );
+
+      if (foundDelivery) {
         const transformedDelivery = {
-          ...data,
-          estimated_delivery: data.estimated_delivery_time,
-          actual_delivery: data.actual_delivery_time
+          id: foundDelivery.id,
+          tracking_number: foundDelivery.tracking_number,
+          material_type: foundDelivery.material_type,
+          quantity: foundDelivery.quantity,
+          weight_kg: foundDelivery.weight_kg,
+          pickup_address: foundDelivery.pickup_address, // Already masked by security function
+          delivery_address: foundDelivery.delivery_address, // Already masked by security function
+          estimated_delivery: foundDelivery.estimated_delivery_time,
+          actual_delivery: foundDelivery.actual_delivery_time,
+          status: foundDelivery.status as DeliveryStatus,
+          driver_name: foundDelivery.driver_name, // Already masked by security function
+          driver_phone: foundDelivery.driver_phone, // Already masked by security function
+          vehicle_number: foundDelivery.vehicle_details,
+          created_at: foundDelivery.created_at,
+          can_view_locations: foundDelivery.can_view_locations,
+          can_view_driver_contact: foundDelivery.can_view_driver_contact
         } as DeliveryData;
 
         setDeliveries([transformedDelivery]);
         setSelectedStatus('all');
         toast({
           title: "Delivery Found",
-          description: `Found delivery: ${data.material_type}`,
+          description: `Found delivery: ${foundDelivery.material_type}`,
         });
       } else {
         setDeliveries([]);
         toast({
           title: "Not Found",
-          description: "No delivery found with that tracking number.",
+          description: "No delivery found with that tracking number or you don't have access to view it.",
           variant: "destructive",
         });
       }
