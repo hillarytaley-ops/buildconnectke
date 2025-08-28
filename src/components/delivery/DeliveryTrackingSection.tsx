@@ -5,11 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Package, MapPin, Clock } from "lucide-react";
+import { Search, Package, MapPin, Clock, Filter, Bell } from "lucide-react";
 import DeliveryCard from "./DeliveryCard";
 import DeliveryEmptyState from "./DeliveryEmptyStates";
 import { DeliveryGridSkeleton } from "./DeliveryLoadingStates";
 import { DeliveryStatus } from "./DeliveryStatusBadge";
+import EnhancedDeliveryFilters from "./EnhancedDeliveryFilters";
+import DeliveryNotificationManager from "./DeliveryNotificationManager";
+import DeliveryTimeEstimator from "./DeliveryTimeEstimator";
+import { DateRange } from "react-day-picker";
 
 interface DeliveryData {
   id: string;
@@ -33,17 +37,43 @@ interface DeliveryData {
 interface DeliveryTrackingSectionProps {
   userRole?: string | null;
   canEdit?: boolean;
+  userId?: string;
+}
+
+interface DeliveryFilters {
+  status: DeliveryStatus | 'all';
+  dateRange: DateRange | undefined;
+  materialType: string;
+  vehicleType: string;
+  budgetRange: string;
+  locationArea: string;
+  driverName: string;
+  weightRange: { min: number; max: number };
 }
 
 const DeliveryTrackingSection: React.FC<DeliveryTrackingSectionProps> = ({
   userRole,
-  canEdit = false
+  canEdit = false,
+  userId
 }) => {
   const [deliveries, setDeliveries] = useState<DeliveryData[]>([]);
   const [loading, setLoading] = useState(true);
   const [trackingNumber, setTrackingNumber] = useState('');
   const [searchLoading, setSearchLoading] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<DeliveryStatus | 'all'>('all');
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedDelivery, setSelectedDelivery] = useState<DeliveryData | null>(null);
+  const [filters, setFilters] = useState<DeliveryFilters>({
+    status: 'all',
+    dateRange: undefined,
+    materialType: 'All Materials',
+    vehicleType: 'All Vehicles',
+    budgetRange: 'All Budgets',
+    locationArea: 'All Areas',
+    driverName: '',
+    weightRange: { min: 0, max: 0 }
+  });
   const { toast } = useToast();
 
   const statusFilters: Array<{ value: DeliveryStatus | 'all'; label: string }> = [
@@ -240,8 +270,76 @@ const DeliveryTrackingSection: React.FC<DeliveryTrackingSectionProps> = ({
     fetchDeliveries();
   };
 
+  const getActiveFiltersCount = (): number => {
+    let count = 0;
+    if (filters.status !== 'all') count++;
+    if (filters.dateRange) count++;
+    if (filters.materialType !== 'All Materials') count++;
+    if (filters.vehicleType !== 'All Vehicles') count++;
+    if (filters.budgetRange !== 'All Budgets') count++;
+    if (filters.locationArea !== 'All Areas') count++;
+    if (filters.driverName) count++;
+    if (filters.weightRange.min > 0 || filters.weightRange.max > 0) count++;
+    return count;
+  };
+
+  const clearAllFilters = () => {
+    setFilters({
+      status: 'all',
+      dateRange: undefined,
+      materialType: 'All Materials',
+      vehicleType: 'All Vehicles',
+      budgetRange: 'All Budgets',
+      locationArea: 'All Areas',
+      driverName: '',
+      weightRange: { min: 0, max: 0 }
+    });
+    setSelectedStatus('all');
+  };
+
   return (
     <div className="space-y-6">
+      {/* Control Panel */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <h2 className="text-2xl font-bold">Delivery Tracking</h2>
+          <Badge variant="outline">{deliveries.length} deliveries</Badge>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter className="h-4 w-4 mr-2" />
+            Filters {getActiveFiltersCount() > 0 && `(${getActiveFiltersCount()})`}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowNotifications(!showNotifications)}
+          >
+            <Bell className="h-4 w-4 mr-2" />
+            Notifications
+          </Button>
+        </div>
+      </div>
+
+      {/* Notifications Panel */}
+      {showNotifications && (
+        <DeliveryNotificationManager userId={userId} />
+      )}
+
+      {/* Enhanced Filters */}
+      {showFilters && (
+        <EnhancedDeliveryFilters
+          filters={filters}
+          onFiltersChange={setFilters}
+          onClearFilters={clearAllFilters}
+          activeFiltersCount={getActiveFiltersCount()}
+        />
+      )}
+
       {/* Search Section */}
       <Card>
         <CardHeader>
@@ -323,17 +421,28 @@ const DeliveryTrackingSection: React.FC<DeliveryTrackingSectionProps> = ({
           onAction={trackingNumber ? clearSearch : undefined}
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {deliveries.map((delivery) => (
-            <DeliveryCard
-              key={delivery.id}
-              delivery={delivery}
-              canEdit={canEdit}
-              onStatusChange={canEdit ? handleStatusChange : undefined}
-              onTrack={(trackingNum) => setTrackingNumber(trackingNum)}
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {deliveries.map((delivery) => (
+              <DeliveryCard
+                key={delivery.id}
+                delivery={delivery}
+                canEdit={canEdit}
+                onStatusChange={canEdit ? handleStatusChange : undefined}
+                onTrack={(trackingNum) => setTrackingNumber(trackingNum)}
+                onViewDetails={(delivery) => setSelectedDelivery(delivery)}
+              />
+            ))}
+          </div>
+
+          {/* Delivery Time Estimator for Selected Delivery */}
+          {selectedDelivery && (
+            <DeliveryTimeEstimator
+              delivery={selectedDelivery}
+              showDetailed={true}
             />
-          ))}
-        </div>
+          )}
+        </>
       )}
     </div>
   );

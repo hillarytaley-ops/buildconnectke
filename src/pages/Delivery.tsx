@@ -13,7 +13,7 @@ import { useDeliveryAuth } from "@/components/delivery/useDeliveryAuth";
 
 const Delivery = () => {
   const [activeTab, setActiveTab] = useState("track");
-  const { userRole, hasRole, loading } = useDeliveryAuth();
+  const { userRole, hasRole, loading, user } = useDeliveryAuth();
 
   const tabs = [
     {
@@ -21,7 +21,7 @@ const Delivery = () => {
       label: "Track Delivery",
       icon: Package,
       description: "Track your deliveries in real-time",
-      component: <DeliveryTrackingSection userRole={userRole} canEdit={hasRole(['supplier', 'admin'])} />
+      component: <DeliveryTrackingSection userRole={userRole} canEdit={hasRole(['supplier', 'admin'])} userId={user?.profile?.id} />
     },
     {
       value: "request",
