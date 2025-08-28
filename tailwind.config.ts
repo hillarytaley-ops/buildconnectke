@@ -50,6 +50,14 @@ export default {
 				'earth-brown': 'hsl(var(--earth-brown))',
 				'concrete-gray': 'hsl(var(--concrete-gray))',
 				'safety-yellow': 'hsl(var(--safety-yellow))',
+				// Text utility colors
+				'text-on-dark': 'hsl(var(--text-on-dark))',
+				'text-primary-light': 'hsl(var(--text-primary-light))',
+				'text-secondary-light': 'hsl(var(--text-secondary-light))',
+				'text-accent': 'hsl(var(--text-accent))',
+				'text-on-light': 'hsl(var(--text-on-light))',
+				'text-primary-dark': 'hsl(var(--text-primary-dark))',
+				'text-secondary-dark': 'hsl(var(--text-secondary-dark))',
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
 					foreground: 'hsl(var(--popover-foreground))'
