@@ -154,12 +154,8 @@ const Builders = () => {
             {builders.map((builder, index) => (
               <Card key={index} className="hover:shadow-lg transition-shadow">
                 <CardHeader className="text-center">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center overflow-hidden">
-                    <img 
-                      src="/lovable-uploads/d3378e97-a017-41d4-892f-ef5860afe5a2.png" 
-                      alt="UjenziPro Builder Profile"
-                      className="w-full h-full object-contain p-2"
-                    />
+                  <div className="w-20 h-20 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
+                    <Building className="h-8 w-8 text-muted-foreground" />
                   </div>
                   <CardTitle className="text-lg">{builder.name}</CardTitle>
                   <CardDescription className="flex items-center justify-center gap-1">
