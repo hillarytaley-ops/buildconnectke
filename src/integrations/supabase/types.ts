@@ -578,6 +578,60 @@ export type Database = {
           },
         ]
       }
+      delivery_provider_queue: {
+        Row: {
+          contacted_at: string | null
+          created_at: string | null
+          id: string
+          provider_id: string
+          queue_position: number
+          request_id: string
+          responded_at: string | null
+          status: string
+          timeout_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          contacted_at?: string | null
+          created_at?: string | null
+          id?: string
+          provider_id: string
+          queue_position: number
+          request_id: string
+          responded_at?: string | null
+          status?: string
+          timeout_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          contacted_at?: string | null
+          created_at?: string | null
+          id?: string
+          provider_id?: string
+          queue_position?: number
+          request_id?: string
+          responded_at?: string | null
+          status?: string
+          timeout_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_provider_queue_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_provider_queue_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       delivery_provider_responses: {
         Row: {
           created_at: string
@@ -789,6 +843,8 @@ export type Database = {
       }
       delivery_requests: {
         Row: {
+          attempted_providers: string[] | null
+          auto_rotation_enabled: boolean | null
           budget_range: string | null
           builder_id: string
           created_at: string
@@ -797,6 +853,7 @@ export type Database = {
           delivery_longitude: number | null
           id: string
           material_type: string
+          max_rotation_attempts: number | null
           pickup_address: string
           pickup_date: string
           pickup_latitude: number | null
@@ -808,12 +865,15 @@ export type Database = {
           required_vehicle_type: string | null
           response_date: string | null
           response_notes: string | null
+          rotation_completed_at: string | null
           special_instructions: string | null
           status: string | null
           updated_at: string
           weight_kg: number | null
         }
         Insert: {
+          attempted_providers?: string[] | null
+          auto_rotation_enabled?: boolean | null
           budget_range?: string | null
           builder_id: string
           created_at?: string
@@ -822,6 +882,7 @@ export type Database = {
           delivery_longitude?: number | null
           id?: string
           material_type: string
+          max_rotation_attempts?: number | null
           pickup_address: string
           pickup_date: string
           pickup_latitude?: number | null
@@ -833,12 +894,15 @@ export type Database = {
           required_vehicle_type?: string | null
           response_date?: string | null
           response_notes?: string | null
+          rotation_completed_at?: string | null
           special_instructions?: string | null
           status?: string | null
           updated_at?: string
           weight_kg?: number | null
         }
         Update: {
+          attempted_providers?: string[] | null
+          auto_rotation_enabled?: boolean | null
           budget_range?: string | null
           builder_id?: string
           created_at?: string
@@ -847,6 +911,7 @@ export type Database = {
           delivery_longitude?: number | null
           id?: string
           material_type?: string
+          max_rotation_attempts?: number | null
           pickup_address?: string
           pickup_date?: string
           pickup_latitude?: number | null
@@ -858,6 +923,7 @@ export type Database = {
           required_vehicle_type?: string | null
           response_date?: string | null
           response_notes?: string | null
+          rotation_completed_at?: string | null
           special_instructions?: string | null
           status?: string | null
           updated_at?: string
@@ -1586,6 +1652,42 @@ export type Database = {
           },
         ]
       }
+      provider_access_log: {
+        Row: {
+          access_type: string
+          accessed_at: string | null
+          accessed_fields: string[] | null
+          business_justification: string | null
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+          viewed_provider_id: string
+          viewer_user_id: string | null
+        }
+        Insert: {
+          access_type: string
+          accessed_at?: string | null
+          accessed_fields?: string[] | null
+          business_justification?: string | null
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          viewed_provider_id: string
+          viewer_user_id?: string | null
+        }
+        Update: {
+          access_type?: string
+          accessed_at?: string | null
+          accessed_fields?: string[] | null
+          business_justification?: string | null
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          viewed_provider_id?: string
+          viewer_user_id?: string | null
+        }
+        Relationships: []
+      }
       purchase_orders: {
         Row: {
           buyer_id: string
@@ -1988,6 +2090,47 @@ export type Database = {
           },
         ]
       }
+      supplier_contact_access_log: {
+        Row: {
+          access_type: string
+          accessed_at: string | null
+          accessed_fields: string[] | null
+          id: string
+          ip_address: unknown | null
+          supplier_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          access_type: string
+          accessed_at?: string | null
+          accessed_fields?: string[] | null
+          id?: string
+          ip_address?: unknown | null
+          supplier_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          access_type?: string
+          accessed_at?: string | null
+          accessed_fields?: string[] | null
+          id?: string
+          ip_address?: unknown | null
+          supplier_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_contact_access_log_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppliers: {
         Row: {
           address: string | null
@@ -2112,6 +2255,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      can_access_provider_contact: {
+        Args: { provider_uuid: string }
+        Returns: boolean
+      }
+      can_access_supplier_contact: {
+        Args: { supplier_uuid: string }
+        Returns: boolean
+      }
       generate_access_code: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -2125,6 +2276,14 @@ export type Database = {
           _supplier_id?: string
           _unit?: string
         }
+        Returns: string
+      }
+      get_current_user_profile_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
         Returns: string
       }
       get_delivery_summaries: {
@@ -2197,6 +2356,21 @@ export type Database = {
           can_contact: boolean
           phone: string
           provider_name: string
+        }[]
+      }
+      get_provider_rotation_queue: {
+        Args: {
+          _max_providers?: number
+          _pickup_lat: number
+          _pickup_lng: number
+          _request_id: string
+        }
+        Returns: {
+          distance_km: number
+          priority_score: number
+          provider_id: string
+          provider_name: string
+          rating: number
         }[]
       }
       get_secure_acknowledgement: {
@@ -2275,6 +2449,27 @@ export type Database = {
           weight_kg: number
         }[]
       }
+      get_secure_provider_info: {
+        Args: { provider_uuid: string }
+        Returns: {
+          address: string
+          can_view_contact: boolean
+          capacity_kg: number
+          email: string
+          hourly_rate: number
+          id: string
+          is_active: boolean
+          is_verified: boolean
+          per_km_rate: number
+          phone: string
+          provider_name: string
+          provider_type: string
+          rating: number
+          service_areas: string[]
+          total_deliveries: number
+          vehicle_types: string[]
+        }[]
+      }
       get_secure_purchase_order: {
         Args: { order_uuid: string }
         Returns: {
@@ -2295,6 +2490,23 @@ export type Database = {
           supplier_id: string
           total_amount: number
           updated_at: string
+        }[]
+      }
+      get_secure_supplier_info: {
+        Args: { supplier_uuid: string }
+        Returns: {
+          address: string
+          can_view_contact: boolean
+          company_name: string
+          contact_person: string
+          created_at: string
+          email: string
+          id: string
+          is_verified: boolean
+          materials_offered: string[]
+          phone: string
+          rating: number
+          specialties: string[]
         }[]
       }
       get_supplier_qr_codes: {
@@ -2343,6 +2555,22 @@ export type Database = {
         Args: { _user_id: string }
         Returns: string
       }
+      handle_provider_rejection: {
+        Args: { _provider_id: string; _request_id: string }
+        Returns: boolean
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_builder: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_supplier: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       log_driver_info_access: {
         Args: { access_type_param: string; delivery_uuid: string }
         Returns: undefined
@@ -2367,6 +2595,23 @@ export type Database = {
         Args: { access_type_param: string; viewed_profile_uuid: string }
         Returns: undefined
       }
+      log_provider_access: {
+        Args: {
+          access_type_param: string
+          fields_accessed?: string[]
+          justification?: string
+          provider_uuid: string
+        }
+        Returns: undefined
+      }
+      log_supplier_contact_access: {
+        Args: {
+          access_type_param: string
+          fields_accessed?: string[]
+          supplier_uuid: string
+        }
+        Returns: undefined
+      }
       notify_nearby_delivery_providers: {
         Args: {
           _delivery_lat: number
@@ -2380,6 +2625,10 @@ export type Database = {
           distance_km: number
           provider_id: string
         }[]
+      }
+      setup_provider_rotation_queue: {
+        Args: { _request_id: string }
+        Returns: number
       }
       update_qr_status: {
         Args: { _new_status: string; _qr_code: string }
