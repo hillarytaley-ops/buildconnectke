@@ -9,6 +9,7 @@ import DeliveryNoteForm from "@/components/DeliveryNoteForm";
 import { SupplierGrid } from "@/components/suppliers/SupplierGrid";
 import { QuoteRequestModal } from "@/components/modals/QuoteRequestModal";
 import { SupplierCatalogModal } from "@/components/modals/SupplierCatalogModal";
+import { SecurityAlert } from "@/components/security/SecurityAlert";
 import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 import { supabase } from '@/integrations/supabase/client';
@@ -153,6 +154,13 @@ const Suppliers = () => {
       </section>
 
       <main className="container mx-auto px-4 py-8">
+        {/* Security Alert */}
+        <SecurityAlert 
+          isAuthenticated={!!user}
+          userRole={userRole}
+          showContactInfo={isAdmin || userRole === 'supplier'}
+        />
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {userRole === 'supplier' && (
             <>

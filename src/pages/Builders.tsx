@@ -9,6 +9,7 @@ import { AlertCircle, Settings } from "lucide-react";
 import { BuilderGrid } from "@/components/builders/BuilderGrid";
 import { ContactBuilderModal } from "@/components/modals/ContactBuilderModal";
 import { BuilderProfileModal } from "@/components/modals/BuilderProfileModal";
+import { SecurityAlert } from "@/components/security/SecurityAlert";
 import { UserProfile } from "@/types/userProfile";
 import { useToast } from "@/hooks/use-toast";
 
@@ -122,6 +123,13 @@ const Builders = () => {
       </section>
 
       <main className="container mx-auto px-4 py-8">
+        {/* Security Alert */}
+        <SecurityAlert 
+          isAuthenticated={!!userProfile}
+          userRole={userProfile?.role}
+          showContactInfo={isAdmin || userProfile?.role === 'builder'}
+        />
+
         {/* Dashboard for authenticated builders */}
         {showDashboard && canAccessDashboard ? (
           <div className="space-y-6">
