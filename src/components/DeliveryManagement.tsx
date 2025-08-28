@@ -21,7 +21,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Package, Truck, Clock, MapPin, Phone, Eye, AlertCircle, User } from 'lucide-react';
+import { Plus, Package, Truck, Clock, MapPin, Phone, Eye, AlertCircle, User, ChevronDown } from 'lucide-react';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Link } from 'react-router-dom';
 
@@ -463,10 +469,33 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className={`grid w-full ${user && (userRole === 'admin' || userRole === 'supplier') ? 'grid-cols-9' : 'grid-cols-7'}`}>
-          <TabsTrigger value="tracker" className="flex items-center gap-2">
-            <Eye className="h-4 w-4" />
-            Track Delivery
-          </TabsTrigger>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex items-center gap-2 h-10 px-3 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                <Eye className="h-4 w-4" />
+                Delivery Tracking
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuItem onClick={() => setActiveTab('tracker')}>
+                <Package className="h-4 w-4 mr-2" />
+                Track Package
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab('tracker')}>
+                <MapPin className="h-4 w-4 mr-2" />
+                Live Location
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab('tracker')}>
+                <Clock className="h-4 w-4 mr-2" />
+                Delivery Schedule
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab('tracker')}>
+                <Truck className="h-4 w-4 mr-2" />
+                Driver Info
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           {user && (userRole === 'admin' || userRole === 'supplier') && (
             <>
               <TabsTrigger value="camera-setup">Camera Setup</TabsTrigger>
