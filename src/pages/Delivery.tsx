@@ -18,7 +18,8 @@ const Delivery = () => {
   const [activeTab, setActiveTab] = useState("track");
   const { userRole, hasRole, loading, user } = useDeliveryAuth();
 
-  const tabs = [
+  // Base tabs available to all users
+  const baseTabs = [
     {
       value: "track",
       label: "Track Delivery",
@@ -46,6 +47,38 @@ const Delivery = () => {
       icon: UserPlus,
       description: "Apply to become a delivery provider",
       component: <DelivererApplication />
+    }
+  ];
+
+  // Admin-only tabs
+  const adminTabs = [
+    {
+      value: "all-deliveries",
+      label: "All Deliveries",
+      icon: Package,
+      description: "View all delivery records",
+      component: <DeliveryTrackingSection userRole={userRole} canEdit={true} userId={user?.profile?.id} />
+    },
+    {
+      value: "pending",
+      label: "Pending",
+      icon: Package,
+      description: "View pending deliveries",
+      component: <DeliveryTrackingSection userRole={userRole} canEdit={true} userId={user?.profile?.id} />
+    },
+    {
+      value: "in-transit",
+      label: "In Transit",
+      icon: Truck,
+      description: "View deliveries in transit",
+      component: <DeliveryTrackingSection userRole={userRole} canEdit={true} userId={user?.profile?.id} />
+    },
+    {
+      value: "delivered",
+      label: "Delivered",
+      icon: Package,
+      description: "View completed deliveries",
+      component: <DeliveryTrackingSection userRole={userRole} canEdit={true} userId={user?.profile?.id} />
     },
     {
       value: "analytics",
@@ -69,6 +102,9 @@ const Delivery = () => {
       component: <ExternalLogisticsIntegrations userId={user?.profile?.id} userRole={userRole} />
     }
   ];
+
+  // Combine tabs based on user role
+  const tabs = userRole === 'admin' ? [...baseTabs, ...adminTabs] : baseTabs;
 
   if (loading) {
     return (
