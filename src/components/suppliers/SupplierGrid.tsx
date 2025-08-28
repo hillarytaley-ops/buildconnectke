@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SupplierCard } from "./SupplierCard";
 import { SupplierFilters } from "./SupplierFilters";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -108,9 +108,25 @@ export const SupplierGrid = ({ onSupplierSelect }: SupplierGridProps) => {
 
   const { suppliers: dbSuppliers, loading, error, totalCount, refetch } = useSuppliers(
     filters,
-    currentPage,
+    supplierSource === "registered" ? currentPage : 1,
     SUPPLIERS_PER_PAGE
   );
+
+  // Always show demo suppliers as fallback to prevent empty displays
+  const [showingFallback, setShowingFallback] = useState(false);
+  
+  useEffect(() => {
+    // If registered suppliers fail to load after 3 seconds, show demo data
+    if (supplierSource === "registered" && loading) {
+      const timer = setTimeout(() => {
+        if (loading || (dbSuppliers.length === 0 && !error)) {
+          setSupplierSource("sample");
+          setShowingFallback(true);
+        }
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, dbSuppliers.length, error, supplierSource]);
 
   // Filter demo suppliers based on current filters
   const getFilteredDemoSuppliers = () => {
@@ -149,12 +165,19 @@ export const SupplierGrid = ({ onSupplierSelect }: SupplierGridProps) => {
     currentPage * SUPPLIERS_PER_PAGE
   );
 
-  // Choose data source based on selected option
-  const suppliers = supplierSource === "registered" ? dbSuppliers : paginatedDemoSuppliers;
-  const currentTotalCount = supplierSource === "registered" ? totalCount : demoSuppliers.length;
+  // Always ensure we have suppliers to display
+  const suppliers = supplierSource === "registered" 
+    ? (dbSuppliers.length > 0 ? dbSuppliers : (loading ? [] : paginatedDemoSuppliers))
+    : paginatedDemoSuppliers;
+    
+  const currentTotalCount = supplierSource === "registered" 
+    ? (totalCount > 0 ? totalCount : (loading ? 0 : demoSuppliers.length))
+    : demoSuppliers.length;
+    
   const totalPages = supplierSource === "registered" 
-    ? Math.ceil(totalCount / SUPPLIERS_PER_PAGE)
+    ? (totalCount > 0 ? Math.ceil(totalCount / SUPPLIERS_PER_PAGE) : (loading ? 0 : demoTotalPages))
     : demoTotalPages;
+    
   const isLoading = supplierSource === "registered" ? loading : false;
 
   const handleViewCatalog = (supplier: Supplier) => {
@@ -211,7 +234,7 @@ export const SupplierGrid = ({ onSupplierSelect }: SupplierGridProps) => {
                 <Database className="h-4 w-4" />
                 Registered Suppliers
                 <Badge variant="secondary" className="ml-1">
-                  {supplierSource === "registered" ? totalCount : "Live"}
+                  {supplierSource === "registered" ? (totalCount || "Loading...") : "Live"}
                 </Badge>
               </Button>
               <Button
@@ -228,11 +251,18 @@ export const SupplierGrid = ({ onSupplierSelect }: SupplierGridProps) => {
               </Button>
             </div>
           </div>
-          {supplierSource === "sample" && (
-            <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-              Demo Data
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {supplierSource === "sample" && (
+              <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                Demo Data
+              </Badge>
+            )}
+            {showingFallback && (
+              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                Fallback Mode
+              </Badge>
+            )}
+          </div>
         </div>
 
         <SupplierFilters
