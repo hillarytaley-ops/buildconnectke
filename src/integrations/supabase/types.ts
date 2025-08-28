@@ -1586,6 +1586,42 @@ export type Database = {
           },
         ]
       }
+      provider_access_log: {
+        Row: {
+          access_type: string
+          accessed_at: string | null
+          accessed_fields: string[] | null
+          business_justification: string | null
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+          viewed_provider_id: string
+          viewer_user_id: string | null
+        }
+        Insert: {
+          access_type: string
+          accessed_at?: string | null
+          accessed_fields?: string[] | null
+          business_justification?: string | null
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          viewed_provider_id: string
+          viewer_user_id?: string | null
+        }
+        Update: {
+          access_type?: string
+          accessed_at?: string | null
+          accessed_fields?: string[] | null
+          business_justification?: string | null
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          viewed_provider_id?: string
+          viewer_user_id?: string | null
+        }
+        Relationships: []
+      }
       purchase_orders: {
         Row: {
           buyer_id: string
@@ -2153,6 +2189,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      can_access_provider_contact: {
+        Args: { provider_uuid: string }
+        Returns: boolean
+      }
       can_access_supplier_contact: {
         Args: { supplier_uuid: string }
         Returns: boolean
@@ -2328,6 +2368,27 @@ export type Database = {
           weight_kg: number
         }[]
       }
+      get_secure_provider_info: {
+        Args: { provider_uuid: string }
+        Returns: {
+          address: string
+          can_view_contact: boolean
+          capacity_kg: number
+          email: string
+          hourly_rate: number
+          id: string
+          is_active: boolean
+          is_verified: boolean
+          per_km_rate: number
+          phone: string
+          provider_name: string
+          provider_type: string
+          rating: number
+          service_areas: string[]
+          total_deliveries: number
+          vehicle_types: string[]
+        }[]
+      }
       get_secure_purchase_order: {
         Args: { order_uuid: string }
         Returns: {
@@ -2447,6 +2508,15 @@ export type Database = {
       }
       log_profile_access: {
         Args: { access_type_param: string; viewed_profile_uuid: string }
+        Returns: undefined
+      }
+      log_provider_access: {
+        Args: {
+          access_type_param: string
+          fields_accessed?: string[]
+          justification?: string
+          provider_uuid: string
+        }
         Returns: undefined
       }
       log_supplier_contact_access: {

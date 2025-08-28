@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Star, Truck, MapPin, Phone, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { Star, Truck, MapPin, Phone, CheckCircle, XCircle, AlertCircle, Shield } from "lucide-react";
 import { useDeliveryAuth } from "./delivery/useDeliveryAuth";
+import ProviderSecurityNotice from "./delivery/ProviderSecurityNotice";
 
 const DeliveryProviders = () => {
   const [providers, setProviders] = useState([]);
@@ -26,6 +27,7 @@ const DeliveryProviders = () => {
 
   const fetchProviders = async () => {
     try {
+      // Use the public view which already has restricted access
       const { data, error } = await supabase
         .from('delivery_providers_public')
         .select('*')
@@ -39,9 +41,10 @@ const DeliveryProviders = () => {
       console.error('Error fetching providers:', error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to load delivery providers"
+        title: "Access Restricted",
+        description: "Unable to load provider information. You may need appropriate permissions."
       });
+      setProviders([]);
     }
   };
 
@@ -175,6 +178,13 @@ const DeliveryProviders = () => {
 
   return (
     <div className="space-y-6">
+      {/* Security Notice */}
+      <ProviderSecurityNotice 
+        userRole={userRole}
+        hasActiveRequest={hasRole(['delivery_provider', 'admin'])}
+        isAdmin={hasRole('admin')}
+      />
+
       {/* Pending Delivery Requests - Only for delivery providers and admins */}
       {hasRole(['delivery_provider', 'admin']) && pendingRequests.length > 0 && (
         <Card>
@@ -252,9 +262,12 @@ const DeliveryProviders = () => {
       {/* Available Delivery Providers */}
       <Card>
         <CardHeader>
-          <CardTitle>Available Delivery Providers</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-primary" />
+            Available Delivery Providers
+          </CardTitle>
           <CardDescription>
-            Verified delivery providers in your area
+            Verified delivery providers - Contact information protected by security protocols
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -277,46 +290,47 @@ const DeliveryProviders = () => {
                       </span>
                     </div>
 
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Truck className="h-4 w-4" />
-                        <span>{provider.vehicle_types?.join(', ') || 'Various vehicles'}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        <span>{provider.service_areas?.join(', ') || 'Service areas available'}</span>
-                      </div>
+                     <div className="space-y-2 text-sm">
+                       <div className="flex items-center gap-2">
+                         <Truck className="h-4 w-4" />
+                         <span>{provider.vehicle_types?.join(', ') || 'Various vehicles'}</span>
+                       </div>
+                       
+                       <div className="flex items-center gap-2">
+                         <MapPin className="h-4 w-4" />
+                         <span>
+                           {provider.service_areas?.length > 0 
+                             ? `${provider.service_areas[0]}${provider.service_areas.length > 1 ? ' +' + (provider.service_areas.length - 1) + ' more' : ''}`
+                             : 'Service areas available'
+                           }
+                         </span>
+                       </div>
 
-                      {provider.capacity_kg && (
-                        <div>
-                          <span className="font-medium">Capacity:</span> {provider.capacity_kg} kg
-                        </div>
-                      )}
+                       {provider.capacity_kg && (
+                         <div>
+                           <span className="font-medium">Capacity:</span> {provider.capacity_kg} kg
+                         </div>
+                       )}
 
-                      <div className="flex justify-between">
-                        {provider.hourly_rate && (
-                          <span>${provider.hourly_rate}/hr</span>
-                        )}
-                        {provider.per_km_rate && (
-                          <span>${provider.per_km_rate}/km</span>
-                        )}
-                      </div>
-                    </div>
+                       <div className="text-xs text-muted-foreground border-t pt-2">
+                         <div>Contact information available after request acceptance</div>
+                         <div>Rates disclosed during quote process</div>
+                       </div>
+                     </div>
 
-                    <Button 
-                      size="sm" 
-                      className="w-full"
-                      onClick={() => {
-                        toast({
-                          title: "Contact Provider",
-                          description: "Contact functionality will be available soon"
-                        });
-                      }}
-                    >
-                      <Phone className="h-4 w-4 mr-2" />
-                      Contact Provider
-                    </Button>
+                     <Button 
+                       size="sm" 
+                       className="w-full"
+                       onClick={() => {
+                         toast({
+                           title: "Contact via Request",
+                           description: "Submit a delivery request to contact this provider securely."
+                         });
+                       }}
+                     >
+                       <Phone className="h-4 w-4 mr-2" />
+                       Request Quote
+                     </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -325,11 +339,16 @@ const DeliveryProviders = () => {
 
           {providers.length === 0 && (
             <div className="text-center py-8">
-              <Truck className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Providers Available</h3>
               <p className="text-muted-foreground">
-                No verified delivery providers are currently available in your area.
+                No verified delivery providers are currently available, or you may need appropriate permissions to view them.
               </p>
+              {!hasRole(['builder', 'admin']) && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Builder role required to view delivery providers.
+                </p>
+              )}
             </div>
           )}
         </CardContent>
