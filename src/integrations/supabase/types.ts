@@ -2172,6 +2172,14 @@ export type Database = {
         }
         Returns: string
       }
+      get_current_user_profile_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_delivery_summaries: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -2404,6 +2412,18 @@ export type Database = {
       get_user_role: {
         Args: { _user_id: string }
         Returns: string
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_builder: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_supplier: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
       }
       log_driver_info_access: {
         Args: { access_type_param: string; delivery_uuid: string }

@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Star, MapPin, Package, Eye, EyeOff, Phone, Mail, Building } from "lucide-react";
+import { Shield } from "lucide-react";
 import PublicSuppliersView from "./PublicSuppliersView";
+import ErrorBoundary from "./ErrorBoundary";
+import SupplierCard from "./suppliers/SupplierCard";
+import SearchAndFilters from "./suppliers/SearchAndFilters";
+import LoadingGrid from "./suppliers/LoadingGrid";
+import EmptyState from "./suppliers/EmptyState";
+import SupplierRegistrationCTA from "./suppliers/SupplierRegistrationCTA";
 
 interface SecureSupplierInfo {
   id: string;
@@ -23,12 +26,19 @@ interface SecureSupplierInfo {
   address: string;
 }
 
+const categories = [
+  'All', 'Cement', 'Steel', 'Tiles', 'Paint', 'Timber', 
+  'Hardware', 'Plumbing', 'Electrical', 'Aggregates', 'Roofing'
+];
+
 const SecureSuppliersDirectory = () => {
   const [suppliers, setSuppliers] = useState<SecureSupplierInfo[]>([]);
+  const [filteredSuppliers, setFilteredSuppliers] = useState<SecureSupplierInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -39,7 +49,11 @@ const SecureSuppliersDirectory = () => {
     if (userProfile) {
       fetchSecureSuppliers();
     }
-  }, [userProfile, searchTerm, selectedCategory]);
+  }, [userProfile]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [suppliers, searchTerm, selectedCategory]);
 
   const checkAuth = async () => {
     try {
@@ -55,6 +69,11 @@ const SecureSuppliersDirectory = () => {
       }
     } catch (error) {
       console.error('Auth check error:', error);
+      toast({
+        title: "Authentication Error",
+        description: "Unable to verify your login status. Please try refreshing the page.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -113,34 +132,12 @@ const SecureSuppliersDirectory = () => {
         })
       );
 
-      // Apply filters
-      let filteredSuppliers = secureSuppliers;
-      
-      if (searchTerm) {
-        filteredSuppliers = filteredSuppliers.filter(supplier =>
-          supplier.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          supplier.specialties?.some(spec => 
-            spec.toLowerCase().includes(searchTerm.toLowerCase())
-          ) ||
-          supplier.materials_offered?.some(material => 
-            material.toLowerCase().includes(searchTerm.toLowerCase())
-          )
-        );
-      }
-
-      if (selectedCategory !== 'All') {
-        filteredSuppliers = filteredSuppliers.filter(supplier =>
-          supplier.specialties?.includes(selectedCategory) ||
-          supplier.materials_offered?.includes(selectedCategory)
-        );
-      }
-
-      setSuppliers(filteredSuppliers);
+      setSuppliers(secureSuppliers);
     } catch (error) {
       console.error('Error fetching suppliers:', error);
       toast({
         title: "Error",
-        description: "Failed to load suppliers directory.",
+        description: "Failed to load suppliers directory. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -148,246 +145,122 @@ const SecureSuppliersDirectory = () => {
     }
   };
 
-  const categories = [
-    'All', 'Cement', 'Steel', 'Tiles', 'Paint', 'Timber', 
-    'Hardware', 'Plumbing', 'Electrical', 'Aggregates', 'Roofing'
-  ];
+  const applyFilters = () => {
+    let filtered = [...suppliers];
+    
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(supplier =>
+        supplier.company_name.toLowerCase().includes(term) ||
+        supplier.specialties?.some(spec => 
+          spec.toLowerCase().includes(term)
+        ) ||
+        supplier.materials_offered?.some(material => 
+          material.toLowerCase().includes(term)
+        )
+      );
+    }
+
+    if (selectedCategory !== 'All') {
+      filtered = filtered.filter(supplier =>
+        supplier.specialties?.includes(selectedCategory) ||
+        supplier.materials_offered?.includes(selectedCategory)
+      );
+    }
+
+    setFilteredSuppliers(filtered);
+  };
 
   const requestContactAccess = async (supplierId: string) => {
     try {
-      // This would typically create a contact request
       toast({
-        title: "Contact Request",
+        title: "Contact Request Submitted",
         description: "Your request for supplier contact details has been submitted. You'll gain access once you have an active business relationship.",
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to request contact access.",
+        description: "Failed to request contact access. Please try again.",
         variant: "destructive",
       });
     }
   };
 
+  const handleRegistrationClick = () => {
+    // Navigate to registration form - this will be handled by parent component
+    window.location.href = '/suppliers?register=true';
+  };
+
   if (!userProfile) {
     return (
-      <div className="space-y-6">
-        {/* Public View - Limited Information */}
-        <Card className="border-amber-200 bg-amber-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-amber-800">
-              <Shield className="h-5 w-5" />
-              Public Suppliers Directory
-            </CardTitle>
-            <CardDescription className="text-amber-700">
-              Sign in to access full supplier details including contact information.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-        
-        <PublicSuppliersView />
-      </div>
+      <ErrorBoundary>
+        <div className="space-y-6">
+          {/* Public View - Limited Information */}
+          <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
+                <Shield className="h-5 w-5" />
+                Public Suppliers Directory
+              </CardTitle>
+              <CardDescription className="text-amber-700 dark:text-amber-300">
+                Sign in to access full supplier details including contact information.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+          
+          <PublicSuppliersView />
+        </div>
+      </ErrorBoundary>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Security Notice */}
-      <Card className="border-primary">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-primary">
-            <Shield className="h-5 w-5" />
-            Secure Suppliers Directory
-          </CardTitle>
-          <CardDescription>
-            Supplier contact information is protected and only visible to users with active business relationships. 
-            All access is logged for security.
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
-      {/* Search and Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
-          <Input
-            placeholder="Search suppliers by name, specialties, or materials..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          {categories.map((category) => (
-            <Badge
-              key={category}
-              variant={selectedCategory === category ? "default" : "secondary"}
-              className="cursor-pointer"
-              onClick={() => setSelectedCategory(category)}
-            >
-              {category}
-            </Badge>
-          ))}
-        </div>
-      </div>
-
-      {/* Suppliers Grid */}
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-4 bg-muted rounded w-3/4"></div>
-                <div className="h-3 bg-muted rounded w-1/2"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="h-3 bg-muted rounded"></div>
-                  <div className="h-3 bg-muted rounded w-2/3"></div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : suppliers.length === 0 ? (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center py-12 text-muted-foreground">
-              <Package className="h-16 w-16 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-semibold mb-2">No Suppliers Found</h3>
-              <p className="mb-4">
-                {searchTerm || selectedCategory !== 'All' 
-                  ? 'No suppliers match your current search criteria.' 
-                  : 'No suppliers are currently registered in the system.'}
-              </p>
-              {(!searchTerm && selectedCategory === 'All') && (
-                <p className="text-sm">
-                  Be the first to register as a supplier and join our construction marketplace!
-                </p>
-              )}
-            </div>
-          </CardContent>
+    <ErrorBoundary>
+      <div className="space-y-6">
+        {/* Security Notice */}
+        <Card className="border-primary">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-primary">
+              <Shield className="h-5 w-5" />
+              Secure Suppliers Directory
+            </CardTitle>
+            <CardDescription>
+              Supplier contact information is protected and only visible to users with active business relationships. 
+              All access is logged for security.
+            </CardDescription>
+          </CardHeader>
         </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {suppliers.map((supplier) => (
-            <Card key={supplier.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Building className="h-5 w-5" />
-                      {supplier.company_name}
-                    </CardTitle>
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                        <span className="text-sm font-medium">{supplier.rating?.toFixed(1) || 'N/A'}</span>
-                      </div>
-                      {supplier.is_verified ? (
-                        <Badge variant="default" className="text-xs">
-                          ✓ Verified
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="text-xs">
-                          ⏳ Pending
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Specialties */}
-                {supplier.specialties && supplier.specialties.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium mb-2">Specialties:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {supplier.specialties.slice(0, 3).map((specialty, idx) => (
-                        <Badge key={idx} variant="secondary" className="text-xs">
-                          {specialty}
-                        </Badge>
-                      ))}
-                      {supplier.specialties.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{supplier.specialties.length - 3} more
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                )}
 
-                {/* Contact Information */}
-                <div className="space-y-2 p-3 bg-muted rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Contact Information</span>
-                    {supplier.can_view_contact ? (
-                      <Badge variant="default" className="text-xs">
-                        <Eye className="h-3 w-3 mr-1" />
-                        Authorized
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary" className="text-xs">
-                        <EyeOff className="h-3 w-3 mr-1" />
-                        Protected
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-1 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Building className="h-3 w-3 text-muted-foreground" />
-                      <span>{supplier.contact_person}</span>
-                    </div>
-                    
-                    {supplier.can_view_contact ? (
-                      <>
-                        {supplier.email && (
-                          <div className="flex items-center gap-2">
-                            <Mail className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-xs font-mono">{supplier.email}</span>
-                          </div>
-                        )}
-                        {supplier.phone && (
-                          <div className="flex items-center gap-2">
-                            <Phone className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-xs font-mono">{supplier.phone}</span>
-                          </div>
-                        )}
-                        {supplier.address && (
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-xs">{supplier.address}</span>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <div className="text-xs text-muted-foreground">
-                        Contact details available after establishing business relationship
-                      </div>
-                    )}
-                  </div>
-                  
-                  {!supplier.can_view_contact && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="w-full text-xs"
-                      onClick={() => requestContactAccess(supplier.id)}
-                    >
-                      Request Contact Access
-                    </Button>
-                  )}
-                </div>
+        {/* Search and Filters */}
+        <SearchAndFilters
+          searchTerm={searchTerm}
+          selectedCategory={selectedCategory}
+          onSearchChange={setSearchTerm}
+          onCategoryChange={setSelectedCategory}
+          categories={categories}
+        />
 
-                {/* Member Since */}
-                <div className="text-xs text-muted-foreground">
-                  Member since {new Date(supplier.created_at).getFullYear()}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-    </div>
+        {/* Suppliers Grid */}
+        {loading ? (
+          <LoadingGrid />
+        ) : filteredSuppliers.length === 0 ? (
+          <EmptyState searchTerm={searchTerm} selectedCategory={selectedCategory} />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredSuppliers.map((supplier) => (
+              <SupplierCard
+                key={supplier.id}
+                supplier={supplier}
+                onRequestContactAccess={requestContactAccess}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Supplier Registration CTA */}
+        <SupplierRegistrationCTA onRegisterClick={handleRegistrationClick} />
+      </div>
+    </ErrorBoundary>
   );
 };
 
