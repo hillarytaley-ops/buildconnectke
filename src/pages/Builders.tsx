@@ -41,12 +41,10 @@ const Builders = () => {
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       
-      if (authError) {
-        throw new Error(`Authentication error: ${authError.message}`);
-      }
-      
-      if (!user) {
-        // Create a demo profile for now to show content
+      // Handle missing auth session gracefully - this is expected when not logged in
+      if (authError || !user) {
+        console.log('No authenticated user, using demo profile');
+        // Create a demo profile to show content without authentication
         const demoProfile: UserProfile = {
           id: 'demo-id',
           user_id: 'demo-user-id',
