@@ -3,12 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, MapPin, Star, Package, Store, Filter, Grid, List, Building, ShoppingBag, FileText } from "lucide-react";
+import { Search, MapPin, Star, Package, Store, Filter, Grid, List, Building, ShoppingBag, FileText, Shield } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SupplierRegistrationForm from "@/components/SupplierRegistrationForm";
 import QRCodeManager from "@/components/QRCodeManager";
 import DeliveryNoteForm from "@/components/DeliveryNoteForm";
+import SecureSuppliersDirectory from "@/components/SecureSuppliersDirectory";
 import { useState, useEffect } from "react";
 import { supabase } from '@/integrations/supabase/client';
 
@@ -118,212 +119,6 @@ const Suppliers = () => {
     "Roofing", "Paint", "Timber", "Hardware", "Plumbing", "Electrical"
   ];
 
-  const suppliers = [
-    {
-      name: "Bamburi Cement",
-      location: "Mombasa", 
-      rating: 4.8,
-      products: 150,
-      categories: ["Cement", "Concrete", "Building Solutions"],
-      logo: "https://sl.bing.net/cQRoNrqCKWq"
-    },
-    {
-      name: "Simba Cement",
-      location: "Nairobi",
-      rating: 4.7,
-      products: 120,
-      categories: ["Cement", "Lime", "Concrete Products"],
-      logo: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=80&h=80&fit=crop&crop=center"
-    },
-    {
-      name: "ARM Cement",
-      location: "Kaloleni",
-      rating: 4.6,
-      products: 110,
-      categories: ["Cement", "Steel", "Construction Materials"],
-      logo: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=80&h=80&fit=crop&crop=center"
-    },
-    {
-      name: "Devki Steel Mills",
-      location: "Ruiru",
-      rating: 4.9,
-      products: 200,
-      categories: ["Steel", "Iron Sheets", "Wire Products"],
-      logo: "https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=80&h=80&fit=crop&crop=center"
-    },
-    {
-      name: "Kenbro Industries",
-      location: "Nairobi",
-      rating: 4.5,
-      products: 180,
-      categories: ["Tiles", "Ceramics", "Sanitary Ware"],
-      logo: "https://images.unsplash.com/photo-1616047006789-b7af710a8688?w=80&h=80&fit=crop&crop=center"
-    },
-    {
-      name: "Crown Paints Kenya",
-      location: "Nairobi",
-      rating: 4.7,
-      products: 300,
-      categories: ["Paint", "Coatings", "Construction Chemicals"],
-      logo: "https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=80&h=80&fit=crop&crop=center"
-    },
-    {
-      name: "Sadolin Paints",
-      location: "Nairobi",
-      rating: 4.6,
-      products: 250,
-      categories: ["Paint", "Wood Finishes", "Industrial Coatings"],
-      logo: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=80&h=80&fit=crop&crop=center"
-    },
-    {
-      name: "Athi River Steel Plant",
-      location: "Athi River",
-      rating: 4.4,
-      products: 160,
-      categories: ["Steel", "Iron Bars", "Construction Steel"],
-      logo: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=80&h=80&fit=crop&crop=center"
-    },
-    {
-      name: "Tile & Carpet Centre",
-      location: "Nairobi",
-      rating: 4.6,
-      products: 240,
-      categories: ["Tiles", "Carpets", "Flooring Solutions"],
-      logo: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=80&h=80&fit=crop&crop=center"
-    },
-    {
-      name: "Mabati Rolling Mills",
-      location: "Nairobi",
-      rating: 4.8,
-      products: 180,
-      categories: ["Iron Sheets", "Roofing", "Steel Products"],
-      logo: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=80&h=80&fit=crop&crop=center"
-    },
-    {
-      name: "Chandaria Industries",
-      location: "Nairobi",
-      rating: 4.6,
-      products: 170,
-      categories: ["Pipes", "Plumbing", "Water Systems"],
-      logo: "https://images.unsplash.com/photo-1621905252472-e8be3d5a2c8d?w=80&h=80&fit=crop&crop=center"
-    },
-    {
-      name: "Homa Lime Company",
-      location: "Homa Bay",
-      rating: 4.4,
-      products: 90,
-      categories: ["Lime", "Aggregates", "Mining Products"],
-      logo: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=80&h=80&fit=crop&crop=center"
-    },
-    {
-      name: "East African Portland Cement",
-      location: "Athi River",
-      rating: 4.5,
-      products: 130,
-      categories: ["Cement", "Lime", "Aggregates"],
-      logo: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=80&h=80&fit=crop&crop=center"
-    },
-    {
-      name: "Kenblest Steel Fabricators",
-      location: "Nairobi",
-      rating: 4.7,
-      products: 220,
-      categories: ["Steel Fabrication", "Structural Steel", "Metalwork"],
-      logo: "https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=80&h=80&fit=crop&crop=center"
-    },
-    {
-      name: "Kaluworks Company",
-      location: "Nairobi",
-      rating: 4.5,
-      products: 200,
-      categories: ["Aluminum", "Roofing", "Windows & Doors"],
-      logo: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=80&h=80&fit=crop&crop=center"
-    },
-    {
-      name: "General Plastics Limited",
-      location: "Nairobi",
-      rating: 4.4,
-      products: 150,
-      categories: ["Plastic Products", "Pipes", "Water Tanks"],
-      logo: "https://images.unsplash.com/photo-1621905252472-e8be3d5a2c8d?w=80&h=80&fit=crop&crop=center"
-    },
-    {
-      name: "Nakuru Steel Fabricators",
-      location: "Nakuru",
-      rating: 4.3,
-      products: 140,
-      categories: ["Steel", "Iron Bars", "Fabrication"],
-      logo: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=80&h=80&fit=crop&crop=center"
-    },
-    {
-      name: "Kisumu Hardware Depot",
-      location: "Kisumu",
-      rating: 4.5,
-      products: 320,
-      categories: ["Hardware", "Tools", "Building Materials"],
-      logo: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=80&h=80&fit=crop&crop=center"
-    },
-    {
-      name: "Eldoret Building Supplies",
-      location: "Eldoret",
-      rating: 4.4,
-      products: 280,
-      categories: ["Timber", "Hardware", "Roofing Materials"],
-      logo: "https://images.unsplash.com/photo-1473445730015-841f29a9490b?w=80&h=80&fit=crop&crop=center"
-    },
-    {
-      name: "Mombasa Timber Merchants",
-      location: "Mombasa",
-      rating: 4.6,
-      products: 210,
-      categories: ["Timber", "Plywood", "Wood Products"],
-      logo: "https://images.unsplash.com/photo-1473445730015-841f29a9490b?w=80&h=80&fit=crop&crop=center"
-    },
-    {
-      name: "Thika Steel Works",
-      location: "Thika",
-      rating: 4.3,
-      products: 160,
-      categories: ["Steel", "Wire", "Construction Steel"],
-      logo: "https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=80&h=80&fit=crop&crop=center"
-    },
-    {
-      name: "Machakos Quarries",
-      location: "Machakos",
-      rating: 4.2,
-      products: 80,
-      categories: ["Aggregates", "Stone", "Sand"],
-      logo: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=80&h=80&fit=crop&crop=center"
-    },
-    {
-      name: "Nyeri Building Materials",
-      location: "Nyeri",
-      rating: 4.4,
-      products: 190,
-      categories: ["Cement", "Hardware", "Roofing"],
-      logo: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=80&h=80&fit=crop&crop=center"
-    },
-    {
-      name: "Meru Construction Supplies",
-      location: "Meru",
-      rating: 4.3,
-      products: 170,
-      categories: ["Tiles", "Paint", "Hardware"],
-      logo: "https://images.unsplash.com/photo-1616047006789-b7af710a8688?w=80&h=80&fit=crop&crop=center"
-    }
-  ];
-
-  const categories = [
-    { name: "Cement", image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=150&h=150&fit=crop" },
-    { name: "Steel", image: "https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=150&h=150&fit=crop" },
-    { name: "Tiles", image: "https://images.unsplash.com/photo-1616047006789-b7af710a8688?w=150&h=150&fit=crop" },
-    { name: "Paint", image: "https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=150&h=150&fit=crop" },
-    { name: "Timber", image: "https://images.unsplash.com/photo-1473445730015-841f29a9490b?w=150&h=150&fit=crop" },
-    { name: "Hardware", image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=150&h=150&fit=crop" },
-    { name: "Plumbing", image: "https://images.unsplash.com/photo-1621905252472-e8be3d5a2c8d?w=150&h=150&fit=crop" },
-    { name: "Electrical", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=150&h=150&fit=crop" }
-  ];
-
   if (showRegistrationForm) {
     return (
       <div className="min-h-screen bg-gradient-construction">
@@ -424,94 +219,47 @@ const Suppliers = () => {
           )}
           
           <TabsContent value="suppliers" className="space-y-8">
-            {/* Filters and View Options */}
-            <div className="flex justify-between items-center py-6 bg-muted rounded-lg px-4">
-              <div className="flex items-center gap-4">
-                <Button variant="outline" size="sm">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filters
-                </Button>
-                <span className="text-sm text-gray-600">Showing {suppliers.length} suppliers</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm">
-                  <Grid className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="sm">
-                  <List className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Suppliers Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {suppliers.map((supplier, index) => (
-                <Card key={index} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted">
-                        <img 
-                          src={supplier.logo} 
-                          alt={supplier.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <CardTitle className="text-lg">{supplier.name}</CardTitle>
-                        <CardDescription className="flex items-center gap-1">
-                          <MapPin className="h-4 w-4" />
-                          {supplier.location}
-                        </CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Products</span>
-                        <span className="font-medium">{supplier.products}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Rating</span>
-                        <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                          <span className="font-medium">{supplier.rating}</span>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {supplier.categories.slice(0, 3).map((category, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs">
-                            {category}
-                          </Badge>
-                        ))}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="flex-1">
-                          Quote
-                        </Button>
-                        <Button size="sm" className="flex-1">
-                          Select
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <SecureSuppliersDirectory />
             
-            {/* Join as Supplier Section */}
-            <div className="bg-accent rounded-lg p-8 text-center">
-              <h3 className="text-2xl font-bold mb-4">Ready to Grow Your Business?</h3>
-              <p className="text-lg mb-6 opacity-90">Join our marketplace and connect with builders across Kenya</p>
-              <Button 
-                size="lg" 
-                onClick={() => setShowRegistrationForm(true)}
-                className="bg-primary hover:bg-primary/90"
-              >
-                <Store className="h-5 w-5 mr-2" />
-                Register as Supplier
-              </Button>
-            </div>
+            {/* Supplier Registration CTA */}
+            <Card className="bg-gradient-to-r from-red-50 to-green-50 border-primary">
+              <CardContent className="pt-6">
+                <div className="text-center space-y-4">
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-semibold">Are you a construction material supplier?</h3>
+                    <p className="text-muted-foreground">
+                      Join our network of verified suppliers and reach thousands of builders across Kenya
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Button 
+                      onClick={() => setShowRegistrationForm(true)}
+                      className="bg-primary hover:bg-primary/90"
+                    >
+                      <Store className="h-4 w-4 mr-2" />
+                      Register as Supplier
+                    </Button>
+                    <Button variant="outline">
+                      Learn More
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-center gap-8 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <Package className="h-4 w-4" />
+                      Free Registration
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Star className="h-4 w-4" />
+                      Verified Badge
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" />
+                      Nationwide Reach
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="materials" className="space-y-8">
@@ -588,170 +336,6 @@ const Suppliers = () => {
           </TabsContent>
         </Tabs>
       </main>
-
-      {/* Categories Section */}
-      <section className="py-12 bg-muted">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl font-bold text-center mb-8">Material Categories</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-            {categories.map((category, index) => (
-              <Card key={index} className="text-center cursor-pointer hover:shadow-md transition-shadow">
-                <CardContent className="py-6">
-                  <div className="w-16 h-16 mx-auto mb-3 rounded-lg overflow-hidden bg-muted">
-                    <img 
-                      src={category.image} 
-                      alt={category.name}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform"
-                    />
-                  </div>
-                  <p className="text-sm font-medium">{category.name}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Who Can Buy Section */}
-      <section className="bg-accent py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Who Can Buy?</h2>
-          <p className="text-lg opacity-90 mb-12">Our marketplace serves everyone in the construction ecosystem</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="text-center">
-              <div className="bg-primary rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🏗️</span>
-              </div>
-              <h3 className="font-semibold text-lg mb-2">Professional Builders</h3>
-              <p className="opacity-90">Construction companies and contractors working on large-scale projects</p>
-            </div>
-            <div className="text-center">
-              <div className="bg-green-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🏠</span>
-              </div>
-              <h3 className="font-semibold text-lg mb-2">Homeowners</h3>
-              <p className="opacity-90">Private individuals building or renovating their homes</p>
-            </div>
-            <div className="text-center">
-              <div className="bg-primary rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🔨</span>
-              </div>
-              <h3 className="font-semibold text-lg mb-2">DIY Enthusiasts</h3>
-              <p className="opacity-90">Individuals working on home improvement and personal projects</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-12 bg-secondary">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-3xl font-bold text-black">500+</div>
-              <div className="text-gray-600">Verified Suppliers</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-green-600">15,000+</div>
-              <div className="text-gray-600">Products Listed</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-red-600">47</div>
-              <div className="text-gray-600">Counties Served</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-black">24/7</div>
-              <div className="text-gray-600">Customer Support</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Suppliers Directory */}
-      <section className="py-16 bg-secondary">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">Verified Material Suppliers</h2>
-            <Button variant="outline">View All Suppliers</Button>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {suppliers.map((supplier, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="text-center">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center overflow-hidden">
-                    {supplier.logo ? (
-                      <img 
-                        src={supplier.logo} 
-                        alt={`${supplier.name} logo`}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <Store className="h-8 w-8 text-gray-600" />
-                    )}
-                  </div>
-                  <CardTitle className="text-lg">{supplier.name}</CardTitle>
-                  <CardDescription className="flex items-center justify-center gap-1">
-                    <MapPin className="h-4 w-4" />
-                    {supplier.location}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <div className="flex items-center justify-center gap-1 mb-2">
-                    <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                    <span className="font-semibold">{supplier.rating}</span>
-                  </div>
-                  <div className="flex items-center justify-center gap-2 mb-4">
-                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                      <Package className="h-4 w-4" />
-                      {supplier.products} products
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-1 mb-4 justify-center">
-                    {supplier.categories.map((category, idx) => (
-                      <Badge key={idx} variant="secondary" className="text-xs">
-                        {category}
-                      </Badge>
-                    ))}
-                  </div>
-                  <Button className="w-full bg-primary hover:bg-primary/90">
-                    View Catalog
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Price Alert CTA */}
-      <section 
-        className="text-white py-16 relative"
-        style={{
-          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/lovable-uploads/6ea15a8f-a981-4c02-a56e-64ed62ab7a57.png')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        }}
-      >
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <h2 className="text-3xl font-bold mb-4">Get Price Alerts & Become a Supplier</h2>
-          <p className="text-lg opacity-90 mb-8">Never miss a great deal! Set up alerts for your favorite materials or register as a supplier to reach thousands of builders</p>
-          <div className="flex gap-4 justify-center">
-            <Button size="lg" className="bg-primary hover:bg-primary/90">
-              Set Up Price Alerts
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline"
-              className="bg-white text-black hover:bg-gray-100"
-              onClick={() => setShowRegistrationForm(true)}
-            >
-              Register as Supplier
-            </Button>
-          </div>
-        </div>
-      </section>
 
       <Footer />
     </div>

@@ -1988,6 +1988,47 @@ export type Database = {
           },
         ]
       }
+      supplier_contact_access_log: {
+        Row: {
+          access_type: string
+          accessed_at: string | null
+          accessed_fields: string[] | null
+          id: string
+          ip_address: unknown | null
+          supplier_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          access_type: string
+          accessed_at?: string | null
+          accessed_fields?: string[] | null
+          id?: string
+          ip_address?: unknown | null
+          supplier_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          access_type?: string
+          accessed_at?: string | null
+          accessed_fields?: string[] | null
+          id?: string
+          ip_address?: unknown | null
+          supplier_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_contact_access_log_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppliers: {
         Row: {
           address: string | null
@@ -2110,6 +2151,10 @@ export type Database = {
         Args: {
           acknowledgement_record: Database["public"]["Tables"]["delivery_acknowledgements"]["Row"]
         }
+        Returns: boolean
+      }
+      can_access_supplier_contact: {
+        Args: { supplier_uuid: string }
         Returns: boolean
       }
       generate_access_code: {
@@ -2297,6 +2342,23 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_secure_supplier_info: {
+        Args: { supplier_uuid: string }
+        Returns: {
+          address: string
+          can_view_contact: boolean
+          company_name: string
+          contact_person: string
+          created_at: string
+          email: string
+          id: string
+          is_verified: boolean
+          materials_offered: string[]
+          phone: string
+          rating: number
+          specialties: string[]
+        }[]
+      }
       get_supplier_qr_codes: {
         Args: { _supplier_id: string }
         Returns: {
@@ -2365,6 +2427,14 @@ export type Database = {
       }
       log_profile_access: {
         Args: { access_type_param: string; viewed_profile_uuid: string }
+        Returns: undefined
+      }
+      log_supplier_contact_access: {
+        Args: {
+          access_type_param: string
+          fields_accessed?: string[]
+          supplier_uuid: string
+        }
         Returns: undefined
       }
       notify_nearby_delivery_providers: {
