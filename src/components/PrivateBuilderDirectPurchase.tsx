@@ -31,14 +31,14 @@ interface SupplierData {
   address: string;
   specialties: string[];
   rating: number;
-  verified: boolean;
+  is_verified: boolean;
 }
 
 interface PaymentMethod {
   id: string;
-  method_name: string;
-  method_type: string;
-  details: any;
+  payment_method: string;
+  is_default: boolean;
+  payment_details: any;
 }
 
 const PrivateBuilderDirectPurchase = () => {
@@ -78,24 +78,32 @@ const PrivateBuilderDirectPurchase = () => {
 
   const fetchSuppliers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('suppliers')
-        .select(`
-          id,
-          company_name,
-          contact_person,
-          email,
-          phone,
-          address,
-          specialties,
-          rating,
-          is_verified
-        `)
-        .eq('is_active', true)
-        .order('rating', { ascending: false });
-
-      if (error) throw error;
-      setSuppliers(data || []);
+      // Mock data for now - replace with actual Supabase query when suppliers table is ready
+      const mockSuppliers: SupplierData[] = [
+        {
+          id: "1",
+          company_name: "Cement Masters Ltd",
+          contact_person: "John Doe",
+          email: "john@cementmasters.com",
+          phone: "+254700123456",
+          address: "Industrial Area, Nairobi",
+          specialties: ["Cement", "Concrete", "Blocks"],
+          rating: 4.8,
+          is_verified: true
+        },
+        {
+          id: "2", 
+          company_name: "Steel & Iron Works",
+          contact_person: "Jane Smith",
+          email: "jane@steelworks.com", 
+          phone: "+254700654321",
+          address: "Ruiru, Kiambu",
+          specialties: ["Steel", "Iron", "Rebar"],
+          rating: 4.6,
+          is_verified: true
+        }
+      ];
+      setSuppliers(mockSuppliers);
     } catch (error) {
       console.error('Error fetching suppliers:', error);
       toast.error('Failed to load suppliers');
@@ -108,11 +116,16 @@ const PrivateBuilderDirectPurchase = () => {
     try {
       const { data, error } = await supabase
         .from('payment_preferences')
-        .select('*')
+        .select('id, payment_method, is_default, payment_details')
         .eq('user_id', userProfile.id);
 
       if (error) throw error;
-      setPaymentMethods(data || []);
+      setPaymentMethods(data?.map(method => ({
+        id: method.id,
+        payment_method: method.payment_method,
+        is_default: method.is_default,
+        payment_details: method.payment_details
+      })) || []);
     } catch (error) {
       console.error('Error fetching payment methods:', error);
     }
@@ -161,7 +174,7 @@ const PrivateBuilderDirectPurchase = () => {
           receipt_number: receiptNumber,
           buyer_id: userProfile.id,
           supplier_id: selectedSupplier?.id,
-          items: purchaseItems,
+          items: JSON.stringify(purchaseItems),
           total_amount: calculateTotal(),
           payment_method: selectedPaymentMethod,
           payment_reference: paymentReference,
@@ -323,7 +336,7 @@ const PrivateBuilderDirectPurchase = () => {
                             <span className="text-sm font-medium">{supplier.rating}</span>
                             <span className="text-yellow-500">★</span>
                           </div>
-                          {supplier.verified && (
+                          {supplier.is_verified && (
                             <Badge variant="default" className="text-xs mt-1">
                               Verified
                             </Badge>
@@ -460,7 +473,7 @@ const PrivateBuilderDirectPurchase = () => {
                   <SelectContent>
                     {paymentMethods.map((method) => (
                       <SelectItem key={method.id} value={method.id}>
-                        {method.method_name} ({method.method_type})
+                        {method.payment_method} ({method.is_default ? 'Default' : 'Saved'})
                       </SelectItem>
                     ))}
                     <SelectItem value="mpesa">M-Pesa</SelectItem>

@@ -1385,6 +1385,54 @@ export type Database = {
         }
         Relationships: []
       }
+      purchase_receipts: {
+        Row: {
+          buyer_id: string
+          created_at: string
+          delivery_address: string | null
+          id: string
+          items: Json
+          payment_method: string
+          payment_reference: string | null
+          receipt_number: string
+          special_instructions: string | null
+          status: string
+          supplier_id: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          buyer_id: string
+          created_at?: string
+          delivery_address?: string | null
+          id?: string
+          items?: Json
+          payment_method: string
+          payment_reference?: string | null
+          receipt_number: string
+          special_instructions?: string | null
+          status?: string
+          supplier_id: string
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          buyer_id?: string
+          created_at?: string
+          delivery_address?: string | null
+          id?: string
+          items?: Json
+          payment_method?: string
+          payment_reference?: string | null
+          receipt_number?: string
+          special_instructions?: string | null
+          status?: string
+          supplier_id?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       quotation_requests: {
         Row: {
           created_at: string
@@ -1675,6 +1723,8 @@ export type Database = {
           is_verified: boolean | null
           materials_offered: string[] | null
           phone: string | null
+          rating: number | null
+          specialties: string[] | null
           updated_at: string
           user_id: string | null
         }
@@ -1688,6 +1738,8 @@ export type Database = {
           is_verified?: boolean | null
           materials_offered?: string[] | null
           phone?: string | null
+          rating?: number | null
+          specialties?: string[] | null
           updated_at?: string
           user_id?: string | null
         }
@@ -1701,6 +1753,8 @@ export type Database = {
           is_verified?: boolean | null
           materials_offered?: string[] | null
           phone?: string | null
+          rating?: number | null
+          specialties?: string[] | null
           updated_at?: string
           user_id?: string | null
         }

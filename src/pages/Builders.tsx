@@ -15,6 +15,7 @@ import ComprehensivePurchaseOrder from "@/components/ComprehensivePurchaseOrder"
 import BuilderDeliveryNotes from "@/components/BuilderDeliveryNotes";
 import GoodsReceivedNote from "@/components/GoodsReceivedNote";
 import DeliveryAcknowledgment from "@/components/DeliveryAcknowledgment";
+import PrivateBuilderDirectPurchase from "@/components/PrivateBuilderDirectPurchase";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -48,6 +49,10 @@ const Builders = () => {
   const isAuthorizedBuilder = userProfile && 
     userProfile.role === 'builder' && 
     (userProfile.user_type === 'company' || userProfile.is_professional);
+
+  const isPrivateBuilder = userProfile && 
+    userProfile.role === 'builder' && 
+    userProfile.user_type === 'individual';
 
   const builders = [
     {
@@ -274,6 +279,22 @@ const Builders = () => {
                 <GoodsReceivedNote />
               </TabsContent>
             </Tabs>
+          </div>
+        </section>
+      )}
+
+      {/* Private Builder Direct Purchase Section */}
+      {isPrivateBuilder && (
+        <section className="py-16 bg-background">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-foreground mb-4">Private Builder Direct Purchase</h2>
+              <p className="text-xl text-muted-foreground">
+                Buy materials directly from suppliers with secure payments and automatic QR tracking
+              </p>
+            </div>
+            
+            <PrivateBuilderDirectPurchase />
           </div>
         </section>
       )}
