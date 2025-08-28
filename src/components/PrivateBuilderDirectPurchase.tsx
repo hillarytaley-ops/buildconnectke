@@ -248,6 +248,30 @@ const PrivateBuilderDirectPurchase = () => {
       // Generate QR codes for all items
       await generateQRCodes(receipt.id);
 
+      // If delivery is required, notify delivery providers
+      if (deliveryRequired && deliveryAddress) {
+        try {
+          await supabase.functions.invoke('notify-delivery-providers', {
+            body: {
+              request_type: 'private_purchase',
+              request_id: receipt.id,
+              pickup_address: selectedSupplier?.address || "Supplier location",
+              delivery_address: deliveryAddress,
+              material_details: purchaseItems.map(item => ({
+                material_type: item.material_type,
+                description: item.description,
+                quantity: item.quantity,
+                unit: item.unit
+              })),
+              special_instructions: specialInstructions,
+              priority_level: 'normal'
+            }
+          });
+        } catch (deliveryError) {
+          console.error('Error notifying delivery providers:', deliveryError);
+        }
+      }
+
       // Clear form
       setPurchaseItems([]);
       setSelectedSupplier(null);

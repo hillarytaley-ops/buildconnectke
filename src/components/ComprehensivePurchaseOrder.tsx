@@ -150,7 +150,7 @@ const ComprehensivePurchaseOrder = () => {
         return;
       }
 
-      const { error } = await supabase
+      const { data: poData, error } = await supabase
         .from('purchase_orders')
         .insert({
           po_number: poNumber,
@@ -172,7 +172,9 @@ const ComprehensivePurchaseOrder = () => {
           delivery_required: deliveryRequired,
           delivery_requested_at: deliveryRequired ? new Date().toISOString() : null,
           status: 'pending'
-        });
+        })
+        .select()
+        .single();
 
       if (error) {
         console.error('Purchase order creation error:', error);
@@ -180,7 +182,33 @@ const ComprehensivePurchaseOrder = () => {
         return;
       }
       
-      toast.success("Purchase order created and sent to supplier for confirmation");
+      // If delivery is required, notify delivery providers
+      if (deliveryRequired && deliveryAddress) {
+        try {
+          await supabase.functions.invoke('notify-delivery-providers', {
+            body: {
+              request_type: 'purchase_order',
+              request_id: poData.id,
+              pickup_address: "Supplier location (to be confirmed)",
+              delivery_address: deliveryAddress,
+              material_details: items.map(item => ({
+                material_type: item.material_type,
+                quantity: item.quantity,
+                unit: item.unit
+              })),
+              special_instructions: specialInstructions,
+              priority_level: 'normal'
+            }
+          });
+          
+          toast.success("Purchase order created and delivery providers notified");
+        } catch (deliveryError) {
+          console.error('Error notifying delivery providers:', deliveryError);
+          toast.success("Purchase order created successfully");
+        }
+      } else {
+        toast.success("Purchase order created and sent to supplier for confirmation");
+      }
       
       // Reset form
       setSelectedSupplier("");
