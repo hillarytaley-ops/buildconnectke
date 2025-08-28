@@ -1,26 +1,51 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Building, Package, FileText, Truck, CreditCard, FileSignature, Receipt, Users } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Building, Package, FileText, Truck, CreditCard, FileSignature, Receipt, Users, AlertCircle, Settings } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ComprehensivePurchaseOrder from "@/components/ComprehensivePurchaseOrder";
-import PrivateBuilderDirectPurchase from "@/components/PrivateBuilderDirectPurchase";
-import BuilderDeliveryNotes from "@/components/BuilderDeliveryNotes";
-import DeliveryAcknowledgment from "@/components/DeliveryAcknowledgment";
-import IndividualBuilderPayment from "@/components/IndividualBuilderPayment";
-import GoodsReceivedNote from "@/components/GoodsReceivedNote";
-import DeliveryNoteSigning from "@/components/DeliveryNoteSigning";
-import InvoiceManager from "@/components/InvoiceManager";
-import DeliveryProviderNotifications from "@/components/DeliveryProviderNotifications";
+
+// Lazy load components for better performance
+const ComprehensivePurchaseOrder = lazy(() => import("@/components/ComprehensivePurchaseOrder"));
+const PrivateBuilderDirectPurchase = lazy(() => import("@/components/PrivateBuilderDirectPurchase"));
+const BuilderDeliveryNotes = lazy(() => import("@/components/BuilderDeliveryNotes"));
+const DeliveryAcknowledgment = lazy(() => import("@/components/DeliveryAcknowledgment"));
+const IndividualBuilderPayment = lazy(() => import("@/components/IndividualBuilderPayment"));
+const GoodsReceivedNote = lazy(() => import("@/components/GoodsReceivedNote"));
+const DeliveryNoteSigning = lazy(() => import("@/components/DeliveryNoteSigning"));
+const InvoiceManager = lazy(() => import("@/components/InvoiceManager"));
+const DeliveryProviderNotifications = lazy(() => import("@/components/DeliveryProviderNotifications"));
+
+// TypeScript interfaces for better type safety
+interface UserProfile {
+  id: string;
+  user_id: string;
+  role: 'builder' | 'delivery_provider' | 'admin' | null;
+  user_type: 'individual' | 'company' | null;
+  is_professional: boolean;
+  email?: string;
+  full_name?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface TabConfig {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  roles: Array<'professional' | 'private' | 'delivery_provider'>;
+  badge?: string;
+}
 
 const Builders = () => {
   const [activeTab, setActiveTab] = useState("overview");
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     checkUserProfile();
@@ -28,35 +53,163 @@ const Builders = () => {
 
   const checkUserProfile = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError) {
+        throw new Error(`Authentication error: ${authError.message}`);
+      }
+      
       if (user) {
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .eq('user_id', user.id)
           .single();
         
-        setUserProfile(profile);
+        if (profileError) {
+          throw new Error(`Profile fetch error: ${profileError.message}`);
+        }
+        
+        setUserProfile(profile as UserProfile);
       }
     } catch (error) {
       console.error('Error checking user profile:', error);
+      setError(error instanceof Error ? error.message : 'An unknown error occurred');
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  // Loading component
+  const LoadingSpinner = () => (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>
+  );
 
-  const isProfessionalBuilder = userProfile?.role === 'builder' && 
-    (userProfile?.user_type === 'company' || userProfile?.is_professional);
-  const isPrivateBuilder = userProfile?.role === 'builder' && userProfile?.user_type === 'individual';
-  const isDeliveryProvider = userProfile && userProfile.role === 'delivery_provider';
+  // Error component
+  const ErrorState = () => (
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      <main className="container mx-auto px-4 py-8">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error Loading Profile</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+        <Button onClick={() => window.location.reload()} className="mt-4">
+          Try Again
+        </Button>
+      </main>
+      <Footer />
+    </div>
+  );
+
+  // Role assignment component
+  const RoleAssignmentPrompt = () => (
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      <main className="container mx-auto px-4 py-8">
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Complete Your Profile
+            </CardTitle>
+            <CardDescription>
+              Please complete your profile setup to access builder tools.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              You need to set up your builder role and type to use this dashboard.
+            </p>
+            <Button onClick={() => window.location.href = '/auth'} className="w-full">
+              Complete Profile Setup
+            </Button>
+          </CardContent>
+        </Card>
+      </main>
+      <Footer />
+    </div>
+  );
+
+  if (loading) return <LoadingSpinner />;
+  if (error) return <ErrorState />;
+  if (!userProfile || !userProfile.role) return <RoleAssignmentPrompt />;
+
+  const isProfessionalBuilder = userProfile.role === 'builder' && 
+    (userProfile.user_type === 'company' || userProfile.is_professional);
+  const isPrivateBuilder = userProfile.role === 'builder' && userProfile.user_type === 'individual';
+  const isDeliveryProvider = userProfile.role === 'delivery_provider';
+
+  // Dynamic tab configuration
+  const tabConfigs: TabConfig[] = [
+    // Professional Builder tabs
+    ...(isProfessionalBuilder ? [
+      { id: 'purchase-orders', label: 'Purchase Orders', icon: Package, roles: ['professional' as const], badge: 'Professional/Company' },
+      { id: 'delivery-signing', label: 'Sign Delivery Notes', icon: FileSignature, roles: ['professional' as const], badge: 'Required Before Payment' },
+      { id: 'invoices', label: 'Invoice Manager', icon: Receipt, roles: ['professional' as const], badge: 'Professional/Company' },
+      { id: 'delivery-notes', label: 'Delivery Notes', icon: FileText, roles: ['professional' as const] },
+      { id: 'acknowledgments', label: 'Acknowledge & Pay', icon: CreditCard, roles: ['professional' as const], badge: 'Secure Payments' },
+      { id: 'goods-received', label: 'Goods Received', icon: FileText, roles: ['professional' as const], badge: 'Inventory Management' },
+    ] : []),
+    // Private Builder tabs
+    ...(isPrivateBuilder ? [
+      { id: 'direct-purchase', label: 'Direct Purchase', icon: Package, roles: ['private' as const], badge: 'Private Builders' },
+      { id: 'private-payment', label: 'Payment Center', icon: CreditCard, roles: ['private' as const], badge: 'Secure Payments' },
+    ] : []),
+    // Delivery Provider tabs
+    ...(isDeliveryProvider ? [
+      { id: 'delivery-requests', label: 'Delivery Requests', icon: Truck, roles: ['delivery_provider' as const], badge: 'Delivery Provider' },
+    ] : []),
+  ];
+
+  // Calculate dynamic grid columns
+  const totalTabs = tabConfigs.length + 1; // +1 for overview tab
+  const gridCols = Math.min(totalTabs, 8); // Max 8 columns to prevent overflow
+
+  // Helper function to get tab descriptions
+  const getTabDescription = (tabId: string): string => {
+    const descriptions: Record<string, string> = {
+      'purchase-orders': 'Create formal purchase orders with suppliers',
+      'delivery-signing': 'Digitally sign delivery notes before payment',
+      'invoices': 'Create and manage professional invoices',
+      'delivery-notes': 'View and download delivery notes',
+      'acknowledgments': 'Acknowledge deliveries and process payments',
+      'goods-received': 'Generate GRN for delivered items',
+      'direct-purchase': 'Buy materials directly from suppliers',
+      'private-payment': 'Manage payments for delivered items',
+      'delivery-requests': 'View and respond to delivery requests',
+    };
+    return descriptions[tabId] || '';
+  };
+
+  // Helper function to render tab content
+  const renderTabContent = (tabId: string) => {
+    switch (tabId) {
+      case 'purchase-orders':
+        return <ComprehensivePurchaseOrder />;
+      case 'delivery-signing':
+        return <DeliveryNoteSigning />;
+      case 'invoices':
+        return <InvoiceManager />;
+      case 'delivery-notes':
+        return <BuilderDeliveryNotes />;
+      case 'acknowledgments':
+        return <DeliveryAcknowledgment />;
+      case 'goods-received':
+        return <GoodsReceivedNote />;
+      case 'direct-purchase':
+        return <PrivateBuilderDirectPurchase />;
+      case 'private-payment':
+        return <IndividualBuilderPayment />;
+      case 'delivery-requests':
+        return <DeliveryProviderNotifications />;
+      default:
+        return <div>Content not found</div>;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -68,196 +221,64 @@ const Builders = () => {
           <p className="text-muted-foreground">
             Comprehensive tools for construction professionals and material management
           </p>
+          <div className="mt-2">
+            <Badge variant="outline" className="mr-2">
+              Role: {userProfile.role}
+            </Badge>
+            <Badge variant="outline">
+              Type: {userProfile.user_type === 'company' ? 'Company' : 
+                     userProfile.is_professional ? 'Professional' : 'Individual'}
+            </Badge>
+          </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-9 mb-8">
+          <TabsList className={`grid w-full mb-8 ${
+            gridCols <= 4 ? 'grid-cols-4' : 
+            gridCols <= 6 ? 'grid-cols-6' : 
+            'grid-cols-8'
+          }`}>
             <TabsTrigger value="overview">
               <Building className="h-4 w-4 mr-2" />
               Overview
             </TabsTrigger>
             
-            {isProfessionalBuilder && (
-              <>
-                <TabsTrigger value="purchase-orders">
-                  <Package className="h-4 w-4 mr-2" />
-                  Purchase Orders
+            {tabConfigs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <TabsTrigger key={tab.id} value={tab.id}>
+                  <Icon className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">{tab.label}</span>
                 </TabsTrigger>
-                <TabsTrigger value="delivery-signing">
-                  <FileSignature className="h-4 w-4 mr-2" />
-                  Sign Delivery Notes
-                </TabsTrigger>
-                <TabsTrigger value="invoices">
-                  <Receipt className="h-4 w-4 mr-2" />
-                  Invoice Manager
-                </TabsTrigger>
-                <TabsTrigger value="delivery-notes">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Delivery Notes
-                </TabsTrigger>
-                <TabsTrigger value="acknowledgments">
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Acknowledge & Pay
-                </TabsTrigger>
-                <TabsTrigger value="goods-received">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Goods Received
-                </TabsTrigger>
-              </>
-            )}
-            
-            {isPrivateBuilder && (
-              <>
-                <TabsTrigger value="direct-purchase">
-                  <Package className="h-4 w-4 mr-2" />
-                  Direct Purchase
-                </TabsTrigger>
-                <TabsTrigger value="private-payment">
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Payment Center
-                </TabsTrigger>
-              </>
-            )}
-            
-            {isDeliveryProvider && (
-              <TabsTrigger value="delivery-requests">
-                <Truck className="h-4 w-4 mr-2" />
-                Delivery Requests
-              </TabsTrigger>
-            )}
+              );
+            })}
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {isProfessionalBuilder && (
-                <>
-                  <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setActiveTab("purchase-orders")}>
+              {tabConfigs.map((tab) => {
+                const Icon = tab.icon;
+                const description = getTabDescription(tab.id);
+                
+                return (
+                  <Card 
+                    key={tab.id} 
+                    className="hover:shadow-lg transition-shadow cursor-pointer" 
+                    onClick={() => setActiveTab(tab.id)}
+                  >
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <Package className="h-5 w-5 text-primary" />
-                        Purchase Orders
+                        <Icon className="h-5 w-5 text-primary" />
+                        {tab.label}
                       </CardTitle>
-                      <CardDescription>
-                        Create formal purchase orders with suppliers
-                      </CardDescription>
+                      <CardDescription>{description}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <Badge variant="secondary">Professional/Company</Badge>
+                      {tab.badge && <Badge variant="secondary">{tab.badge}</Badge>}
                     </CardContent>
                   </Card>
-
-                  <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setActiveTab("delivery-signing")}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <FileSignature className="h-5 w-5 text-primary" />
-                        Sign Delivery Notes
-                      </CardTitle>
-                      <CardDescription>
-                        Digitally sign delivery notes before payment
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Badge variant="secondary">Required Before Payment</Badge>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setActiveTab("invoices")}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Receipt className="h-5 w-5 text-primary" />
-                        Invoice Manager
-                      </CardTitle>
-                      <CardDescription>
-                        Create and manage professional invoices
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Badge variant="secondary">Professional/Company</Badge>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setActiveTab("acknowledgments")}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <CreditCard className="h-5 w-5 text-primary" />
-                        Acknowledge & Pay
-                      </CardTitle>
-                      <CardDescription>
-                        Acknowledge deliveries and process payments
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Badge variant="secondary">Secure Payments</Badge>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setActiveTab("goods-received")}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <FileText className="h-5 w-5 text-primary" />
-                        Goods Received Notes
-                      </CardTitle>
-                      <CardDescription>
-                        Generate GRN for delivered items
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Badge variant="secondary">Inventory Management</Badge>
-                    </CardContent>
-                  </Card>
-                </>
-              )}
-
-              {isPrivateBuilder && (
-                <>
-                  <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setActiveTab("direct-purchase")}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Package className="h-5 w-5 text-primary" />
-                        Direct Purchase
-                      </CardTitle>
-                      <CardDescription>
-                        Buy materials directly from suppliers
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Badge variant="secondary">Private Builders</Badge>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setActiveTab("private-payment")}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <CreditCard className="h-5 w-5 text-primary" />
-                        Payment Center
-                      </CardTitle>
-                      <CardDescription>
-                        Manage payments for delivered items
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Badge variant="secondary">Secure Payments</Badge>
-                    </CardContent>
-                  </Card>
-                </>
-              )}
-
-              {isDeliveryProvider && (
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setActiveTab("delivery-requests")}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Truck className="h-5 w-5 text-primary" />
-                      Delivery Requests
-                    </CardTitle>
-                    <CardDescription>
-                      View and respond to delivery requests
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Badge variant="secondary">Delivery Provider</Badge>
-                  </CardContent>
-                </Card>
-              )}
+                );
+              })}
 
               <Card className="hover:shadow-lg transition-shadow">
                 <CardHeader>
@@ -271,59 +292,26 @@ const Builders = () => {
                 </CardHeader>
                 <CardContent>
                   <Badge variant="outline">
-                    {userProfile?.user_type === 'company' ? 'Company' : 
-                     userProfile?.is_professional ? 'Professional' : 'Individual'}
+                    {userProfile.user_type === 'company' ? 'Company' : 
+                     userProfile.is_professional ? 'Professional' : 'Individual'}
                   </Badge>
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
 
-          {isProfessionalBuilder && (
-            <>
-              <TabsContent value="purchase-orders">
-                <ComprehensivePurchaseOrder />
-              </TabsContent>
-
-              <TabsContent value="delivery-signing">
-                <DeliveryNoteSigning />
-              </TabsContent>
-
-              <TabsContent value="invoices">
-                <InvoiceManager />
-              </TabsContent>
-
-              <TabsContent value="delivery-notes">
-                <BuilderDeliveryNotes />
-              </TabsContent>
-
-              <TabsContent value="acknowledgments">
-                <DeliveryAcknowledgment />
-              </TabsContent>
-
-              <TabsContent value="goods-received">
-                <GoodsReceivedNote />
-              </TabsContent>
-            </>
-          )}
-
-          {isPrivateBuilder && (
-            <>
-              <TabsContent value="direct-purchase">
-                <PrivateBuilderDirectPurchase />
-              </TabsContent>
-
-              <TabsContent value="private-payment">
-                <IndividualBuilderPayment />
-              </TabsContent>
-            </>
-          )}
-
-          {isDeliveryProvider && (
-            <TabsContent value="delivery-requests">
-              <DeliveryProviderNotifications />
+          {/* Lazy loaded tab contents with suspense */}
+          {tabConfigs.map((tab) => (
+            <TabsContent key={tab.id} value={tab.id}>
+              <Suspense fallback={
+                <div className="flex items-center justify-center p-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              }>
+                {renderTabContent(tab.id)}
+              </Suspense>
             </TabsContent>
-          )}
+          ))}
         </Tabs>
       </main>
 
