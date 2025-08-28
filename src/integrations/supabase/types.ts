@@ -2453,6 +2453,26 @@ export type Database = {
           weight_kg: number
         }[]
       }
+      get_secure_provider_data: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          address: string
+          capacity_kg: number
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean
+          is_verified: boolean
+          phone: string
+          provider_name: string
+          provider_type: string
+          rating: number
+          service_areas: string[]
+          total_deliveries: number
+          updated_at: string
+          vehicle_types: string[]
+        }[]
+      }
       get_secure_provider_info: {
         Args: { provider_uuid: string }
         Returns: {
@@ -2493,6 +2513,23 @@ export type Database = {
           status: string
           supplier_id: string
           total_amount: number
+          updated_at: string
+        }[]
+      }
+      get_secure_supplier_data: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          address: string
+          company_name: string
+          contact_person: string
+          created_at: string
+          email: string
+          id: string
+          is_verified: boolean
+          materials_offered: string[]
+          phone: string
+          rating: number
+          specialties: string[]
           updated_at: string
         }[]
       }
