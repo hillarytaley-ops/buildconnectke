@@ -472,10 +472,8 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
         <TabsList className="grid w-full grid-cols-2 lg:grid-cols-8">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2 h-10 px-3 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                <Menu className="h-4 w-4" />
-                <span className="hidden sm:inline">Tools</span>
-                <ChevronDown className="h-4 w-4" />
+              <Button variant="ghost" className="flex items-center justify-center h-10 w-10 p-0 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                <Menu className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-64 bg-background border z-50">
