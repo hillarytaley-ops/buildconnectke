@@ -117,25 +117,57 @@ const DeliveryProviders = () => {
           throw new Error('Delivery provider profile not found. Please complete your provider registration.');
         }
 
-        // Update the delivery request with proper provider ID
-        const { error } = await supabase
-          .from('delivery_requests')
-          .update({
-            provider_id: response === 'accept' ? providerData.id : null,
-            status: response === 'accept' ? 'accepted' : 'rejected',
-            provider_response: response,
-            response_date: new Date().toISOString(),
-            response_notes: response === 'accept' ? 'Request accepted by provider' : 'Request declined by provider'
-          })
-          .eq('id', requestId)
-          .eq('status', 'pending'); // Additional security check
+        if (response === 'reject') {
+          // Handle rejection with automatic rotation
+          const { data, error: rotationError } = await supabase.functions.invoke('auto-rotate-provider', {
+            body: {
+              request_id: requestId,
+              rejected_provider_id: providerData.id,
+              rejection_reason: 'Provider declined request'
+            }
+          });
 
-        if (error) throw error;
+          if (rotationError) throw rotationError;
 
-        toast({
-          title: "Success",
-          description: `Delivery request ${response}ed successfully`
-        });
+          toast({
+            title: "Request Declined",
+            description: data?.rotation_successful 
+              ? `Request declined and automatically sent to next provider: ${data.next_provider?.provider_name || 'available provider'}`
+              : "Request declined. No more providers available for automatic rotation.",
+            variant: data?.rotation_successful ? "default" : "destructive"
+          });
+
+        } else {
+          // Handle acceptance
+          const { error } = await supabase
+            .from('delivery_requests')
+            .update({
+              provider_id: providerData.id,
+              status: 'accepted',
+              provider_response: response,
+              response_date: new Date().toISOString(),
+              response_notes: 'Request accepted by provider'
+            })
+            .eq('id', requestId)
+            .eq('status', 'pending'); // Additional security check
+
+          if (error) throw error;
+
+          // Update queue status
+          await supabase
+            .from('delivery_provider_queue')
+            .update({
+              status: 'accepted',
+              responded_at: new Date().toISOString()
+            })
+            .eq('request_id', requestId)
+            .eq('provider_id', providerData.id);
+
+          toast({
+            title: "Success",
+            description: "Delivery request accepted successfully"
+          });
+        }
 
         // Refresh the pending requests list
         if (user.profile?.id) {

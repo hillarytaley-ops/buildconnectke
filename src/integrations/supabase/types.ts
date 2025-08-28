@@ -578,6 +578,60 @@ export type Database = {
           },
         ]
       }
+      delivery_provider_queue: {
+        Row: {
+          contacted_at: string | null
+          created_at: string | null
+          id: string
+          provider_id: string
+          queue_position: number
+          request_id: string
+          responded_at: string | null
+          status: string
+          timeout_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          contacted_at?: string | null
+          created_at?: string | null
+          id?: string
+          provider_id: string
+          queue_position: number
+          request_id: string
+          responded_at?: string | null
+          status?: string
+          timeout_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          contacted_at?: string | null
+          created_at?: string | null
+          id?: string
+          provider_id?: string
+          queue_position?: number
+          request_id?: string
+          responded_at?: string | null
+          status?: string
+          timeout_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_provider_queue_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_provider_queue_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       delivery_provider_responses: {
         Row: {
           created_at: string
@@ -789,6 +843,8 @@ export type Database = {
       }
       delivery_requests: {
         Row: {
+          attempted_providers: string[] | null
+          auto_rotation_enabled: boolean | null
           budget_range: string | null
           builder_id: string
           created_at: string
@@ -797,6 +853,7 @@ export type Database = {
           delivery_longitude: number | null
           id: string
           material_type: string
+          max_rotation_attempts: number | null
           pickup_address: string
           pickup_date: string
           pickup_latitude: number | null
@@ -808,12 +865,15 @@ export type Database = {
           required_vehicle_type: string | null
           response_date: string | null
           response_notes: string | null
+          rotation_completed_at: string | null
           special_instructions: string | null
           status: string | null
           updated_at: string
           weight_kg: number | null
         }
         Insert: {
+          attempted_providers?: string[] | null
+          auto_rotation_enabled?: boolean | null
           budget_range?: string | null
           builder_id: string
           created_at?: string
@@ -822,6 +882,7 @@ export type Database = {
           delivery_longitude?: number | null
           id?: string
           material_type: string
+          max_rotation_attempts?: number | null
           pickup_address: string
           pickup_date: string
           pickup_latitude?: number | null
@@ -833,12 +894,15 @@ export type Database = {
           required_vehicle_type?: string | null
           response_date?: string | null
           response_notes?: string | null
+          rotation_completed_at?: string | null
           special_instructions?: string | null
           status?: string | null
           updated_at?: string
           weight_kg?: number | null
         }
         Update: {
+          attempted_providers?: string[] | null
+          auto_rotation_enabled?: boolean | null
           budget_range?: string | null
           builder_id?: string
           created_at?: string
@@ -847,6 +911,7 @@ export type Database = {
           delivery_longitude?: number | null
           id?: string
           material_type?: string
+          max_rotation_attempts?: number | null
           pickup_address?: string
           pickup_date?: string
           pickup_latitude?: number | null
@@ -858,6 +923,7 @@ export type Database = {
           required_vehicle_type?: string | null
           response_date?: string | null
           response_notes?: string | null
+          rotation_completed_at?: string | null
           special_instructions?: string | null
           status?: string | null
           updated_at?: string
@@ -2292,6 +2358,21 @@ export type Database = {
           provider_name: string
         }[]
       }
+      get_provider_rotation_queue: {
+        Args: {
+          _max_providers?: number
+          _pickup_lat: number
+          _pickup_lng: number
+          _request_id: string
+        }
+        Returns: {
+          distance_km: number
+          priority_score: number
+          provider_id: string
+          provider_name: string
+          rating: number
+        }[]
+      }
       get_secure_acknowledgement: {
         Args: { acknowledgement_uuid: string }
         Returns: {
@@ -2474,6 +2555,10 @@ export type Database = {
         Args: { _user_id: string }
         Returns: string
       }
+      handle_provider_rejection: {
+        Args: { _provider_id: string; _request_id: string }
+        Returns: boolean
+      }
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -2540,6 +2625,10 @@ export type Database = {
           distance_km: number
           provider_id: string
         }[]
+      }
+      setup_provider_rotation_queue: {
+        Args: { _request_id: string }
+        Returns: number
       }
       update_qr_status: {
         Args: { _new_status: string; _qr_code: string }

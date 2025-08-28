@@ -11,6 +11,7 @@ import { MapPin, Package, Truck, Calendar, Clock, AlertCircle } from "lucide-rea
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useDeliveryAuth } from "./useDeliveryAuth";
 import DeliveryEmptyState from "./DeliveryEmptyStates";
+import ProviderRotationStatus from "./ProviderRotationStatus";
 
 interface DeliveryRequestFormData {
   pickupAddress: string;
@@ -40,6 +41,7 @@ const RefactoredDeliveryRequest: React.FC = () => {
     quantity: "1",
     weight: ""
   });
+  const [submittedRequestId, setSubmittedRequestId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const materialTypes = [
@@ -124,30 +126,25 @@ const RefactoredDeliveryRequest: React.FC = () => {
           status: 'pending'
         };
 
-        const { error } = await supabase
+        const { data: insertedRequest, error } = await supabase
           .from('delivery_requests')
-          .insert(sanitizedData);
+          .insert(sanitizedData)
+          .select('id')
+          .single();
 
         if (error) throw error;
 
+        // Set the submitted request ID to show rotation status
+        setSubmittedRequestId(insertedRequest.id);
+
         toast({
           title: "Request Submitted",
-          description: "Your delivery request has been submitted successfully. You'll be notified when providers respond.",
+          description: "Your delivery request has been submitted and providers are being contacted automatically.",
         });
 
-        // Reset form after successful submission
-        setFormData({
-          pickupAddress: "",
-          deliveryAddress: "",
-          preferredDate: "",
-          preferredTime: "",
-          specialInstructions: "",
-          budgetRange: "",
-          requiredVehicleType: "",
-          materialType: "",
-          quantity: "1",
-          weight: ""
-        });
+        // Only reset form if user wants to create another request
+        // Keep the submitted request ID to show status
+        
       } catch (error) {
         console.error('Error submitting delivery request:', error);
         const errorMessage = error instanceof Error ? error.message : "Failed to submit delivery request. Please try again.";
@@ -159,6 +156,22 @@ const RefactoredDeliveryRequest: React.FC = () => {
       } finally {
         setLoading(false);
       }
+    });
+  };
+
+  const handleNewRequest = () => {
+    setSubmittedRequestId(null);
+    setFormData({
+      pickupAddress: "",
+      deliveryAddress: "",
+      preferredDate: "",
+      preferredTime: "",
+      specialInstructions: "",
+      budgetRange: "",
+      requiredVehicleType: "",
+      materialType: "",
+      quantity: "1",
+      weight: ""
     });
   };
 
@@ -176,7 +189,33 @@ const RefactoredDeliveryRequest: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card className="border-primary/20 bg-gradient-to-r from-card to-primary/5">
+      {/* Show rotation status if request has been submitted */}
+      {submittedRequestId && (
+        <div className="space-y-4">
+          <ProviderRotationStatus 
+            requestId={submittedRequestId}
+            onStatusChange={(status) => {
+              if (status === 'accepted') {
+                toast({
+                  title: "Provider Found!",
+                  description: "A delivery provider has accepted your request. You'll be contacted soon.",
+                });
+              }
+            }}
+          />
+          
+          <div className="flex justify-center">
+            <Button onClick={handleNewRequest} variant="outline">
+              Create Another Request
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Show form only if no request submitted or user wants to create another */}
+      {!submittedRequestId && (
+        <>
+          <Card className="border-primary/20 bg-gradient-to-r from-card to-primary/5">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-primary">
             <Package className="h-5 w-5" />
@@ -396,6 +435,8 @@ const RefactoredDeliveryRequest: React.FC = () => {
           </Button>
         </div>
       </form>
+        </>
+      )}
     </div>
   );
 };
