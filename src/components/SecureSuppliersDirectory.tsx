@@ -61,11 +61,11 @@ const SecureSuppliersDirectory = () => {
     try {
       setLoading(true);
 
-      // First get basic supplier list
+      // Get suppliers list - show both verified and pending for demo purposes
       const { data: supplierList, error: listError } = await supabase
         .from('suppliers')
         .select('id, company_name, specialties, materials_offered, rating, is_verified, created_at')
-        .eq('is_verified', true)
+        .order('is_verified', { ascending: false })
         .order('rating', { ascending: false });
 
       if (listError) throw listError;
@@ -241,9 +241,19 @@ const SecureSuppliersDirectory = () => {
       ) : suppliers.length === 0 ? (
         <Card>
           <CardContent className="pt-6">
-            <div className="text-center py-8 text-muted-foreground">
-              <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No suppliers found matching your criteria.</p>
+            <div className="text-center py-12 text-muted-foreground">
+              <Package className="h-16 w-16 mx-auto mb-4 opacity-50" />
+              <h3 className="text-lg font-semibold mb-2">No Suppliers Found</h3>
+              <p className="mb-4">
+                {searchTerm || selectedCategory !== 'All' 
+                  ? 'No suppliers match your current search criteria.' 
+                  : 'No suppliers are currently registered in the system.'}
+              </p>
+              {(!searchTerm && selectedCategory === 'All') && (
+                <p className="text-sm">
+                  Be the first to register as a supplier and join our construction marketplace!
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -263,9 +273,13 @@ const SecureSuppliersDirectory = () => {
                         <Star className="h-4 w-4 text-yellow-500 fill-current" />
                         <span className="text-sm font-medium">{supplier.rating?.toFixed(1) || 'N/A'}</span>
                       </div>
-                      {supplier.is_verified && (
+                      {supplier.is_verified ? (
                         <Badge variant="default" className="text-xs">
                           ✓ Verified
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="text-xs">
+                          ⏳ Pending
                         </Badge>
                       )}
                     </div>

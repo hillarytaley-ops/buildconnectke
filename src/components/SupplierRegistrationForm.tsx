@@ -10,6 +10,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { MapPin, Store, Phone, Mail, Globe } from "lucide-react";
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from "@/hooks/use-toast";
 
 interface SupplierFormData {
   businessName: string;
@@ -29,6 +31,8 @@ interface SupplierFormData {
 const SupplierRegistrationForm = () => {
   const form = useForm<SupplierFormData>();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   const kenyanCounties = [
     "Nairobi", "Mombasa", "Nakuru", "Kisumu", "Eldoret", "Kericho", "Naivasha", 
@@ -50,10 +54,104 @@ const SupplierRegistrationForm = () => {
     );
   };
 
-  const onSubmit = (data: SupplierFormData) => {
-    const formData = { ...data, categories: selectedCategories };
-    console.log('Supplier registration data:', formData);
-    // Here you would typically send the data to your backend
+  const onSubmit = async (data: SupplierFormData) => {
+    if (selectedCategories.length === 0) {
+      toast({
+        title: "Validation Error",
+        description: "Please select at least one material category.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to register as a supplier.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check if user already has a supplier profile
+      const { data: existingSupplier } = await supabase
+        .from('suppliers')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (existingSupplier) {
+        toast({
+          title: "Already Registered",
+          description: "You already have a supplier profile.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Get or create user profile
+      let { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!profile) {
+        const { data: newProfile, error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            full_name: data.contactPerson,
+            role: 'supplier'
+          })
+          .select('id')
+          .single();
+
+        if (profileError) throw profileError;
+        profile = newProfile;
+      }
+
+      // Create supplier record
+      const { error: supplierError } = await supabase
+        .from('suppliers')
+        .insert({
+          user_id: profile.id,
+          company_name: data.businessName,
+          contact_person: data.contactPerson,
+          email: data.email,
+          phone: data.phone,
+          address: `${data.address}, ${data.location}, ${data.county}`,
+          specialties: selectedCategories,
+          materials_offered: selectedCategories,
+          is_verified: false,
+          rating: 0
+        });
+
+      if (supplierError) throw supplierError;
+
+      toast({
+        title: "Registration Successful!",
+        description: "Your supplier application has been submitted for verification. You'll be notified once approved.",
+      });
+
+      // Reset form
+      form.reset();
+      setSelectedCategories([]);
+
+    } catch (error: any) {
+      console.error('Supplier registration error:', error);
+      toast({
+        title: "Registration Failed",
+        description: error.message || "There was an error submitting your application. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -300,23 +398,14 @@ const SupplierRegistrationForm = () => {
               )}
             />
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Button 
-                type="submit" 
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-                size="lg"
-              >
-                Register as Supplier
-              </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
-                className="flex-1"
-                size="lg"
-              >
-                Cancel
-              </Button>
-            </div>
+            <Button 
+              type="submit" 
+              className="w-full bg-primary hover:bg-primary/90" 
+              size="lg"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Submitting Application..." : "Submit Application"}
+            </Button>
           </form>
         </Form>
       </CardContent>
