@@ -4,47 +4,25 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Star, Truck, MapPin, Phone, CheckCircle, XCircle } from "lucide-react";
+import { Star, Truck, MapPin, Phone, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { useDeliveryAuth } from "./delivery/useDeliveryAuth";
 
 const DeliveryProviders = () => {
   const [providers, setProviders] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user, userRole, authenticated, hasRole, requireRole } = useDeliveryAuth();
 
   useEffect(() => {
-    checkAuthAndFetchData();
-  }, []);
-
-  const checkAuthAndFetchData = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: "Authentication Required",
-          description: "Please sign in to view delivery providers",
-          variant: "destructive",
-        });
-        return;
+    if (authenticated && user?.profile?.id) {
+      fetchProviders();
+      // Only fetch pending requests for delivery providers and admins
+      if (hasRole(['delivery_provider', 'admin'])) {
+        fetchPendingRequests(user.profile.id);
       }
-
-      // Get user profile to check if they're a delivery provider
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id, role')
-        .eq('user_id', user.id)
-        .single();
-
-      if (profile) {
-        setCurrentUserId(profile.id);
-        await fetchProviders();
-        await fetchPendingRequests(profile.id);
-      }
-    } catch (error) {
-      console.error('Error checking authentication:', error);
     }
-  };
+  }, [authenticated, user, hasRole]);
 
   const fetchProviders = async () => {
     try {
@@ -69,17 +47,29 @@ const DeliveryProviders = () => {
 
   const fetchPendingRequests = async (profileId: string) => {
     try {
-      // Only fetch requests if user is a delivery provider
-      const { data: providerData } = await supabase
-        .from('delivery_providers')
-        .select('id')
-        .eq('user_id', profileId)
-        .single();
-
-      if (!providerData) {
-        // User is not a delivery provider, no need to fetch requests
+      // Only allow delivery providers and admins to see pending requests
+      if (!hasRole(['delivery_provider', 'admin'])) {
         setPendingRequests([]);
         return;
+      }
+
+      // For delivery providers, check if they have a provider profile
+      if (hasRole('delivery_provider')) {
+        const { data: providerData } = await supabase
+          .from('delivery_providers')
+          .select('id')
+          .eq('user_id', profileId)
+          .single();
+
+        if (!providerData) {
+          toast({
+            title: "Provider Profile Required",
+            description: "You need to complete your delivery provider profile to see requests.",
+            variant: "destructive",
+          });
+          setPendingRequests([]);
+          return;
+        }
       }
 
       const { data, error } = await supabase
@@ -100,60 +90,65 @@ const DeliveryProviders = () => {
   };
 
   const handleProviderResponse = async (requestId: string, response: 'accept' | 'reject') => {
-    if (!currentUserId) {
-      toast({
-        title: "Authentication Error",
-        description: "User authentication required",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // Get the current user's delivery provider profile
-      const { data: providerData, error: providerError } = await supabase
-        .from('delivery_providers')
-        .select('id')
-        .eq('user_id', currentUserId)
-        .single();
-
-      if (providerError || !providerData) {
-        throw new Error('Delivery provider profile not found');
+    // Only allow delivery providers to respond to requests
+    requireRole('delivery_provider', async () => {
+      if (!user?.profile?.id) {
+        toast({
+          title: "Authentication Error",
+          description: "User profile not found",
+          variant: "destructive",
+        });
+        return;
       }
 
-      // Update the delivery request with proper provider ID
-      const { error } = await supabase
-        .from('delivery_requests')
-        .update({
-          provider_id: response === 'accept' ? providerData.id : null,
-          status: response === 'accept' ? 'accepted' : 'rejected',
-          provider_response: response,
-          response_date: new Date().toISOString(),
-          response_notes: response === 'accept' ? 'Request accepted by provider' : 'Request declined by provider'
-        })
-        .eq('id', requestId)
-        .eq('status', 'pending'); // Additional security check
+      setLoading(true);
+      try {
+        // Get the current user's delivery provider profile
+        const { data: providerData, error: providerError } = await supabase
+          .from('delivery_providers')
+          .select('id')
+          .eq('user_id', user.profile.id)
+          .single();
 
-      if (error) throw error;
+        if (providerError || !providerData) {
+          throw new Error('Delivery provider profile not found. Please complete your provider registration.');
+        }
 
-      toast({
-        title: "Success",
-        description: `Delivery request ${response}ed successfully`
-      });
+        // Update the delivery request with proper provider ID
+        const { error } = await supabase
+          .from('delivery_requests')
+          .update({
+            provider_id: response === 'accept' ? providerData.id : null,
+            status: response === 'accept' ? 'accepted' : 'rejected',
+            provider_response: response,
+            response_date: new Date().toISOString(),
+            response_notes: response === 'accept' ? 'Request accepted by provider' : 'Request declined by provider'
+          })
+          .eq('id', requestId)
+          .eq('status', 'pending'); // Additional security check
 
-      // Refresh the pending requests list
-      await fetchPendingRequests(currentUserId);
-    } catch (error) {
-      console.error('Error updating request:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update delivery request. You may not have permission to perform this action."
-      });
-    } finally {
-      setLoading(false);
-    }
+        if (error) throw error;
+
+        toast({
+          title: "Success",
+          description: `Delivery request ${response}ed successfully`
+        });
+
+        // Refresh the pending requests list
+        if (user.profile?.id) {
+          await fetchPendingRequests(user.profile.id);
+        }
+      } catch (error) {
+        console.error('Error updating request:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to update delivery request."
+        });
+      } finally {
+        setLoading(false);
+      }
+    });
   };
 
   const renderStars = (rating: number) => {
@@ -165,15 +160,31 @@ const DeliveryProviders = () => {
     ));
   };
 
+  // Show access denied message if user is not authenticated or doesn't have proper role
+  if (!authenticated) {
+    return (
+      <div className="text-center py-8">
+        <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+        <h3 className="text-lg font-semibold mb-2">Authentication Required</h3>
+        <p className="text-muted-foreground">
+          Please sign in to view delivery providers.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {/* Pending Delivery Requests */}
-      {pendingRequests.length > 0 && (
+      {/* Pending Delivery Requests - Only for delivery providers and admins */}
+      {hasRole(['delivery_provider', 'admin']) && pendingRequests.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Pending Delivery Requests</CardTitle>
             <CardDescription>
-              Active delivery requests waiting for provider response
+              {hasRole('admin') 
+                ? "All pending delivery requests (Admin View)" 
+                : "Active delivery requests waiting for provider response"
+              }
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -201,27 +212,36 @@ const DeliveryProviders = () => {
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      onClick={() => handleProviderResponse(request.id, 'accept')}
-                      disabled={loading || !currentUserId}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      <CheckCircle className="h-4 w-4 mr-1" />
-                      Accept
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleProviderResponse(request.id, 'reject')}
-                      disabled={loading || !currentUserId}
-                      className="border-red-500 text-red-500 hover:bg-red-50"
-                    >
-                      <XCircle className="h-4 w-4 mr-1" />
-                      Decline
-                    </Button>
-                  </div>
+                  {/* Only show response buttons for delivery providers */}
+                  {hasRole('delivery_provider') && (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => handleProviderResponse(request.id, 'accept')}
+                        disabled={loading}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        Accept
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleProviderResponse(request.id, 'reject')}
+                        disabled={loading}
+                        className="border-red-500 text-red-500 hover:bg-red-50"
+                      >
+                        <XCircle className="h-4 w-4 mr-1" />
+                        Decline
+                      </Button>
+                    </div>
+                  )}
+                  {/* Admin view indicator */}
+                  {hasRole('admin') && !hasRole('delivery_provider') && (
+                    <div className="text-sm text-muted-foreground">
+                      Admin View - Contact delivery providers directly to manage requests
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
