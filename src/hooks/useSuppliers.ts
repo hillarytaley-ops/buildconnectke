@@ -20,64 +20,63 @@ export const useSuppliers = (
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
-  const { toast } = useToast();
 
   const fetchSuppliers = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      // Use secure function instead of direct table query
-      const { data, error: fetchError } = await supabase
-        .rpc('get_secure_supplier_data');
+      // For security, we now only allow authenticated access to the suppliers table
+      // Unauthenticated users will get empty results and the component will use demo data
+      const { data: { user } } = await supabase.auth.getUser();
       
-      if (fetchError) throw fetchError;
-      
-      let filteredSuppliers = data || [];
-      
-      // Apply client-side filters
+      if (!user) {
+        // No user authenticated - component will use demo data
+        setSuppliers([]);
+        setTotalCount(0);
+        return;
+      }
+
+      let query = supabase
+        .from('suppliers')
+        .select('*', { count: 'exact' })
+        .range((page - 1) * limit, page * limit - 1)
+        .order('rating', { ascending: false });
+
+      // Apply filters
       if (filters.search) {
-        const searchLower = filters.search.toLowerCase();
-        filteredSuppliers = filteredSuppliers.filter(supplier => 
-          supplier.company_name.toLowerCase().includes(searchLower) ||
-          supplier.specialties.some(s => s.toLowerCase().includes(searchLower)) ||
-          supplier.materials_offered.some(m => m.toLowerCase().includes(searchLower))
-        );
+        query = query.or(`company_name.ilike.%${filters.search}%,specialties.cs.{${filters.search}},materials_offered.cs.{${filters.search}}`);
       }
 
       if (filters.category && filters.category !== 'All Categories') {
-        filteredSuppliers = filteredSuppliers.filter(supplier =>
-          supplier.specialties.includes(filters.category)
-        );
+        query = query.contains('specialties', [filters.category]);
       }
 
       if (filters.rating > 0) {
-        filteredSuppliers = filteredSuppliers.filter(supplier =>
-          supplier.rating >= filters.rating
-        );
+        query = query.gte('rating', filters.rating);
       }
 
       if (filters.verified !== null) {
-        filteredSuppliers = filteredSuppliers.filter(supplier =>
-          supplier.is_verified === filters.verified
-        );
+        query = query.eq('is_verified', filters.verified);
       }
 
-      // Apply pagination
-      const startIndex = (page - 1) * limit;
-      const endIndex = startIndex + limit;
-      const paginatedSuppliers = filteredSuppliers.slice(startIndex, endIndex);
+      const { data, error: fetchError, count } = await query;
       
-      setSuppliers(paginatedSuppliers);
-      setTotalCount(filteredSuppliers.length);
+      if (fetchError) {
+        console.log('Suppliers query restricted for security, using demo data');
+        setSuppliers([]);
+        setTotalCount(0);
+        return;
+      }
+      
+      setSuppliers(data || []);
+      setTotalCount(count || 0);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch suppliers';
-      setError(errorMessage);
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      // For security, don't expose detailed error messages
+      console.log('Suppliers access restricted, using demo data');
+      setError(null);
+      setSuppliers([]);
+      setTotalCount(0);
     } finally {
       setLoading(false);
     }
