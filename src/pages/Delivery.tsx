@@ -85,36 +85,7 @@ const Delivery = () => {
     );
   }
 
-  // Check if user is a stakeholder (admin, builder, or supplier)
-  const isStakeholder = ['admin', 'builder', 'supplier'].includes(userRole || '');
-  
-  if (!isStakeholder) {
-    return (
-      <div className="min-h-screen bg-gradient-construction">
-        <Navigation />
-        <main className="container mx-auto px-4 py-8">
-          <div className="text-center py-20">
-            <div className="p-8 bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 shadow-lg max-w-md mx-auto">
-              <div className="w-16 h-16 mx-auto mb-4 p-4 bg-red-100 dark:bg-red-900/20 rounded-full">
-                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-              </div>
-              <h2 className="text-2xl font-bold text-foreground mb-2">Access Restricted</h2>
-              <p className="text-muted-foreground mb-6">
-                The delivery dashboard is only accessible to registered stakeholders (Builders, Suppliers, and Administrators).
-              </p>
-              <div className="text-sm text-muted-foreground">
-                Current role: <span className="font-medium capitalize">{userRole || 'Not assigned'}</span>
-              </div>
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
+  // Dashboard is accessible to everyone
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gradient-construction">
