@@ -75,10 +75,11 @@ const Navigation = () => {
     { path: "/feedback", label: "Feedback" },
   ];
 
-  // Add delivery link only for admin users
+  // Add delivery link for all stakeholders (admin, builder, supplier)
+  const isStakeholder = ['admin', 'builder', 'supplier'].includes(userRole || '');
   const navItems = [
     ...baseNavItems.slice(0, 3), // Home, Builders, Suppliers
-    ...(userRole === 'admin' ? [{ path: "/delivery", label: "Delivery" }] : []),
+    ...(isStakeholder ? [{ path: "/delivery", label: "Delivery" }] : []),
     ...baseNavItems.slice(3) // Tracking, About, Contact, Feedback
   ];
 

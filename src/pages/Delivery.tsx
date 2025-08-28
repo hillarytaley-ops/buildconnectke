@@ -85,8 +85,10 @@ const Delivery = () => {
     );
   }
 
-  // Check if user is admin
-  if (userRole !== 'admin') {
+  // Check if user is a stakeholder (admin, builder, or supplier)
+  const isStakeholder = ['admin', 'builder', 'supplier'].includes(userRole || '');
+  
+  if (!isStakeholder) {
     return (
       <div className="min-h-screen bg-gradient-construction">
         <Navigation />
@@ -100,7 +102,7 @@ const Delivery = () => {
               </div>
               <h2 className="text-2xl font-bold text-foreground mb-2">Access Restricted</h2>
               <p className="text-muted-foreground mb-6">
-                The delivery dashboard is only accessible to system administrators.
+                The delivery dashboard is only accessible to registered stakeholders (Builders, Suppliers, and Administrators).
               </p>
               <div className="text-sm text-muted-foreground">
                 Current role: <span className="font-medium capitalize">{userRole || 'Not assigned'}</span>
