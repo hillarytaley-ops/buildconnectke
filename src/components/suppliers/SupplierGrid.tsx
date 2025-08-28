@@ -104,7 +104,7 @@ export const SupplierGrid = ({ onSupplierSelect }: SupplierGridProps) => {
     verified: null,
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const [supplierSource, setSupplierSource] = useState<SupplierSource>("registered");
+  const [supplierSource, setSupplierSource] = useState<SupplierSource>("sample");
 
   const { suppliers: dbSuppliers, loading, error, totalCount, refetch } = useSuppliers(
     filters,
