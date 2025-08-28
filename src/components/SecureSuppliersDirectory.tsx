@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/hooks/use-toast";
 import { Shield, Star, MapPin, Package, Eye, EyeOff, Phone, Mail, Building } from "lucide-react";
+import PublicSuppliersView from "./PublicSuppliersView";
 
 interface SecureSupplierInfo {
   id: string;
@@ -170,14 +171,22 @@ const SecureSuppliersDirectory = () => {
 
   if (!userProfile) {
     return (
-      <Card>
-        <CardContent className="pt-6">
-          <div className="text-center py-8 text-muted-foreground">
-            <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Please sign in to access the suppliers directory.</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        {/* Public View - Limited Information */}
+        <Card className="border-amber-200 bg-amber-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-amber-800">
+              <Shield className="h-5 w-5" />
+              Public Suppliers Directory
+            </CardTitle>
+            <CardDescription className="text-amber-700">
+              Sign in to access full supplier details including contact information.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+        
+        <PublicSuppliersView />
+      </div>
     );
   }
 
