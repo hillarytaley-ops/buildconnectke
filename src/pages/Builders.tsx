@@ -151,7 +151,38 @@ const Builders = () => {
 
   if (loading || profileLoading) return <LoadingSpinner message={profileLoading ? "Updating profile..." : "Loading dashboard..."} />;
   if (error) return <ErrorState />;
-  if (!userProfile || !userProfile.role) {
+  
+  // Show guest view for unauthenticated users
+  if (!userProfile) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center py-12">
+            <h1 className="text-4xl font-bold mb-4">Builder Dashboard</h1>
+            <p className="text-xl text-muted-foreground mb-8">
+              Professional tools for construction management and material sourcing
+            </p>
+            <div className="bg-card rounded-lg p-8 border max-w-md mx-auto">
+              <h2 className="text-2xl font-semibold mb-4">Sign In Required</h2>
+              <p className="text-muted-foreground mb-6">
+                Access comprehensive tools for purchase orders, delivery management, and invoicing
+              </p>
+              <button 
+                onClick={() => window.location.href = '/auth'}
+                className="w-full bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90 transition-colors"
+              >
+                Sign In to Continue
+              </button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+  
+  if (!userProfile.role) {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
