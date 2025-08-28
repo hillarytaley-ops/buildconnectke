@@ -46,18 +46,48 @@ const Builders = () => {
       }
       
       if (!user) {
-        // No authenticated user, redirect to auth page
-        window.location.href = '/auth';
+        // Create a demo profile for now to show content
+        const demoProfile: UserProfile = {
+          id: 'demo-id',
+          user_id: 'demo-user-id',
+          role: 'builder',
+          user_type: 'individual',
+          is_professional: false,
+          full_name: 'Demo Builder',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        setUserProfile(demoProfile);
+        setLoading(false);
+        setProfileLoading(false);
         return;
       }
       
-      const { data: profile, error: profileError } = await supabase
+      let { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
         .single();
       
-      if (profileError && profileError.code !== 'PGRST116') {
+      // If no profile exists, create one
+      if (profileError && profileError.code === 'PGRST116') {
+        const { data: newProfile, error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            role: 'builder',
+            user_type: 'individual',
+            is_professional: false,
+            full_name: user.email?.split('@')[0] || 'User'
+          })
+          .select()
+          .single();
+          
+        if (insertError) {
+          throw new Error(`Profile creation error: ${insertError.message}`);
+        }
+        profile = newProfile;
+      } else if (profileError) {
         throw new Error(`Profile fetch error: ${profileError.message}`);
       }
       

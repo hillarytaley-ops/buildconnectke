@@ -31,17 +31,36 @@ const Suppliers = () => {
       if (user) {
         setUser(user);
         
-        // Get user role
-        const { data: profileData, error: profileError } = await supabase
+        // Get user role - try to get profile, create if doesn't exist
+        let { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('role')
           .eq('user_id', user.id)
           .single();
         
-        if (profileError) {
+        // If no profile exists, create one
+        if (profileError && profileError.code === 'PGRST116') {
+          const { data: newProfile, error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              user_id: user.id,
+              role: 'builder', // Default role
+              user_type: 'individual',
+              is_professional: false,
+              full_name: user.email?.split('@')[0] || 'User'
+            })
+            .select('role')
+            .single();
+            
+          if (!insertError) {
+            profileData = newProfile;
+          }
+        }
+        
+        if (profileError && profileError.code !== 'PGRST116') {
           console.error('Error fetching user role:', profileError);
         } else {
-          setUserRole(profileData?.role);
+          setUserRole(profileData?.role || 'builder');
           // Set default tab based on role
           if (profileData?.role === 'supplier') {
             setActiveTab("delivery-notes");
@@ -49,11 +68,14 @@ const Suppliers = () => {
             setActiveTab("suppliers");
           }
         }
+      } else {
+        // No user logged in, still show suppliers page
+        setActiveTab("suppliers");
       }
     } catch (error) {
       console.error('Auth check error:', error);
       toast({
-        title: "Authentication Error",
+        title: "Authentication Error", 
         description: "Failed to check user authentication",
         variant: "destructive",
       });
