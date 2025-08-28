@@ -21,12 +21,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Package, Truck, Clock, MapPin, Phone, Eye, AlertCircle, User, ChevronDown, Camera, QrCode, Monitor, Plane, MessageCircle, Settings, Video, ScanLine } from 'lucide-react';
+import { Plus, Package, Truck, Clock, MapPin, Phone, Eye, AlertCircle, User, ChevronDown, Camera, QrCode, Monitor, Plane, MessageCircle, Settings, Video, ScanLine, Menu } from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Link } from 'react-router-dom';
@@ -468,16 +469,16 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className={`grid w-full ${user && (userRole === 'admin' || userRole === 'supplier') ? 'grid-cols-9' : 'grid-cols-7'}`}>
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-8">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center gap-2 h-10 px-3 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                <Eye className="h-4 w-4" />
-                Monitoring & Communication Hub
+                <Menu className="h-4 w-4" />
+                <span className="hidden sm:inline">Tools</span>
                 <ChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-64">
+            <DropdownMenuContent align="start" className="w-64 bg-background border z-50">
               {/* Delivery Tracking Section */}
               <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">Delivery Tracking</div>
               <DropdownMenuItem onClick={() => setActiveTab('tracker')}>
@@ -497,68 +498,70 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
                 Driver Info
               </DropdownMenuItem>
               
+              <DropdownMenuSeparator />
+              
               {/* AI Camera Section */}
-              <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground border-t mt-2 pt-2">AI Camera</div>
-              <DropdownMenuItem onClick={() => setActiveTab('camera')}>
+              <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">AI Camera</div>
+              <DropdownMenuItem onClick={() => setActiveTab('cameras')}>
                 <Camera className="h-4 w-4 mr-2" />
-                Live Camera Feed
+                Camera Setup
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveTab('camera')}>
-                <Eye className="h-4 w-4 mr-2" />
-                Material Detection
+              <DropdownMenuItem onClick={() => setActiveTab('cameras')}>
+                <Video className="h-4 w-4 mr-2" />
+                Live Stream
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveTab('camera')}>
+              <DropdownMenuItem onClick={() => setActiveTab('physical-camera')}>
+                <Monitor className="h-4 w-4 mr-2" />
+                Physical Camera
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab('cameras')}>
                 <Settings className="h-4 w-4 mr-2" />
-                Camera Settings
+                Camera Controls
               </DropdownMenuItem>
               
+              <DropdownMenuSeparator />
+              
               {/* QR Scanner Section */}
-              <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground border-t mt-2 pt-2">QR Scanner</div>
+              <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">QR Scanner</div>
               <DropdownMenuItem onClick={() => setActiveTab('qr-scanner')}>
                 <QrCode className="h-4 w-4 mr-2" />
                 Scan QR Code
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setActiveTab('qr-scanner')}>
-                <Package className="h-4 w-4 mr-2" />
-                Material Check-in
+                <ScanLine className="h-4 w-4 mr-2" />
+                Barcode Scanner
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveTab('qr-scanner')}>
-                <Eye className="h-4 w-4 mr-2" />
-                Scan History
-              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
               
               {/* Live Monitor Section */}
-              <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground border-t mt-2 pt-2">Live Monitor</div>
-              <DropdownMenuItem onClick={() => setActiveTab('monitor')}>
+              <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">Live Monitor</div>
+              <DropdownMenuItem onClick={() => setActiveTab('live-monitor')}>
                 <Monitor className="h-4 w-4 mr-2" />
-                Live Stream View
+                Live Feed
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveTab('monitor')}>
-                <Video className="h-4 w-4 mr-2" />
-                Multi-Camera View
+              <DropdownMenuItem onClick={() => setActiveTab('live-monitor')}>
+                <Eye className="h-4 w-4 mr-2" />
+                Security Monitor
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveTab('monitor')}>
-                <Settings className="h-4 w-4 mr-2" />
-                Monitor Settings
-              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
               
               {/* Drone Monitor Section */}
-              <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground border-t mt-2 pt-2">Drone Monitor</div>
-              <DropdownMenuItem onClick={() => setActiveTab('drone')}>
+              <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">Drone Monitor</div>
+              <DropdownMenuItem onClick={() => setActiveTab('drone-monitor')}>
                 <Plane className="h-4 w-4 mr-2" />
-                Live Drone Feed
+                Drone Control
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveTab('drone')}>
+              <DropdownMenuItem onClick={() => setActiveTab('drone-monitor')}>
                 <MapPin className="h-4 w-4 mr-2" />
-                Flight Control
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveTab('drone')}>
-                <Settings className="h-4 w-4 mr-2" />
-                Drone Settings
+                Flight Path
               </DropdownMenuItem>
               
+              <DropdownMenuSeparator />
+              
               {/* Communication Section */}
-              <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground border-t mt-2 pt-2">Communication</div>
+              <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">Communication</div>
               <DropdownMenuItem onClick={() => setActiveTab('communication')}>
                 <MessageCircle className="h-4 w-4 mr-2" />
                 Team Chat
@@ -566,10 +569,6 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
               <DropdownMenuItem onClick={() => setActiveTab('communication')}>
                 <Phone className="h-4 w-4 mr-2" />
                 Voice Call
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveTab('communication')}>
-                <AlertCircle className="h-4 w-4 mr-2" />
-                Notifications
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
