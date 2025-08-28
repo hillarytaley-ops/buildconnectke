@@ -45,19 +45,23 @@ const Builders = () => {
         throw new Error(`Authentication error: ${authError.message}`);
       }
       
-      if (user) {
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-        
-        if (profileError && profileError.code !== 'PGRST116') {
-          throw new Error(`Profile fetch error: ${profileError.message}`);
-        }
-        
-        setUserProfile(profile as UserProfile);
+      if (!user) {
+        // No authenticated user, redirect to auth page
+        window.location.href = '/auth';
+        return;
       }
+      
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (profileError && profileError.code !== 'PGRST116') {
+        throw new Error(`Profile fetch error: ${profileError.message}`);
+      }
+      
+      setUserProfile(profile as UserProfile);
     } catch (error) {
       console.error('Error checking user profile:', error);
       setError(error instanceof Error ? error.message : 'An unknown error occurred');
