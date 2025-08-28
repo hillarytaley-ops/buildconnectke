@@ -9,6 +9,9 @@ import DeliveryTrackingSection from "@/components/delivery/DeliveryTrackingSecti
 import RefactoredDeliveryRequest from "@/components/delivery/RefactoredDeliveryRequest";
 import DeliveryProviders from "@/components/DeliveryProviders";
 import DelivererApplication from "@/components/DelivererApplication";
+import DeliveryAnalyticsDashboard from "@/components/delivery/DeliveryAnalyticsDashboard";
+import AutomatedOptimizationEngine from "@/components/delivery/AutomatedOptimizationEngine";
+import ExternalLogisticsIntegrations from "@/components/delivery/ExternalLogisticsIntegrations";
 import { useDeliveryAuth } from "@/components/delivery/useDeliveryAuth";
 
 const Delivery = () => {
@@ -43,6 +46,27 @@ const Delivery = () => {
       icon: UserPlus,
       description: "Apply to become a delivery provider",
       component: <DelivererApplication />
+    },
+    {
+      value: "analytics",
+      label: "Analytics",
+      icon: BarChart3,
+      description: "Advanced delivery analytics dashboard",
+      component: <DeliveryAnalyticsDashboard userId={user?.profile?.id} userRole={userRole} />
+    },
+    {
+      value: "optimization",
+      label: "AI Optimization",
+      icon: Package,
+      description: "Automated delivery optimization engine",
+      component: <AutomatedOptimizationEngine userId={user?.profile?.id} userRole={userRole} />
+    },
+    {
+      value: "integrations",
+      label: "Integrations",
+      icon: Truck,
+      description: "External logistics provider integrations",
+      component: <ExternalLogisticsIntegrations userId={user?.profile?.id} userRole={userRole} />
     }
   ];
 
@@ -71,7 +95,7 @@ const Delivery = () => {
 
           <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-6 shadow-lg">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 h-auto p-1 bg-muted/50">
+              <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7 h-auto p-1 bg-muted/50">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
                   return (
