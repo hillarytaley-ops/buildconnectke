@@ -2263,6 +2263,10 @@ export type Database = {
         Args: { supplier_uuid: string }
         Returns: boolean
       }
+      create_missing_profiles: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       generate_access_code: {
         Args: Record<PropertyKey, never>
         Returns: string
