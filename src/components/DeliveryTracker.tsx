@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import DeliveryReviewForm from './DeliveryReviewForm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -496,6 +497,29 @@ const DeliveryTracker: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Reviews Section - Only show for completed deliveries */}
+          {delivery.status === 'delivered' && (
+            <Card className="col-span-1 lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="text-xl">Rate Your Delivery Experience</CardTitle>
+                <CardDescription>
+                  Help us improve by sharing your feedback about this delivery
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <DeliveryReviewForm 
+                  deliveryId={delivery.id}
+                  onReviewSubmitted={() => {
+                    toast({
+                      title: "Thank you!",
+                      description: "Your review has been submitted successfully."
+                    });
+                  }}
+                />
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
     </div>

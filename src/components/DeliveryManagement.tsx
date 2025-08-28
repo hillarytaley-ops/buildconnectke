@@ -1,6 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
+import { Badge } from '@/components/ui/badge';
+import { User, Menu, Package, MapPin, Clock, Truck, Camera, QrCode, Monitor, Plane, MessageCircle, Settings, Video, ScanLine, Phone, Eye, AlertCircle, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Link } from 'react-router-dom';
 
 import { supabase } from '@/integrations/supabase/client';
 import DeliveryTracker from './DeliveryTracker';
@@ -12,25 +25,9 @@ import CameraSetup from './CameraSetup';
 import PhysicalCameraViewer from './PhysicalCameraViewer';
 import DroneMonitor from './DroneMonitor';
 import DeliveryCommunication from './DeliveryCommunication';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Package, Truck, Clock, MapPin, Phone, Eye, AlertCircle, User, ChevronDown, Camera, QrCode, Monitor, Plane, MessageCircle, Settings, Video, ScanLine, Menu } from 'lucide-react';
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Link } from 'react-router-dom';
+import DeliveryStats from './delivery/DeliveryStats';
+import CreateDeliveryDialog from './delivery/CreateDeliveryDialog';
+import DeliveryTable from './delivery/DeliveryTable';
 
 type DeliveryStatus = 'pending' | 'picked_up' | 'in_transit' | 'out_for_delivery' | 'delivered' | 'cancelled';
 type UserRole = 'supplier' | 'builder' | 'admin';
@@ -43,13 +40,13 @@ interface Delivery {
   weight_kg: number;
   pickup_address: string;
   delivery_address: string;
-  estimated_delivery: string;
-  actual_delivery?: string;
+  estimated_delivery_time: string;
+  actual_delivery_time?: string;
   status: DeliveryStatus;
   driver_name?: string;
   driver_phone?: string;
-  vehicle_number?: string;
-  special_instructions?: string;
+  vehicle_details?: string;
+  notes?: string;
   created_at: string;
   updated_at: string;
   builder_id?: string;
@@ -81,23 +78,9 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
   const [userRole, setUserRole] = useState<UserRole | null>(propUserRole as UserRole);
   const [user, setUser] = useState<any>(propUser);
   const [builderUniqueNumber, setBuilderUniqueNumber] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('tracker'); // Default to tracker (public)
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [newDelivery, setNewDelivery] = useState({
-    material_type: '',
-    quantity: '',
-    weight_kg: '',
-    pickup_address: '',
-    delivery_address: '',
-    builder_id: '',
-    project_id: '',
-    estimated_delivery: '',
-    driver_name: '',
-    driver_phone: '',
-    vehicle_number: '',
-    special_instructions: ''
-  });
+  const [activeTab, setActiveTab] = useState('tracker');
   const [projects, setProjects] = useState<any[]>([]);
+  const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -273,87 +256,15 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
           variant: "destructive",
         });
       } else {
-        const transformedDeliveries = data?.map(delivery => ({
-          ...delivery,
-          estimated_delivery: delivery.estimated_delivery_time
-        })) as Delivery[];
-        setDeliveries(transformedDeliveries);
+        setDeliveries(data as Delivery[] || []);
       }
     } catch (error) {
       console.error('Error:', error);
     }
   };
 
-  const createDelivery = async () => {
-    if (!user || userRole !== 'supplier') {
-      toast({
-        title: "Access Denied",
-        description: "Only suppliers can create deliveries",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      // Generate simple tracking number
-      const trackingData = 'JG' + Date.now().toString().slice(-8);
-
-
-      const deliveryData = {
-        tracking_number: trackingData,
-        supplier_id: user.id,
-        builder_id: newDelivery.builder_id || null,
-        project_id: newDelivery.project_id || null,
-        material_type: newDelivery.material_type,
-        quantity: parseInt(newDelivery.quantity),
-        weight_kg: parseFloat(newDelivery.weight_kg),
-        pickup_address: newDelivery.pickup_address,
-        delivery_address: newDelivery.delivery_address,
-        estimated_delivery: newDelivery.estimated_delivery || null,
-        driver_name: newDelivery.driver_name || null,
-        driver_phone: newDelivery.driver_phone || null,
-        vehicle_number: newDelivery.vehicle_number || null,
-        special_instructions: newDelivery.special_instructions || null,
-        status: 'pending' as DeliveryStatus
-      };
-
-      const { error } = await supabase
-        .from('deliveries')
-        .insert([deliveryData]);
-
-      if (error) {
-        throw error;
-      }
-
-      toast({
-        title: "Success",
-        description: `Delivery created with tracking number: ${trackingData}`,
-      });
-
-      setShowCreateDialog(false);
-      setNewDelivery({
-        material_type: '',
-        quantity: '',
-        weight_kg: '',
-        pickup_address: '',
-        delivery_address: '',
-        builder_id: '',
-        project_id: '',
-        estimated_delivery: '',
-        driver_name: '',
-        driver_phone: '',
-        vehicle_number: '',
-        special_instructions: ''
-      });
-      fetchDeliveries();
-    } catch (error) {
-      console.error('Error creating delivery:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create delivery",
-        variant: "destructive",
-      });
-    }
+  const handleDeliveryCreated = () => {
+    fetchDeliveries();
   };
 
   const updateDeliveryStatus = async (deliveryId: string, newStatus: DeliveryStatus) => {
@@ -370,7 +281,7 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
       const updateData: any = { status: newStatus };
       
       if (newStatus === 'delivered') {
-        updateData.actual_delivery = new Date().toISOString();
+        updateData.actual_delivery_time = new Date().toISOString();
       }
 
       const { error } = await supabase
@@ -407,37 +318,8 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
     }
   };
 
-  const addTrackingUpdate = async (deliveryId: string, location: string, notes: string) => {
-    if (!user || userRole !== 'supplier') {
-      return;
-    }
-
-    try {
-      await supabase
-        .from('delivery_updates')
-        .insert([{
-          delivery_id: deliveryId,
-          status: deliveries.find(d => d.id === deliveryId)?.status || 'in_transit',
-          location,
-          notes
-        }]);
-
-      toast({
-        title: "Success",
-        description: "Tracking update added",
-      });
-    } catch (error) {
-      console.error('Error adding tracking update:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add tracking update",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+  const handleViewDetails = (delivery: Delivery) => {
+    setSelectedDelivery(delivery);
   };
 
   const handleCameraConnected = (camera: any) => {
@@ -445,6 +327,14 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
       title: "Camera Connected", 
       description: `${camera.name} is now available for streaming` 
     });
+  };
+
+  // Calculate delivery statistics
+  const deliveryStats = {
+    total: deliveries.length,
+    pending: deliveries.filter(d => d.status === 'pending').length,
+    inTransit: deliveries.filter(d => ['picked_up', 'in_transit', 'out_for_delivery'].includes(d.status)).length,
+    completed: deliveries.filter(d => d.status === 'delivered').length
   };
 
   if (loading) {
@@ -500,21 +390,17 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
               
               {/* AI Camera Section */}
               <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">AI Camera</div>
-              <DropdownMenuItem onClick={() => setActiveTab('cameras')}>
+              <DropdownMenuItem onClick={() => setActiveTab('camera-setup')}>
                 <Camera className="h-4 w-4 mr-2" />
                 Camera Setup
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveTab('cameras')}>
+              <DropdownMenuItem onClick={() => setActiveTab('physical-camera')}>
                 <Video className="h-4 w-4 mr-2" />
                 Live Stream
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setActiveTab('physical-camera')}>
                 <Monitor className="h-4 w-4 mr-2" />
                 Physical Camera
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveTab('cameras')}>
-                <Settings className="h-4 w-4 mr-2" />
-                Camera Controls
               </DropdownMenuItem>
               
               <DropdownMenuSeparator />
@@ -532,32 +418,6 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
               
               <DropdownMenuSeparator />
               
-              {/* Live Monitor Section */}
-              <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">Live Monitor</div>
-              <DropdownMenuItem onClick={() => setActiveTab('live-monitor')}>
-                <Monitor className="h-4 w-4 mr-2" />
-                Live Feed
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveTab('live-monitor')}>
-                <Eye className="h-4 w-4 mr-2" />
-                Security Monitor
-              </DropdownMenuItem>
-              
-              <DropdownMenuSeparator />
-              
-              {/* Drone Monitor Section */}
-              <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">Drone Monitor</div>
-              <DropdownMenuItem onClick={() => setActiveTab('drone-monitor')}>
-                <Plane className="h-4 w-4 mr-2" />
-                Drone Control
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveTab('drone-monitor')}>
-                <MapPin className="h-4 w-4 mr-2" />
-                Flight Path
-              </DropdownMenuItem>
-              
-              <DropdownMenuSeparator />
-              
               {/* Communication Section */}
               <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">Communication</div>
               <DropdownMenuItem onClick={() => setActiveTab('communication')}>
@@ -570,6 +430,7 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <TabsTrigger value="tracker">Track Delivery</TabsTrigger>
           {user && (userRole === 'admin' || userRole === 'supplier') && (
             <>
               <TabsTrigger value="camera-setup">Camera Setup</TabsTrigger>
@@ -584,107 +445,49 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
           )}
         </TabsList>
 
-          <TabsContent value="tracker">
-            <DeliveryTracker />
-          </TabsContent>
+        <TabsContent value="tracker">
+          <DeliveryTracker />
+        </TabsContent>
 
-          <TabsContent value="camera-setup">
-            <CameraSetup onCameraConnected={handleCameraConnected} />
-          </TabsContent>
+        <TabsContent value="camera-setup">
+          <CameraSetup onCameraConnected={handleCameraConnected} />
+        </TabsContent>
 
-          <TabsContent value="physical-camera">
-            <PhysicalCameraViewer 
-              onQRCodeScanned={(data) => {
-                toast({ description: `QR Code Detected: ${data}` });
-              }}
-              onMaterialDetected={(material) => {
-                toast({ description: `Material Detected: ${material.type}` });
-              }}
-            />
-          </TabsContent>
+        <TabsContent value="physical-camera">
+          <PhysicalCameraViewer 
+            onQRCodeScanned={(data) => {
+              toast({ description: `QR Code Detected: ${data}` });
+            }}
+            onMaterialDetected={(material) => {
+              toast({ description: `Material Detected: ${material.type}` });
+            }}
+          />
+        </TabsContent>
 
-          <TabsContent value="camera">
-            {(userRole === 'admin' || (userRole === 'builder' && builderUniqueNumber)) ? (
-              <div className="space-y-4">
-                {builderUniqueNumber && userRole === 'builder' && (
-                  <div className="bg-muted p-4 rounded-lg">
-                    <p className="text-sm font-medium">Builder Access ID: <span className="font-mono">{builderUniqueNumber}</span></p>
-                  </div>
-                )}
-                <CameraControls 
-                  onQRCodeScanned={(data) => {
-                    toast({ description: `QR Code Detected: ${data}` });
-                  }}
-                  onMaterialDetected={(material) => {
-                    toast({ description: `Material Detected: ${material.type}` });
-                  }}
-                />
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">Access restricted. Builder unique number required.</p>
-              </div>
-            )}
-          </TabsContent>
+        <TabsContent value="qr-scanner">
+          {(userRole === 'admin' || (userRole === 'builder' && builderUniqueNumber)) ? (
+            <div className="space-y-4">
+              {builderUniqueNumber && userRole === 'builder' && (
+                <div className="bg-muted p-4 rounded-lg">
+                  <p className="text-sm font-medium">Builder Access ID: <span className="font-mono">{builderUniqueNumber}</span></p>
+                </div>
+              )}
+              <QRScanner 
+                onMaterialScanned={(material) => {
+                  toast({ description: `Material Scanned: ${material.materialType}` });
+                }}
+              />
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Access restricted. Builder unique number required.</p>
+            </div>
+          )}
+        </TabsContent>
 
-          <TabsContent value="qr-scanner">
-            {(userRole === 'admin' || (userRole === 'builder' && builderUniqueNumber)) ? (
-              <div className="space-y-4">
-                {builderUniqueNumber && userRole === 'builder' && (
-                  <div className="bg-muted p-4 rounded-lg">
-                    <p className="text-sm font-medium">Builder Access ID: <span className="font-mono">{builderUniqueNumber}</span></p>
-                  </div>
-                )}
-                <QRScanner 
-                  onMaterialScanned={(material) => {
-                    toast({ description: `Material Scanned: ${material.materialType}` });
-                  }}
-                />
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">Access restricted. Builder unique number required.</p>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="monitor">
-            {(userRole === 'admin' || (userRole === 'builder' && builderUniqueNumber)) ? (
-              <div className="space-y-4">
-                {builderUniqueNumber && userRole === 'builder' && (
-                  <div className="bg-muted p-4 rounded-lg">
-                    <p className="text-sm font-medium">Builder Access ID: <span className="font-mono">{builderUniqueNumber}</span></p>
-                  </div>
-                )}
-                <LiveStreamMonitor />
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">Access restricted. Builder unique number required.</p>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="drone">
-            {(userRole === 'admin' || (userRole === 'builder' && builderUniqueNumber)) ? (
-              <div className="space-y-4">
-                {builderUniqueNumber && userRole === 'builder' && (
-                  <div className="bg-muted p-4 rounded-lg">
-                    <p className="text-sm font-medium">Builder Access ID: <span className="font-mono">{builderUniqueNumber}</span></p>
-                  </div>
-                )}
-                <DroneMonitor userRole={userRole} user={user} builderUniqueNumber={builderUniqueNumber} />
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">Access restricted. Builder unique number required.</p>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="communication">
-            <DeliveryCommunication userRole={userRole} user={user} />
-          </TabsContent>
+        <TabsContent value="communication">
+          <DeliveryCommunication userRole={userRole} user={user} />
+        </TabsContent>
 
         {user && userRole ? (
           <TabsContent value="deliveries" className="space-y-6">
@@ -701,239 +504,32 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
                 </p>
               </div>
               {userRole === 'supplier' && (
-                <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Delivery
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle>Create New Delivery</DialogTitle>
-                    </DialogHeader>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="material_type">Material Type</Label>
-                        <Input
-                          id="material_type"
-                          value={newDelivery.material_type}
-                          onChange={(e) => setNewDelivery({...newDelivery, material_type: e.target.value})}
-                          placeholder="e.g., Concrete, Steel, Lumber"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="quantity">Quantity</Label>
-                        <Input
-                          id="quantity"
-                          type="number"
-                          value={newDelivery.quantity}
-                          onChange={(e) => setNewDelivery({...newDelivery, quantity: e.target.value})}
-                          placeholder="Number of units"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="weight_kg">Weight (kg)</Label>
-                        <Input
-                          id="weight_kg"
-                          type="number"
-                          step="0.1"
-                          value={newDelivery.weight_kg}
-                          onChange={(e) => setNewDelivery({...newDelivery, weight_kg: e.target.value})}
-                          placeholder="Total weight"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="project_id">Assign to Project (Optional)</Label>
-                        <Select value={newDelivery.project_id} onValueChange={(value) => setNewDelivery({...newDelivery, project_id: value})}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a project" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="">No project assigned</SelectItem>
-                            {projects.map((project) => (
-                              <SelectItem key={project.id} value={project.id}>
-                                {project.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="builder_id">Assign to Builder (Optional)</Label>
-                        <Select value={newDelivery.builder_id} onValueChange={(value) => setNewDelivery({...newDelivery, builder_id: value})}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a builder" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="">No builder assigned</SelectItem>
-                            {builders.map((builder) => (
-                              <SelectItem key={builder.id} value={builder.id}>
-                                {builder.email}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="estimated_delivery">Estimated Delivery</Label>
-                        <Input
-                          id="estimated_delivery"
-                          type="datetime-local"
-                          value={newDelivery.estimated_delivery}
-                          onChange={(e) => setNewDelivery({...newDelivery, estimated_delivery: e.target.value})}
-                        />
-                      </div>
-                      <div className="col-span-2 space-y-2">
-                        <Label htmlFor="pickup_address">Pickup Address</Label>
-                        <Textarea
-                          id="pickup_address"
-                          value={newDelivery.pickup_address}
-                          onChange={(e) => setNewDelivery({...newDelivery, pickup_address: e.target.value})}
-                          placeholder="Full pickup address"
-                        />
-                      </div>
-                      <div className="col-span-2 space-y-2">
-                        <Label htmlFor="delivery_address">Delivery Address</Label>
-                        <Textarea
-                          id="delivery_address"
-                          value={newDelivery.delivery_address}
-                          onChange={(e) => setNewDelivery({...newDelivery, delivery_address: e.target.value})}
-                          placeholder="Full delivery address"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="driver_name">Driver Name</Label>
-                        <Input
-                          id="driver_name"
-                          value={newDelivery.driver_name}
-                          onChange={(e) => setNewDelivery({...newDelivery, driver_name: e.target.value})}
-                          placeholder="Driver's name"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="driver_phone">Driver Phone</Label>
-                        <Input
-                          id="driver_phone"
-                          value={newDelivery.driver_phone}
-                          onChange={(e) => setNewDelivery({...newDelivery, driver_phone: e.target.value})}
-                          placeholder="Driver's phone number"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="vehicle_number">Vehicle Number</Label>
-                        <Input
-                          id="vehicle_number"
-                          value={newDelivery.vehicle_number}
-                          onChange={(e) => setNewDelivery({...newDelivery, vehicle_number: e.target.value})}
-                          placeholder="Vehicle registration number"
-                        />
-                      </div>
-                      <div className="col-span-2 space-y-2">
-                        <Label htmlFor="special_instructions">Special Instructions</Label>
-                        <Textarea
-                          id="special_instructions"
-                          value={newDelivery.special_instructions}
-                          onChange={(e) => setNewDelivery({...newDelivery, special_instructions: e.target.value})}
-                          placeholder="Any special delivery instructions"
-                        />
-                      </div>
-                    </div>
-                    <Button onClick={createDelivery} className="w-full">
-                      Create Delivery
-                    </Button>
-                  </DialogContent>
-                </Dialog>
+                <CreateDeliveryDialog 
+                  builders={builders}
+                  projects={projects}
+                  user={user}
+                  onDeliveryCreated={handleDeliveryCreated}
+                />
               )}
             </div>
 
+            {/* Delivery Statistics */}
+            <DeliveryStats 
+              totalDeliveries={deliveryStats.total}
+              pendingDeliveries={deliveryStats.pending}
+              inTransitDeliveries={deliveryStats.inTransit}
+              completedDeliveries={deliveryStats.completed}
+            />
+
+            {/* Delivery Table */}
             <Card>
               <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Tracking #</TableHead>
-                      <TableHead>Material</TableHead>
-                      <TableHead>Quantity</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Pickup</TableHead>
-                      <TableHead>Delivery</TableHead>
-                      <TableHead>Driver</TableHead>
-                      {userRole === 'supplier' && <TableHead>Actions</TableHead>}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {deliveries.map((delivery) => (
-                      <TableRow key={delivery.id}>
-                        <TableCell className="font-mono text-sm">
-                          {delivery.tracking_number}
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">{delivery.material_type}</p>
-                            <p className="text-sm text-muted-foreground">{delivery.weight_kg}kg</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>{delivery.quantity} units</TableCell>
-                        <TableCell>
-                          <Badge className={`${statusConfig[delivery.status].color} text-white`}>
-                            {statusConfig[delivery.status].label}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="max-w-[200px]">
-                          <p className="text-sm truncate">{delivery.pickup_address}</p>
-                        </TableCell>
-                        <TableCell className="max-w-[200px]">
-                          <p className="text-sm truncate">{delivery.delivery_address}</p>
-                        </TableCell>
-                        <TableCell>
-                          {delivery.driver_name ? (
-                            <div>
-                              <p className="text-sm">{delivery.driver_name}</p>
-                              {delivery.driver_phone && (
-                                <p className="text-xs text-muted-foreground">{delivery.driver_phone}</p>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">Not assigned</span>
-                          )}
-                        </TableCell>
-                        {userRole === 'supplier' && (
-                          <TableCell>
-                            <Select
-                              value={delivery.status}
-                              onValueChange={(value: DeliveryStatus) => updateDeliveryStatus(delivery.id, value)}
-                            >
-                              <SelectTrigger className="w-40">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="pending">Pending</SelectItem>
-                                <SelectItem value="picked_up">Picked Up</SelectItem>
-                                <SelectItem value="in_transit">In Transit</SelectItem>
-                                <SelectItem value="out_for_delivery">Out for Delivery</SelectItem>
-                                <SelectItem value="delivered">Delivered</SelectItem>
-                                <SelectItem value="cancelled">Cancelled</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                        )}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                {deliveries.length === 0 && (
-                  <div className="text-center py-8">
-                    <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">No deliveries found</p>
-                    <p className="text-sm text-muted-foreground">
-                      {userRole === 'supplier' 
-                        ? 'Create your first delivery to get started'
-                        : 'No deliveries have been assigned to you yet'
-                      }
-                    </p>
-                  </div>
-                )}
+                <DeliveryTable 
+                  deliveries={deliveries}
+                  userRole={userRole}
+                  onStatusUpdate={updateDeliveryStatus}
+                  onViewDetails={handleViewDetails}
+                />
               </CardContent>
             </Card>
           </TabsContent>

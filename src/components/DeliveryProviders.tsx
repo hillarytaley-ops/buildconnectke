@@ -53,13 +53,34 @@ const DeliveryProviders = () => {
     }
   };
 
-  const handleProviderResponse = async (requestId: string, providerId: string, response: 'accept' | 'reject') => {
+  const handleProviderResponse = async (requestId: string, response: 'accept' | 'reject') => {
     setLoading(true);
     try {
+      // Get current user profile to get provider_id
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile) throw new Error('User profile not found');
+
+      // Get the provider record for this user
+      const { data: provider } = await supabase
+        .from('delivery_providers')
+        .select('id')
+        .eq('user_id', profile.id)
+        .single();
+
+      if (!provider) throw new Error('Provider profile not found');
+
       const { error } = await supabase
         .from('delivery_requests')
         .update({
-          provider_id: response === 'accept' ? providerId : null,
+          provider_id: response === 'accept' ? provider.id : null,
           status: response === 'accept' ? 'accepted' : 'rejected',
           provider_response: response,
           response_date: new Date().toISOString(),
@@ -135,7 +156,7 @@ const DeliveryProviders = () => {
                   <div className="flex gap-2">
                     <Button
                       size="sm"
-                      onClick={() => handleProviderResponse(request.id, 'provider-id', 'accept')}
+                      onClick={() => handleProviderResponse(request.id, 'accept')}
                       disabled={loading}
                       className="bg-green-600 hover:bg-green-700"
                     >
@@ -145,7 +166,7 @@ const DeliveryProviders = () => {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleProviderResponse(request.id, 'provider-id', 'reject')}
+                      onClick={() => handleProviderResponse(request.id, 'reject')}
                       disabled={loading}
                       className="border-red-500 text-red-500 hover:bg-red-50"
                     >
