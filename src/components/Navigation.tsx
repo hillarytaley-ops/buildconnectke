@@ -11,6 +11,7 @@ const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const location = useLocation();
   const { toast } = useToast();
 
@@ -20,6 +21,15 @@ const Navigation = () => {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Fetch user role when user changes
+        if (session?.user) {
+          setTimeout(() => {
+            fetchUserRole(session.user.id);
+          }, 0);
+        } else {
+          setUserRole(null);
+        }
       }
     );
 
@@ -27,20 +37,49 @@ const Navigation = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        fetchUserRole(session.user.id);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const navItems = [
+  const fetchUserRole = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', userId)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching user role:', error);
+        return;
+      }
+      
+      setUserRole(data?.role || null);
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+    }
+  };
+
+  const baseNavItems = [
     { path: "/", label: "Home" },
     { path: "/builders", label: "Builders" },
     { path: "/suppliers", label: "Suppliers" },
-    { path: "/delivery", label: "Delivery" },
     { path: "/tracking", label: "Tracking" },
     { path: "/about", label: "About" },
     { path: "/contact", label: "Contact" },
     { path: "/feedback", label: "Feedback" },
+  ];
+
+  // Add delivery link only for admin users
+  const navItems = [
+    ...baseNavItems.slice(0, 3), // Home, Builders, Suppliers
+    ...(userRole === 'admin' ? [{ path: "/delivery", label: "Delivery" }] : []),
+    ...baseNavItems.slice(3) // Tracking, About, Contact, Feedback
   ];
 
   const isActive = (path: string) => location.pathname === path;
