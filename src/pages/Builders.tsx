@@ -156,9 +156,9 @@ const Builders = () => {
                 <CardHeader className="text-center">
                   <div className="w-20 h-20 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center overflow-hidden">
                     <img 
-                      src="/lovable-uploads/1359401c-47a1-40bb-be90-d89521e64ed5.png" 
+                      src="/lovable-uploads/d3378e97-a017-41d4-892f-ef5860afe5a2.png" 
                       alt="UjenziPro Builder Profile"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain p-2"
                     />
                   </div>
                   <CardTitle className="text-lg">{builder.name}</CardTitle>

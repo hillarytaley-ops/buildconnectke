@@ -61,14 +61,14 @@ const Navigation = () => {
   };
 
   return (
-    <header className="shadow-sm border-b sticky top-0 z-50 bg-blue-200">
+    <header className="shadow-sm border-b sticky top-0 z-50 bg-gradient-primary">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between relative z-10">
         <Link to="/" className="flex items-center">
           <div className="relative">
             {/* Logo in center */}
-            <div className="bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 w-12 h-12 flex items-center justify-center z-10">
+            <div className="bg-background rounded-full p-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 w-12 h-12 flex items-center justify-center z-10">
               <img 
-                src="/lovable-uploads/6f428ab0-9c8e-425c-960b-8c987371f59e.png" 
+                src="/lovable-uploads/d3378e97-a017-41d4-892f-ef5860afe5a2.png" 
                 alt="UjenziPro Logo" 
                 className="w-8 h-8 object-cover rounded-full"
               />
@@ -82,8 +82,8 @@ const Navigation = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`text-sm font-medium transition-colors hover:text-yellow-300 ${
-                isActive(item.path) ? "text-yellow-300 font-bold" : "text-white"
+              className={`text-sm font-medium transition-colors hover:text-construction-orange ${
+                isActive(item.path) ? "text-construction-orange font-bold" : "text-text-on-dark"
               }`}
             >
               {item.label}
@@ -94,13 +94,13 @@ const Navigation = () => {
         <div className="hidden md:flex items-center space-x-4">
           {user ? (
             <div className="flex items-center space-x-4">
-              <span className="text-white">
+              <span className="text-text-on-dark">
                 Welcome, {user.email}
               </span>
               <Button 
                 variant="outline" 
                 onClick={handleSignOut}
-                className="text-white border-white hover:bg-white hover:text-black"
+                className="text-text-on-dark border-border hover:bg-background hover:text-foreground"
               >
                 Sign Out
               </Button>
@@ -108,12 +108,12 @@ const Navigation = () => {
           ) : (
             <>
               <Link to="/auth">
-                <Button variant="outline" className="text-black bg-white/90 border-white hover:bg-white hover:text-black font-semibold shadow-lg">
+                <Button variant="outline" className="text-foreground bg-background/90 border-border hover:bg-background hover:text-foreground font-semibold shadow-lg">
                   Sign In
                 </Button>
               </Link>
               <Link to="/auth">
-                <Button className="bg-black text-white hover:bg-gray-800 font-semibold shadow-lg">
+                <Button className="bg-construction-orange text-foreground hover:bg-construction-orange/90 font-semibold shadow-lg">
                   Get Started
                 </Button>
               </Link>
@@ -123,7 +123,7 @@ const Navigation = () => {
 
         {/* Mobile Menu Button */}
         <button
-          className="md:hidden text-white bg-black/50 p-2 rounded-lg border border-white/30 backdrop-blur-sm hover:bg-black/70 transition-all duration-200"
+          className="md:hidden text-text-on-dark bg-foreground/50 p-2 rounded-lg border border-border/30 backdrop-blur-sm hover:bg-foreground/70 transition-all duration-200"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
           {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -132,14 +132,14 @@ const Navigation = () => {
 
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t">
+        <div className="md:hidden bg-background border-t">
           <nav className="px-4 py-4 space-y-4">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`block text-sm font-medium transition-colors hover:text-blue-600 ${
-                  isActive(item.path) ? "text-blue-600" : "text-gray-600"
+                className={`block text-sm font-medium transition-colors hover:text-primary ${
+                  isActive(item.path) ? "text-primary" : "text-muted-foreground"
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
