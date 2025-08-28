@@ -11,23 +11,6 @@ interface UseSuppliersResult {
   refetch: () => void;
 }
 
-// Function to filter sensitive supplier information based on user role
-const filterSupplierData = (supplier: Supplier, userRole: string | null, isAdmin: boolean): Supplier => {
-  // If user is admin, return all data
-  if (isAdmin) {
-    return supplier;
-  }
-
-  // For non-admin users, hide sensitive contact information
-  return {
-    ...supplier,
-    phone: userRole ? 'Contact via platform' : undefined,
-    email: userRole ? 'Available after connection' : undefined,
-    address: supplier.address ? 'Location available to verified users' : undefined,
-    contact_person: userRole ? 'Contact available' : undefined
-  };
-};
-
 export const useSuppliers = (
   filters: SupplierFilters,
   page: number = 1,
@@ -37,34 +20,7 @@ export const useSuppliers = (
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
-
-  // Check user role for data filtering
-  useEffect(() => {
-    const checkUserRole = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('user_id', user.id)
-            .single();
-          
-          if (profile) {
-            setUserRole(profile.role);
-            setIsAdmin(profile.role === 'admin');
-          }
-        }
-      } catch (err) {
-        console.log('No user authenticated, showing public data only');
-      }
-    };
-
-    checkUserRole();
-  }, []);
 
   const fetchSuppliers = async () => {
     try {
@@ -72,47 +28,56 @@ export const useSuppliers = (
       setError(null);
       
       // Use secure function instead of direct table query
-      let query = supabase.rpc('get_secure_supplier_data')
-        .select('*', { count: 'exact' })
-        .range((page - 1) * limit, page * limit - 1)
-        .order('rating', { ascending: false });
-
-      // Apply filters (note: filters work on the already-secure data)
+      const { data, error: fetchError } = await supabase
+        .rpc('get_secure_supplier_data');
+      
+      if (fetchError) throw fetchError;
+      
+      let filteredSuppliers = data || [];
+      
+      // Apply client-side filters
       if (filters.search) {
-        query = query.or(`company_name.ilike.%${filters.search}%,specialties.cs.{${filters.search}},materials_offered.cs.{${filters.search}}`);
+        const searchLower = filters.search.toLowerCase();
+        filteredSuppliers = filteredSuppliers.filter(supplier => 
+          supplier.company_name.toLowerCase().includes(searchLower) ||
+          supplier.specialties.some(s => s.toLowerCase().includes(searchLower)) ||
+          supplier.materials_offered.some(m => m.toLowerCase().includes(searchLower))
+        );
       }
 
       if (filters.category && filters.category !== 'All Categories') {
-        query = query.contains('specialties', [filters.category]);
+        filteredSuppliers = filteredSuppliers.filter(supplier =>
+          supplier.specialties.includes(filters.category)
+        );
       }
 
       if (filters.rating > 0) {
-        query = query.gte('rating', filters.rating);
+        filteredSuppliers = filteredSuppliers.filter(supplier =>
+          supplier.rating >= filters.rating
+        );
       }
 
       if (filters.verified !== null) {
-        query = query.eq('is_verified', filters.verified);
+        filteredSuppliers = filteredSuppliers.filter(supplier =>
+          supplier.is_verified === filters.verified
+        );
       }
 
-      const { data, error: fetchError, count } = await query;
+      // Apply pagination
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedSuppliers = filteredSuppliers.slice(startIndex, endIndex);
       
-      if (fetchError) {
-        console.log('Secure function call failed, using demo data fallback');
-        throw fetchError;
-      }
-      
-      // Data is already filtered by the secure function based on user role
-      setSuppliers(data || []);
-      setTotalCount(count || 0);
+      setSuppliers(paginatedSuppliers);
+      setTotalCount(filteredSuppliers.length);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch suppliers';
       setError(errorMessage);
-      // Don't show toast error for security reasons - just use demo data
-      console.log('Using demo data due to:', errorMessage);
-      
-      // Fallback to empty array - the component will use demo data
-      setSuppliers([]);
-      setTotalCount(0);
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -120,7 +85,7 @@ export const useSuppliers = (
 
   useEffect(() => {
     fetchSuppliers();
-  }, [filters, page, limit, userRole, isAdmin]);
+  }, [filters, page, limit]);
 
   return {
     suppliers,
