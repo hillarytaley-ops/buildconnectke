@@ -142,63 +142,82 @@ const Suppliers = () => {
     <div className="min-h-screen bg-gradient-construction">
       <Navigation />
 
-      {/* Hero Section - Combined Materials & Suppliers */}
-      <section className="bg-gradient-to-br from-black via-red-600 to-green-600 text-white py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl font-bold mb-4">Construction Materials & Supplies Marketplace</h1>
-          <p className="text-xl mb-8 opacity-90">Find the best prices for quality construction materials and connect with verified suppliers nationwide</p>
-          
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-md mx-auto mb-8">
-            <TabsList className={`grid w-full ${userRole === 'supplier' ? 'grid-cols-4' : 'grid-cols-2'}`}>
-              <TabsTrigger value="suppliers" className="flex items-center gap-2">
-                <Building className="h-4 w-4" />
-                Suppliers
-              </TabsTrigger>
-              <TabsTrigger value="materials" className="flex items-center gap-2">
-                <ShoppingBag className="h-4 w-4" />
-                Materials
-              </TabsTrigger>
-              {userRole === 'supplier' && (
-                <>
-                  <TabsTrigger value="qr-codes" className="flex items-center gap-2">
-                    <Package className="h-4 w-4" />
-                    QR Codes
-                  </TabsTrigger>
-                  <TabsTrigger value="delivery-notes" className="flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    Delivery Notes
-                  </TabsTrigger>
-                </>
-              )}
-            </TabsList>
-          </Tabs>
-          
-          {/* Search Bar */}
-          <div className="max-w-3xl mx-auto">
-            <div className="flex gap-4 mb-6">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                <Input 
-                  placeholder="Search for materials, suppliers, or categories..." 
-                  className="pl-10 py-6 text-lg bg-white"
-                />
-              </div>
-              <Button size="lg" className="bg-primary hover:bg-primary/90 px-8">
-                Search
-              </Button>
+      {/* Professional Hero Section */}
+      <section className="bg-gradient-hero text-text-on-dark py-20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-earth-brown/20 to-transparent"></div>
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <div className="max-w-4xl mx-auto">
+            <div className="inline-flex items-center gap-2 bg-card/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 mb-6">
+              <Shield className="h-4 w-4" />
+              <span className="text-sm font-medium">Verified Construction Marketplace</span>
             </div>
-            
-            {/* Category Pills */}
-            <div className="flex flex-wrap gap-2 justify-center">
-              {materialCategories.slice(0, 6).map((category, index) => (
-                <Badge 
-                  key={index} 
-                  variant={index === 0 ? "default" : "secondary"} 
-                  className="cursor-pointer hover:bg-green-100 hover:text-green-800 px-4 py-2"
-                >
-                  {category}
-                </Badge>
-              ))}
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+              Professional Construction 
+              <span className="text-construction-orange block">Materials & Suppliers</span>
+            </h1>
+            <p className="text-xl mb-8 text-text-primary-light max-w-2xl mx-auto leading-relaxed">
+              Connect with Kenya's most trusted suppliers. Quality materials, competitive pricing, and verified professionals for your construction projects.
+            </p>
+          
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-2xl mx-auto mb-10">
+              <TabsList className={`grid w-full ${userRole === 'supplier' ? 'grid-cols-4' : 'grid-cols-2'} bg-card/10 backdrop-blur-sm border border-white/20 p-1`}>
+                <TabsTrigger value="suppliers" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <Building className="h-4 w-4" />
+                  <span className="hidden sm:inline">Suppliers</span>
+                </TabsTrigger>
+                <TabsTrigger value="materials" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <ShoppingBag className="h-4 w-4" />
+                  <span className="hidden sm:inline">Materials</span>
+                </TabsTrigger>
+                {userRole === 'supplier' && (
+                  <>
+                    <TabsTrigger value="qr-codes" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                      <Package className="h-4 w-4" />
+                      <span className="hidden sm:inline">QR Codes</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="delivery-notes" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                      <FileText className="h-4 w-4" />
+                      <span className="hidden sm:inline">Notes</span>
+                    </TabsTrigger>
+                  </>
+                )}
+              </TabsList>
+            </Tabs>
+          
+            {/* Professional Search Interface */}
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-card/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 mb-8">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-text-secondary-light" />
+                    <Input 
+                      placeholder="Search materials, suppliers, or categories..." 
+                      className="pl-12 py-4 text-lg bg-card border-white/20 text-foreground placeholder:text-text-secondary-light focus:border-construction-orange"
+                    />
+                  </div>
+                  <Button size="lg" className="bg-construction-orange hover:bg-construction-orange/90 text-text-on-dark px-8 py-4 font-semibold">
+                    <Search className="h-5 w-5 mr-2" />
+                    Search
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Enhanced Category Pills */}
+              <div className="flex flex-wrap gap-3 justify-center">
+                {materialCategories.slice(0, 6).map((category, index) => (
+                  <Badge 
+                    key={index} 
+                    variant={index === 0 ? "default" : "secondary"} 
+                    className={`cursor-pointer px-6 py-3 text-sm font-medium transition-all duration-200 ${
+                      index === 0 
+                        ? "bg-construction-orange text-text-on-dark hover:bg-construction-orange/90" 
+                        : "bg-card/20 text-text-primary-light border-white/20 hover:bg-construction-orange/20 hover:border-construction-orange/50"
+                    }`}
+                  >
+                    {category}
+                  </Badge>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -219,107 +238,156 @@ const Suppliers = () => {
           )}
           
           <TabsContent value="suppliers" className="space-y-8">
-            <SecureSuppliersDirectory />
-            
-            {/* Supplier Registration CTA */}
-            <Card className="bg-gradient-to-r from-red-50 to-green-50 border-primary">
-              <CardContent className="pt-6">
-                <div className="text-center space-y-4">
-                  <div className="space-y-2">
-                    <h3 className="text-xl font-semibold">Are you a construction material supplier?</h3>
-                    <p className="text-muted-foreground">
-                      Join our network of verified suppliers and reach thousands of builders across Kenya
-                    </p>
+            <div className="space-y-8">
+              <SecureSuppliersDirectory />
+              
+              {/* Professional Supplier Registration CTA */}
+              <Card className="bg-gradient-primary border-none shadow-2xl overflow-hidden relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-construction-orange/90"></div>
+                <CardContent className="pt-12 pb-12 relative z-10">
+                  <div className="text-center space-y-6 max-w-3xl mx-auto">
+                    <div className="space-y-4">
+                      <div className="inline-flex items-center gap-2 bg-card/20 backdrop-blur-sm border border-white/30 rounded-full px-4 py-2 mb-4">
+                        <Store className="h-4 w-4 text-text-on-dark" />
+                        <span className="text-sm font-medium text-text-on-dark">Supplier Network</span>
+                      </div>
+                      <h3 className="text-3xl md:text-4xl font-bold text-text-on-dark">
+                        Join Kenya's Leading Construction Marketplace
+                      </h3>
+                      <p className="text-lg text-text-primary-light max-w-2xl mx-auto leading-relaxed">
+                        Connect with thousands of builders, contractors, and developers. Grow your business with our verified supplier network and professional tools.
+                      </p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                      <Button 
+                        onClick={() => setShowRegistrationForm(true)}
+                        size="lg"
+                        className="bg-card text-primary hover:bg-card/90 font-semibold px-8 py-4"
+                      >
+                        <Store className="h-5 w-5 mr-2" />
+                        Register as Supplier
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="lg"
+                        className="border-white/30 text-text-on-dark hover:bg-card/10 backdrop-blur-sm px-8 py-4"
+                      >
+                        Learn More
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 pt-8 border-t border-white/20">
+                      <div className="flex flex-col items-center gap-3 text-text-on-dark">
+                        <div className="p-3 bg-card/20 rounded-full">
+                          <Package className="h-6 w-6" />
+                        </div>
+                        <div className="text-center">
+                          <h4 className="font-semibold">Free Registration</h4>
+                          <p className="text-sm text-text-secondary-light">No setup fees or hidden costs</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-center gap-3 text-text-on-dark">
+                        <div className="p-3 bg-card/20 rounded-full">
+                          <Star className="h-6 w-6" />
+                        </div>
+                        <div className="text-center">
+                          <h4 className="font-semibold">Verified Badge</h4>
+                          <p className="text-sm text-text-secondary-light">Build trust with verified status</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-center gap-3 text-text-on-dark">
+                        <div className="p-3 bg-card/20 rounded-full">
+                          <MapPin className="h-6 w-6" />
+                        </div>
+                        <div className="text-center">
+                          <h4 className="font-semibold">Nationwide Reach</h4>
+                          <p className="text-sm text-text-secondary-light">Access markets across Kenya</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Button 
-                      onClick={() => setShowRegistrationForm(true)}
-                      className="bg-primary hover:bg-primary/90"
-                    >
-                      <Store className="h-4 w-4 mr-2" />
-                      Register as Supplier
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="materials" className="space-y-8">
+            {/* Professional Filters and View Options */}
+            <Card className="border-border bg-card">
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <Button variant="outline" size="sm" className="border-primary/20 hover:border-primary">
+                      <Filter className="h-4 w-4 mr-2" />
+                      Advanced Filters
                     </Button>
-                    <Button variant="outline">
-                      Learn More
-                    </Button>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">{materials.length}</span>
+                      <span>materials available</span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-center gap-8 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <Package className="h-4 w-4" />
-                      Free Registration
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Star className="h-4 w-4" />
-                      Verified Badge
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
-                      Nationwide Reach
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground hidden sm:inline">View:</span>
+                    <Button variant="outline" size="sm" className="border-primary/20">
+                      <Grid className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <List className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
 
-          <TabsContent value="materials" className="space-y-8">
-            {/* Filters and View Options for Materials */}
-            <div className="flex justify-between items-center py-6 bg-muted rounded-lg px-4">
-              <div className="flex items-center gap-4">
-                <Button variant="outline" size="sm">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filters
-                </Button>
-                <span className="text-sm text-gray-600">Showing {materials.length} materials</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm">
-                  <Grid className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="sm">
-                  <List className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Featured Materials */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Professional Materials Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {materials.map((material, index) => (
-                <Card key={index} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <div className="aspect-video bg-muted rounded-lg mb-4 overflow-hidden">
+                <Card key={index} className="group hover:shadow-2xl transition-all duration-300 border-border bg-card overflow-hidden">
+                  <CardHeader className="p-0">
+                    <div className="aspect-video bg-muted rounded-t-lg overflow-hidden relative">
                       <img 
                         src={material.image} 
                         alt={material.name}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
-                    </div>
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <CardTitle className="text-lg">{material.name}</CardTitle>
-                        <CardDescription className="mt-1">
-                          by {material.supplier}
-                        </CardDescription>
+                      <div className="absolute top-4 right-4">
+                        <Badge variant="secondary" className="bg-card/90 backdrop-blur-sm">
+                          {material.category}
+                        </Badge>
                       </div>
-                      <Badge variant="secondary">{material.category}</Badge>
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center gap-2 mb-3">
-                      <MapPin className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm text-gray-600">{material.location}</span>
-                      <div className="flex items-center gap-1 ml-auto">
-                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span className="text-sm font-medium">{material.rating}</span>
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      <div>
+                        <CardTitle className="text-xl font-semibold mb-1 group-hover:text-primary transition-colors">
+                          {material.name}
+                        </CardTitle>
+                        <CardDescription className="text-muted-foreground">
+                          by <span className="font-medium text-foreground">{material.supplier}</span>
+                        </CardDescription>
                       </div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <div className="text-xl font-bold text-green-600">{material.price}</div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">Quote</Button>
-                        <Button size="sm" className="bg-primary hover:bg-primary/90">
-                          Select
-                        </Button>
+                      
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <MapPin className="h-4 w-4" />
+                          <span>{material.location}</span>
+                        </div>
+                        <div className="flex items-center gap-1 bg-safety-yellow/10 px-2 py-1 rounded-full">
+                          <Star className="h-4 w-4 text-safety-yellow fill-current" />
+                          <span className="font-medium text-foreground">{material.rating}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-between items-center pt-2 border-t border-border">
+                        <div className="text-2xl font-bold text-construction-orange">{material.price}</div>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" className="border-primary/20 hover:border-primary">
+                            Quote
+                          </Button>
+                          <Button size="sm" className="bg-primary hover:bg-primary/90">
+                            Select
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
@@ -327,10 +395,15 @@ const Suppliers = () => {
               ))}
             </div>
             
-            {/* Load More Button */}
-            <div className="text-center">
-              <Button variant="outline" size="lg" className="border-green-600 text-green-600 hover:bg-green-50">
+            {/* Professional Load More Section */}
+            <div className="text-center pt-8">
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground px-12 py-4 font-semibold"
+              >
                 View All Materials
+                <Package className="h-5 w-5 ml-2" />
               </Button>
             </div>
           </TabsContent>
