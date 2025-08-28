@@ -2571,6 +2571,18 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      is_current_user_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_current_user_builder: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_current_user_supplier: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_supplier: {
         Args: Record<PropertyKey, never>
         Returns: boolean
