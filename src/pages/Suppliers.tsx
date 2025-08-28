@@ -1,21 +1,22 @@
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building, ShoppingBag, FileText, Package, Store } from "lucide-react";
+import { Building, ShoppingBag, FileText, Package, Store, Database, Users } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SupplierRegistrationForm from "@/components/SupplierRegistrationForm";
 import QRCodeManager from "@/components/QRCodeManager";
 import DeliveryNoteForm from "@/components/DeliveryNoteForm";
 import { SupplierGrid } from "@/components/suppliers/SupplierGrid";
+import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 import { supabase } from '@/integrations/supabase/client';
 import { Supplier } from "@/types/supplier";
 import { useToast } from "@/hooks/use-toast";
 
 const Suppliers = () => {
-  const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("suppliers");
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
@@ -38,29 +39,15 @@ const Suppliers = () => {
           .eq('user_id', user.id)
           .single();
         
-        // If no profile exists, create one
-        if (profileError && profileError.code === 'PGRST116') {
-          const { data: newProfile, error: insertError } = await supabase
-            .from('profiles')
-            .insert({
-              user_id: user.id,
-              role: 'builder', // Default role
-              user_type: 'individual',
-              is_professional: false,
-              full_name: user.email?.split('@')[0] || 'User'
-            })
-            .select('role')
-            .single();
-            
-          if (!insertError) {
-            profileData = newProfile;
-          }
-        }
-        
-        if (profileError && profileError.code !== 'PGRST116') {
-          console.error('Error fetching user role:', profileError);
+        if (profileError || !profileData) {
+          console.log('No profile found or error, using default role');
+          // Set default role if no profile found
+          setUserRole('builder');
+          setIsAdmin(false);
+          setActiveTab("suppliers");
         } else {
-          setUserRole(profileData?.role || 'builder');
+          setUserRole(profileData?.role);
+          setIsAdmin(profileData?.role === 'admin');
           // Set default tab based on role
           if (profileData?.role === 'supplier') {
             setActiveTab("delivery-notes");
@@ -69,16 +56,19 @@ const Suppliers = () => {
           }
         }
       } else {
-        // No user logged in, still show suppliers page
+        // No authenticated user, set default values to allow page viewing
+        setUser(null);
+        setUserRole(null);
+        setIsAdmin(false);
         setActiveTab("suppliers");
       }
     } catch (error) {
       console.error('Auth check error:', error);
-      toast({
-        title: "Authentication Error", 
-        description: "Failed to check user authentication",
-        variant: "destructive",
-      });
+      // Don't show error toast, just set defaults to allow page viewing
+      setUser(null);
+      setUserRole(null);
+      setIsAdmin(false);
+      setActiveTab("suppliers");
     } finally {
       setLoading(false);
     }
@@ -97,27 +87,8 @@ const Suppliers = () => {
       <div className="min-h-screen bg-gradient-construction flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">Loading suppliers directory...</p>
         </div>
-      </div>
-    );
-  }
-
-  if (showRegistrationForm) {
-    return (
-      <div className="min-h-screen bg-gradient-construction">
-        <Navigation />
-        <div className="container mx-auto px-4 py-8">
-          <Button 
-            variant="outline" 
-            onClick={() => setShowRegistrationForm(false)}
-            className="mb-6"
-          >
-            ← Back to Suppliers
-          </Button>
-          <SupplierRegistrationForm />
-        </div>
-        <Footer />
       </div>
     );
   }
@@ -132,12 +103,27 @@ const Suppliers = () => {
           <h1 className="text-4xl font-bold mb-4">Construction Materials & Supplies Marketplace</h1>
           <p className="text-xl mb-8 opacity-90">Connect with verified suppliers and find quality construction materials nationwide</p>
           
+          {/* Admin Controls */}
+          <div className="flex justify-center gap-4 mb-8">
+            {isAdmin && (
+              <Badge variant="secondary" className="bg-red-100 text-red-800 border-red-200">
+                Admin View - Full Access
+              </Badge>
+            )}
+          </div>
+
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-md mx-auto">
-            <TabsList className={`grid w-full ${userRole === 'supplier' ? 'grid-cols-3' : 'grid-cols-1'}`}>
+            <TabsList className={`grid w-full ${userRole === 'supplier' ? 'grid-cols-3' : isAdmin ? 'grid-cols-2' : 'grid-cols-1'}`}>
               <TabsTrigger value="suppliers" className="flex items-center gap-2">
                 <Building className="h-4 w-4" />
                 Suppliers
               </TabsTrigger>
+              {isAdmin && (
+                <TabsTrigger value="registered-users" className="flex items-center gap-2">
+                  <Database className="h-4 w-4" />
+                  Registered Users
+                </TabsTrigger>
+              )}
               {userRole === 'supplier' && (
                 <>
                   <TabsTrigger value="qr-codes" className="flex items-center gap-2">
@@ -168,6 +154,19 @@ const Suppliers = () => {
               </TabsContent>
             </>
           )}
+
+          {isAdmin && (
+            <TabsContent value="registered-users" className="space-y-8">
+              <div className="bg-muted rounded-lg p-8 text-center">
+                <Users className="h-12 w-12 mx-auto mb-4 text-primary" />
+                <h3 className="text-2xl font-bold mb-4">Registered Users Management</h3>
+                <p className="text-lg mb-6 opacity-90">Admin view of all registered builders and suppliers</p>
+                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                  Admin Dashboard - Coming Soon
+                </Badge>
+              </div>
+            </TabsContent>
+          )}
           
           <TabsContent value="suppliers" className="space-y-8">
             <SupplierGrid onSupplierSelect={handleSupplierSelect} />
@@ -178,7 +177,10 @@ const Suppliers = () => {
               <p className="text-lg mb-6 opacity-90">Join our marketplace and connect with builders across Kenya</p>
               <Button 
                 size="lg" 
-                onClick={() => setShowRegistrationForm(true)}
+                onClick={() => toast({
+                  title: "Supplier Registration",
+                  description: "Registration system coming soon! Contact us for early access.",
+                })}
                 className="bg-primary hover:bg-primary/90"
               >
                 <Store className="h-5 w-5 mr-2" />
@@ -186,7 +188,6 @@ const Suppliers = () => {
               </Button>
             </div>
           </TabsContent>
-
         </Tabs>
       </main>
 
