@@ -16,9 +16,10 @@ interface BuilderCardProps {
     description?: string;
   };
   onContactClick?: (builder: BuilderCardProps['builder']) => void;
+  onViewProfile?: (builder: BuilderCardProps['builder']) => void;
 }
 
-export const BuilderCard = ({ builder, onContactClick }: BuilderCardProps) => {
+export const BuilderCard = ({ builder, onContactClick, onViewProfile }: BuilderCardProps) => {
   return (
     <Card className="h-full hover:shadow-lg transition-shadow duration-200">
       <CardHeader className="pb-3">
@@ -109,6 +110,7 @@ export const BuilderCard = ({ builder, onContactClick }: BuilderCardProps) => {
             variant="default"
             size="sm"
             className="flex-1"
+            onClick={() => onViewProfile?.(builder)}
           >
             View Profile
           </Button>

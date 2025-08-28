@@ -7,6 +7,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Settings } from "lucide-react";
 import { BuilderGrid } from "@/components/builders/BuilderGrid";
+import { ContactBuilderModal } from "@/components/modals/ContactBuilderModal";
+import { BuilderProfileModal } from "@/components/modals/BuilderProfileModal";
 import { UserProfile } from "@/types/userProfile";
 import { useToast } from "@/hooks/use-toast";
 
@@ -15,6 +17,14 @@ const Builders = () => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
+  const [selectedBuilder, setSelectedBuilder] = useState<UserProfile & {
+    company_name?: string;
+    phone?: string;
+    email?: string;
+    location?: string;
+  } | null>(null);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -49,11 +59,19 @@ const Builders = () => {
     }
   };
 
-  const handleBuilderContact = (builder: UserProfile & { company_name?: string; phone?: string; email?: string }) => {
-    toast({
-      title: "Contact Builder",
-      description: `Contact information for ${builder.company_name || builder.full_name}`,
-    });
+  const handleBuilderContact = (builder: UserProfile & { company_name?: string; phone?: string; email?: string; location?: string }) => {
+    setSelectedBuilder(builder);
+    setShowContactModal(true);
+  };
+
+  const handleBuilderProfile = (builder: UserProfile & { company_name?: string; phone?: string; email?: string; location?: string }) => {
+    setSelectedBuilder(builder);
+    setShowProfileModal(true);
+  };
+
+  const handleOpenContactFromProfile = () => {
+    setShowProfileModal(false);
+    setShowContactModal(true);
   };
 
   if (loading) {
@@ -125,10 +143,30 @@ const Builders = () => {
           /* Public Directory */
           <BuilderGrid 
             onBuilderContact={handleBuilderContact}
+            onBuilderProfile={handleBuilderProfile}
             isAdmin={isAdmin}
           />
         )}
       </main>
+
+      {/* Contact Modal */}
+      {selectedBuilder && (
+        <ContactBuilderModal
+          builder={selectedBuilder}
+          isOpen={showContactModal}
+          onClose={() => setShowContactModal(false)}
+        />
+      )}
+
+      {/* Profile Modal */}
+      {selectedBuilder && (
+        <BuilderProfileModal
+          builder={selectedBuilder}
+          isOpen={showProfileModal}
+          onClose={() => setShowProfileModal(false)}
+          onContact={handleOpenContactFromProfile}
+        />
+      )}
 
       {/* Stats Section */}
       <section className="py-12 bg-muted">

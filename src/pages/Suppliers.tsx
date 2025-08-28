@@ -7,6 +7,8 @@ import SupplierRegistrationForm from "@/components/SupplierRegistrationForm";
 import QRCodeManager from "@/components/QRCodeManager";
 import DeliveryNoteForm from "@/components/DeliveryNoteForm";
 import { SupplierGrid } from "@/components/suppliers/SupplierGrid";
+import { QuoteRequestModal } from "@/components/modals/QuoteRequestModal";
+import { SupplierCatalogModal } from "@/components/modals/SupplierCatalogModal";
 import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 import { supabase } from '@/integrations/supabase/client';
@@ -20,6 +22,9 @@ const Suppliers = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("suppliers");
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [showCatalogModal, setShowCatalogModal] = useState(false);
+  const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -76,10 +81,16 @@ const Suppliers = () => {
 
   const handleSupplierSelect = (supplier: Supplier) => {
     setSelectedSupplier(supplier);
-    toast({
-      title: "Supplier Selected",
-      description: `Viewing ${supplier.company_name} catalog`,
-    });
+    setShowCatalogModal(true);
+  };
+
+  const handleQuoteRequest = (supplier: Supplier) => {
+    setSelectedSupplier(supplier);
+    setShowQuoteModal(true);
+  };
+
+  const handleShowRegistration = () => {
+    setShowRegistrationForm(true);
   };
 
   if (loading) {
@@ -169,27 +180,51 @@ const Suppliers = () => {
           )}
           
           <TabsContent value="suppliers" className="space-y-8">
-            <SupplierGrid onSupplierSelect={handleSupplierSelect} />
+            {showRegistrationForm ? (
+              <SupplierRegistrationForm />
+            ) : (
+              <SupplierGrid 
+                onSupplierSelect={handleSupplierSelect}
+                onQuoteRequest={handleQuoteRequest}
+              />
+            )}
             
-            {/* Join as Supplier Section */}
-            <div className="bg-accent rounded-lg p-8 text-center">
-              <h3 className="text-2xl font-bold mb-4">Ready to Grow Your Business?</h3>
-              <p className="text-lg mb-6 opacity-90">Join our marketplace and connect with builders across Kenya</p>
-              <Button 
-                size="lg" 
-                onClick={() => toast({
-                  title: "Supplier Registration",
-                  description: "Registration system coming soon! Contact us for early access.",
-                })}
-                className="bg-primary hover:bg-primary/90"
-              >
-                <Store className="h-5 w-5 mr-2" />
-                Register as Supplier
-              </Button>
-            </div>
+            {!showRegistrationForm && (
+              <div className="bg-accent rounded-lg p-8 text-center">
+                <h3 className="text-2xl font-bold mb-4">Ready to Grow Your Business?</h3>
+                <p className="text-lg mb-6 opacity-90">Join our marketplace and connect with builders across Kenya</p>
+                <Button 
+                  size="lg" 
+                  onClick={handleShowRegistration}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  <Store className="h-5 w-5 mr-2" />
+                  Register as Supplier
+                </Button>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Quote Request Modal */}
+      {selectedSupplier && (
+        <QuoteRequestModal
+          supplier={selectedSupplier}
+          isOpen={showQuoteModal}
+          onClose={() => setShowQuoteModal(false)}
+        />
+      )}
+
+      {/* Catalog Modal */}
+      {selectedSupplier && (
+        <SupplierCatalogModal
+          supplier={selectedSupplier}
+          isOpen={showCatalogModal}
+          onClose={() => setShowCatalogModal(false)}
+          onRequestQuote={handleQuoteRequest}
+        />
+      )}
 
 
       {/* Stats Section */}

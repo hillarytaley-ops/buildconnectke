@@ -126,10 +126,11 @@ type BuilderSource = "demo" | "registered";
 
 interface BuilderGridProps {
   onBuilderContact?: (builder: UserProfile & { company_name?: string; phone?: string; email?: string }) => void;
+  onBuilderProfile?: (builder: UserProfile & { company_name?: string; phone?: string; email?: string }) => void;
   isAdmin?: boolean;
 }
 
-export const BuilderGrid = ({ onBuilderContact, isAdmin = false }: BuilderGridProps) => {
+export const BuilderGrid = ({ onBuilderContact, onBuilderProfile, isAdmin = false }: BuilderGridProps) => {
   const [filters, setFilters] = useState<BuilderFilters>({
     search: "",
     location: "All Counties",
@@ -283,6 +284,7 @@ export const BuilderGrid = ({ onBuilderContact, isAdmin = false }: BuilderGridPr
                   key={builder.id}
                   builder={builder}
                   onContactClick={handleContactBuilder}
+                  onViewProfile={onBuilderProfile}
                 />
               ))}
             </div>

@@ -93,9 +93,10 @@ type SupplierSource = "registered" | "sample";
 
 interface SupplierGridProps {
   onSupplierSelect?: (supplier: Supplier) => void;
+  onQuoteRequest?: (supplier: Supplier) => void;
 }
 
-export const SupplierGrid = ({ onSupplierSelect }: SupplierGridProps) => {
+export const SupplierGrid = ({ onSupplierSelect, onQuoteRequest }: SupplierGridProps) => {
   const [filters, setFilters] = useState<SupplierFiltersType>({
     search: "",
     category: "All Categories",
@@ -187,7 +188,7 @@ export const SupplierGrid = ({ onSupplierSelect }: SupplierGridProps) => {
 
   const handleRequestQuote = (supplier: Supplier) => {
     console.log("Request quote from:", supplier.company_name);
-    // TODO: Implement quote request functionality
+    onQuoteRequest?.(supplier);
   };
 
   const handleFiltersChange = (newFilters: SupplierFiltersType) => {
