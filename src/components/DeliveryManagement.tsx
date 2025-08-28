@@ -21,7 +21,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Package, Truck, Clock, MapPin, Phone, Eye, AlertCircle, User, ChevronDown } from 'lucide-react';
+import { Plus, Package, Truck, Clock, MapPin, Phone, Eye, AlertCircle, User, ChevronDown, Camera, QrCode, Monitor, Plane, MessageCircle, Settings, Video, ScanLine } from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -502,11 +502,121 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
               <TabsTrigger value="physical-camera">Physical Camera</TabsTrigger>
             </>
           )}
-          <TabsTrigger value="camera">AI Camera</TabsTrigger>
-          <TabsTrigger value="qr-scanner">QR Scanner</TabsTrigger>
-          <TabsTrigger value="monitor">Live Monitor</TabsTrigger>
-          <TabsTrigger value="drone" className="ml-4">Drone Monitor</TabsTrigger>
-          <TabsTrigger value="communication" className="ml-4">Communication</TabsTrigger>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex items-center gap-2 h-10 px-3 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                <Camera className="h-4 w-4" />
+                AI Camera
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuItem onClick={() => setActiveTab('camera')}>
+                <Video className="h-4 w-4 mr-2" />
+                Live Camera Feed
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab('camera')}>
+                <Eye className="h-4 w-4 mr-2" />
+                Material Detection
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab('camera')}>
+                <Settings className="h-4 w-4 mr-2" />
+                Camera Settings
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex items-center gap-2 h-10 px-3 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                <QrCode className="h-4 w-4" />
+                QR Scanner
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuItem onClick={() => setActiveTab('qr-scanner')}>
+                <ScanLine className="h-4 w-4 mr-2" />
+                Scan QR Code
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab('qr-scanner')}>
+                <Package className="h-4 w-4 mr-2" />
+                Material Check-in
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab('qr-scanner')}>
+                <Eye className="h-4 w-4 mr-2" />
+                Scan History
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex items-center gap-2 h-10 px-3 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                <Monitor className="h-4 w-4" />
+                Live Monitor
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuItem onClick={() => setActiveTab('monitor')}>
+                <Video className="h-4 w-4 mr-2" />
+                Live Stream View
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab('monitor')}>
+                <Eye className="h-4 w-4 mr-2" />
+                Multi-Camera View
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab('monitor')}>
+                <Settings className="h-4 w-4 mr-2" />
+                Monitor Settings
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex items-center gap-2 h-10 px-3 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm ml-4">
+                <Plane className="h-4 w-4" />
+                Drone Monitor
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuItem onClick={() => setActiveTab('drone')}>
+                <Video className="h-4 w-4 mr-2" />
+                Live Drone Feed
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab('drone')}>
+                <MapPin className="h-4 w-4 mr-2" />
+                Flight Control
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab('drone')}>
+                <Settings className="h-4 w-4 mr-2" />
+                Drone Settings
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex items-center gap-2 h-10 px-3 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm ml-4">
+                <MessageCircle className="h-4 w-4" />
+                Communication
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuItem onClick={() => setActiveTab('communication')}>
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Team Chat
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab('communication')}>
+                <Phone className="h-4 w-4 mr-2" />
+                Voice Call
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab('communication')}>
+                <AlertCircle className="h-4 w-4 mr-2" />
+                Notifications
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           {user && userRole && (
             <TabsTrigger value="deliveries" className="flex items-center gap-2">
               <Package className="h-4 w-4" />
