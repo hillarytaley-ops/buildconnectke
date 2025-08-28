@@ -473,11 +473,13 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center gap-2 h-10 px-3 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
                 <Eye className="h-4 w-4" />
-                Delivery Tracking
+                Monitoring & Communication Hub
                 <ChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
+            <DropdownMenuContent align="start" className="w-64">
+              {/* Delivery Tracking Section */}
+              <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">Delivery Tracking</div>
               <DropdownMenuItem onClick={() => setActiveTab('tracker')}>
                 <Package className="h-4 w-4 mr-2" />
                 Track Package
@@ -494,25 +496,11 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
                 <Truck className="h-4 w-4 mr-2" />
                 Driver Info
               </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          {user && (userRole === 'admin' || userRole === 'supplier') && (
-            <>
-              <TabsTrigger value="camera-setup">Camera Setup</TabsTrigger>
-              <TabsTrigger value="physical-camera">Physical Camera</TabsTrigger>
-            </>
-          )}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2 h-10 px-3 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                <Camera className="h-4 w-4" />
-                AI Camera
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
+              
+              {/* AI Camera Section */}
+              <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground border-t mt-2 pt-2">AI Camera</div>
               <DropdownMenuItem onClick={() => setActiveTab('camera')}>
-                <Video className="h-4 w-4 mr-2" />
+                <Camera className="h-4 w-4 mr-2" />
                 Live Camera Feed
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setActiveTab('camera')}>
@@ -523,19 +511,11 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
                 <Settings className="h-4 w-4 mr-2" />
                 Camera Settings
               </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2 h-10 px-3 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                <QrCode className="h-4 w-4" />
-                QR Scanner
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
+              
+              {/* QR Scanner Section */}
+              <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground border-t mt-2 pt-2">QR Scanner</div>
               <DropdownMenuItem onClick={() => setActiveTab('qr-scanner')}>
-                <ScanLine className="h-4 w-4 mr-2" />
+                <QrCode className="h-4 w-4 mr-2" />
                 Scan QR Code
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setActiveTab('qr-scanner')}>
@@ -546,42 +526,26 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
                 <Eye className="h-4 w-4 mr-2" />
                 Scan History
               </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2 h-10 px-3 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                <Monitor className="h-4 w-4" />
-                Live Monitor
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
+              
+              {/* Live Monitor Section */}
+              <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground border-t mt-2 pt-2">Live Monitor</div>
               <DropdownMenuItem onClick={() => setActiveTab('monitor')}>
-                <Video className="h-4 w-4 mr-2" />
+                <Monitor className="h-4 w-4 mr-2" />
                 Live Stream View
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setActiveTab('monitor')}>
-                <Eye className="h-4 w-4 mr-2" />
+                <Video className="h-4 w-4 mr-2" />
                 Multi-Camera View
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setActiveTab('monitor')}>
                 <Settings className="h-4 w-4 mr-2" />
                 Monitor Settings
               </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2 h-10 px-3 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm ml-4">
-                <Plane className="h-4 w-4" />
-                Drone Monitor
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
+              
+              {/* Drone Monitor Section */}
+              <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground border-t mt-2 pt-2">Drone Monitor</div>
               <DropdownMenuItem onClick={() => setActiveTab('drone')}>
-                <Video className="h-4 w-4 mr-2" />
+                <Plane className="h-4 w-4 mr-2" />
                 Live Drone Feed
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setActiveTab('drone')}>
@@ -592,17 +556,9 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
                 <Settings className="h-4 w-4 mr-2" />
                 Drone Settings
               </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2 h-10 px-3 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm ml-4">
-                <MessageCircle className="h-4 w-4" />
-                Communication
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
+              
+              {/* Communication Section */}
+              <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground border-t mt-2 pt-2">Communication</div>
               <DropdownMenuItem onClick={() => setActiveTab('communication')}>
                 <MessageCircle className="h-4 w-4 mr-2" />
                 Team Chat
@@ -617,6 +573,12 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          {user && (userRole === 'admin' || userRole === 'supplier') && (
+            <>
+              <TabsTrigger value="camera-setup">Camera Setup</TabsTrigger>
+              <TabsTrigger value="physical-camera">Physical Camera</TabsTrigger>
+            </>
+          )}
           {user && userRole && (
             <TabsTrigger value="deliveries" className="flex items-center gap-2">
               <Package className="h-4 w-4" />
