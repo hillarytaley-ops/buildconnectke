@@ -388,7 +388,7 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
                 <Menu className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" side="bottom" sideOffset={8} className="w-64 bg-popover border shadow-lg max-h-[60vh] overflow-y-auto">
+            <DropdownMenuContent align="start" side="bottom" sideOffset={8} className="w-64 bg-popover border shadow-lg max-h-[60vh] overflow-y-auto z-50">
               {/* Delivery Tracking Section */}
               <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">Delivery Tracking</div>
               <DropdownMenuItem onClick={() => setActiveTab('tracker')}>
