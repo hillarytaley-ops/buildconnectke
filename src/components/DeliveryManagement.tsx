@@ -388,12 +388,8 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
               
               <DropdownMenuSeparator />
               
-              {/* AI Camera Section */}
+              {/* AI Camera Section - Live Stream only */}
               <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">AI Camera</div>
-              <DropdownMenuItem onClick={() => setActiveTab('camera-setup')}>
-                <Camera className="h-4 w-4 mr-2" />
-                Camera Setup
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setActiveTab('physical-camera')}>
                 <Video className="h-4 w-4 mr-2" />
                 Live Stream
@@ -401,19 +397,6 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
               <DropdownMenuItem onClick={() => setActiveTab('physical-camera')}>
                 <Monitor className="h-4 w-4 mr-2" />
                 Physical Camera
-              </DropdownMenuItem>
-              
-              <DropdownMenuSeparator />
-              
-              {/* QR Scanner Section */}
-              <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">QR Scanner</div>
-              <DropdownMenuItem onClick={() => setActiveTab('qr-scanner')}>
-                <QrCode className="h-4 w-4 mr-2" />
-                Scan QR Code
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveTab('qr-scanner')}>
-                <ScanLine className="h-4 w-4 mr-2" />
-                Barcode Scanner
               </DropdownMenuItem>
               
               <DropdownMenuSeparator />
