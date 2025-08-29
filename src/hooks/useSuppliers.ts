@@ -26,8 +26,7 @@ export const useSuppliers = (
       setLoading(true);
       setError(null);
       
-      // For security, we now only allow authenticated access to the suppliers table
-      // Unauthenticated users will get empty results and the component will use demo data
+      // Use the business transparency function for authenticated users
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -37,40 +36,54 @@ export const useSuppliers = (
         return;
       }
 
-      let query = supabase
-        .from('suppliers')
-        .select('*', { count: 'exact' })
-        .range((page - 1) * limit, page * limit - 1)
-        .order('rating', { ascending: false });
+      // Use the secure business info function
+      const { data: businessSuppliers, error: businessError } = await supabase
+        .rpc('get_supplier_business_info');
 
-      // Apply filters
-      if (filters.search) {
-        query = query.or(`company_name.ilike.%${filters.search}%,specialties.cs.{${filters.search}},materials_offered.cs.{${filters.search}}`);
-      }
-
-      if (filters.category && filters.category !== 'All Categories') {
-        query = query.contains('specialties', [filters.category]);
-      }
-
-      if (filters.rating > 0) {
-        query = query.gte('rating', filters.rating);
-      }
-
-      if (filters.verified !== null) {
-        query = query.eq('is_verified', filters.verified);
-      }
-
-      const { data, error: fetchError, count } = await query;
-      
-      if (fetchError) {
-        console.log('Suppliers query restricted for security, using demo data');
+      if (businessError) {
+        console.log('Business suppliers query failed, using demo data');
         setSuppliers([]);
         setTotalCount(0);
         return;
       }
+
+      let filteredSuppliers = businessSuppliers || [];
+
+      // Apply client-side filters for better UX
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        filteredSuppliers = filteredSuppliers.filter((supplier: any) => 
+          supplier.company_name?.toLowerCase().includes(searchLower) ||
+          supplier.specialties?.some((s: string) => s.toLowerCase().includes(searchLower)) ||
+          supplier.materials_offered?.some((m: string) => m.toLowerCase().includes(searchLower))
+        );
+      }
+
+      if (filters.category && filters.category !== 'All Categories') {
+        filteredSuppliers = filteredSuppliers.filter((supplier: any) =>
+          supplier.specialties?.includes(filters.category)
+        );
+      }
+
+      if (filters.rating > 0) {
+        filteredSuppliers = filteredSuppliers.filter((supplier: any) => 
+          supplier.rating >= filters.rating
+        );
+      }
+
+      if (filters.verified !== null) {
+        filteredSuppliers = filteredSuppliers.filter((supplier: any) => 
+          supplier.is_verified === filters.verified
+        );
+      }
+
+      // Apply pagination
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedSuppliers = filteredSuppliers.slice(startIndex, endIndex);
       
-      setSuppliers(data || []);
-      setTotalCount(count || 0);
+      setSuppliers(paginatedSuppliers);
+      setTotalCount(filteredSuppliers.length);
     } catch (err) {
       // For security, don't expose detailed error messages
       console.log('Suppliers access restricted, using demo data');

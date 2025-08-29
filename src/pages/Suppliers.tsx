@@ -113,28 +113,32 @@ const SuppliersContent = () => {
   }
 
   return (
-    <AdminAccessGuard requiredRole="admin">
-      <div className="min-h-screen bg-gradient-construction">
-        <Navigation />
+    <div className="min-h-screen bg-gradient-construction">
+      <Navigation />
 
-        {/* Admin-Only Hero Section */}
-        <section className="bg-gradient-to-br from-black via-red-600 to-green-600 text-white py-16">
-          <div className="container mx-auto px-4 text-center">
-            <h1 className="text-4xl font-bold mb-4">
-              🔒 Secure Supplier Directory - Admin Access
-            </h1>
-            <p className="text-xl mb-8 opacity-90">
-              Confidential supplier database with full contact information and business details
-            </p>
+      {/* Business-Focused Hero Section */}
+      <section className="bg-gradient-to-br from-green-600 via-blue-600 to-purple-600 text-white py-16">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-4xl font-bold mb-4">
+            🏗️ UjenziPro Supplier Directory
+          </h1>
+          <p className="text-xl mb-8 opacity-90">
+            Connect with verified suppliers and access business information transparently
+          </p>
             
-            {/* Security Notice */}
+            {/* Business Transparency Notice */}
             <div className="flex justify-center gap-4 mb-8">
-              <Badge variant="secondary" className="bg-red-100 text-red-800 border-red-200">
-                🛡️ Admin Only - Sensitive Data
+              <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
+                🤝 Business Transparency
               </Badge>
-              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200">
-                📊 {isAdmin ? 'Full Access' : 'Limited View'}
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
+                📞 Contact Information Available
               </Badge>
+              {!user && (
+                <Badge variant="secondary" className="bg-amber-100 text-amber-800 border-amber-200">
+                  🔑 Login Required for Full Access
+                </Badge>
+              )}
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-md mx-auto">
@@ -171,12 +175,12 @@ const SuppliersContent = () => {
         </section>
 
         <main className="container mx-auto px-4 py-8">
-          {/* Enhanced Security Alert for Admin */}
+          {/* Business Transparency Alert */}
           <SecurityAlert 
             isAuthenticated={!!user}
             userRole={userRole}
-            showContactInfo={isAdmin || userRole === 'supplier'}
-            adminMessage="⚠️ ADMIN ACCESS: You are viewing sensitive supplier data including contact information, addresses, and business details. Handle with care."
+            showContactInfo={!!user}
+            adminMessage="🏗️ BUSINESS DIRECTORY: Supplier contact information is available to registered users for business purposes. Financial details remain protected."
           />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -261,7 +265,6 @@ const SuppliersContent = () => {
 
       <Footer />
     </div>
-  </AdminAccessGuard>
   );
 };
 

@@ -115,28 +115,35 @@ export const SupplierGrid = ({ onSupplierSelect, onQuoteRequest }: SupplierGridP
   const [currentPage, setCurrentPage] = useState(1);
   const [supplierSource, setSupplierSource] = useState<SupplierSource>("sample");
   const [retryCount, setRetryCount] = useState(0);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Check if user is admin
+  // Check user authentication and role
   useEffect(() => {
-    const checkAdminStatus = async () => {
+    const checkUserStatus = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
+          setIsAuthenticated(true);
           const { data: profile } = await supabase
             .from('profiles')
             .select('role')
             .eq('user_id', user.id)
             .single();
           
-          setIsAdmin(profile?.role === 'admin');
+          setUserRole(profile?.role || 'builder');
+        } else {
+          setIsAuthenticated(false);
+          setUserRole(null);
         }
       } catch (error) {
-        console.error('Error checking admin status:', error);
+        console.error('Error checking user status:', error);
+        setIsAuthenticated(false);
+        setUserRole(null);
       }
     };
     
-    checkAdminStatus();
+    checkUserStatus();
   }, []);
 
   const { suppliers: dbSuppliers, loading, error, totalCount, refetch } = useSuppliers(
@@ -309,13 +316,23 @@ export const SupplierGrid = ({ onSupplierSelect, onQuoteRequest }: SupplierGridP
           </div>
         ) : (
           <>
-            {/* Admin Security Notice */}
-            {isAdmin && (
-              <Alert className="border-amber-200 bg-amber-50">
+            {/* Business Access Notice */}
+            {isAuthenticated && (
+              <Alert className="border-green-200 bg-green-50">
                 <Shield className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Admin Notice:</strong> You are viewing the secure supplier directory with full contact information. 
-                  All supplier data including emails, phone numbers, and addresses are visible to you.
+                  <strong>Business Access:</strong> You can view supplier contact information for business purposes. 
+                  Financial details remain protected. Use this information responsibly for legitimate business connections.
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {!isAuthenticated && (
+              <Alert className="border-blue-200 bg-blue-50">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Guest View:</strong> Log in to view supplier contact information and request quotes. 
+                  Registration is required for full business features.
                 </AlertDescription>
               </Alert>
             )}
@@ -327,8 +344,8 @@ export const SupplierGrid = ({ onSupplierSelect, onQuoteRequest }: SupplierGridP
                   supplier={supplier}
                   onViewCatalog={handleViewCatalog}
                   onRequestQuote={handleRequestQuote}
-                  isAdminView={isAdmin}
-                  showSensitiveInfo={isAdmin}
+                  isAdminView={userRole === 'admin'}
+                  showSensitiveInfo={isAuthenticated}
                 />
               ))}
             </div>

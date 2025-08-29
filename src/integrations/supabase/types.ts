@@ -2550,6 +2550,24 @@ export type Database = {
           specialties: string[]
         }[]
       }
+      get_supplier_business_info: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          address: string
+          company_name: string
+          contact_person: string
+          created_at: string
+          email: string
+          id: string
+          is_verified: boolean
+          materials_offered: string[]
+          phone: string
+          rating: number
+          specialties: string[]
+          updated_at: string
+          user_id: string
+        }[]
+      }
       get_supplier_directory_for_builders: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -2667,6 +2685,10 @@ export type Database = {
           justification?: string
           provider_uuid: string
         }
+        Returns: undefined
+      }
+      log_supplier_business_access: {
+        Args: { access_type_param: string; supplier_uuid: string }
         Returns: undefined
       }
       log_supplier_contact_access: {

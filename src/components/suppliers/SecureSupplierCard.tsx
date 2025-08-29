@@ -20,24 +20,35 @@ export const SecureSupplierCard = ({
   showSensitiveInfo = false 
 }: SecureSupplierCardProps) => {
   
-  // Determine what information to show based on access level
+  // Business transparency - show contact info to authenticated users
   const displayAddress = () => {
-    if (isAdminView && showSensitiveInfo) {
+    if (showSensitiveInfo && supplier.address) {
       return supplier.address;
     }
-    // Show only city for non-admin users
+    // Show city only for unauthenticated users
     return supplier.location_city || supplier.address?.split(',').slice(-1)[0]?.trim() || 'Location Available';
   };
 
   const displayContactInfo = () => {
-    if (!isAdminView || !showSensitiveInfo) {
-      return null;
+    if (!showSensitiveInfo) {
+      return (
+        <div className="mt-2 pt-2 border-t space-y-1">
+          <div className="text-xs text-muted-foreground flex items-center gap-1">
+            <Lock className="h-3 w-3" />
+            <span>Login Required for Contact Info</span>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Register to view business contacts
+          </p>
+        </div>
+      );
     }
+    
     return (
       <div className="mt-2 pt-2 border-t space-y-1">
         <div className="text-xs text-muted-foreground flex items-center gap-1">
-          <Lock className="h-3 w-3" />
-          <span>Sensitive Information (Admin Only)</span>
+          <Shield className="h-3 w-3" />
+          <span>Business Contact Information</span>
         </div>
         {supplier.contact_person && (
           <p className="text-xs">Contact: {supplier.contact_person}</p>
@@ -81,6 +92,11 @@ export const SecureSupplierCard = ({
             {isAdminView && (
               <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
                 Admin View
+              </Badge>
+            )}
+            {showSensitiveInfo && !isAdminView && (
+              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                Business Access
               </Badge>
             )}
           </div>
