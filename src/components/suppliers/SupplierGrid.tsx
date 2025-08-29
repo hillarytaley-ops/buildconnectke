@@ -317,26 +317,17 @@ export const SupplierGrid = ({ onSupplierSelect, onQuoteRequest }: SupplierGridP
           </div>
         ) : (
           <>
-            {/* Business Access Notice */}
-            {isAuthenticated && (
-              <Alert className="border-green-200 bg-green-50">
-                <Shield className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Business Access:</strong> You can view supplier contact information for business purposes. 
-                  Financial details remain protected. Use this information responsibly for legitimate business connections.
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            {!isAuthenticated && (
-              <Alert className="border-blue-200 bg-blue-50">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Guest View:</strong> Log in to view supplier contact information and request quotes. 
-                  Registration is required for full business features.
-                </AlertDescription>
-              </Alert>
-            )}
+            {/* National Supplier Directory Notice */}
+            <Alert className="border-green-200 bg-green-50 mb-6">
+              <Shield className="h-4 w-4" />
+              <AlertDescription>
+                <strong>🇰🇪 National Supplier Directory:</strong> Browse verified suppliers across Kenya. 
+                {isAuthenticated 
+                  ? " Business contact information is available for registered members." 
+                  : " Sign in to access supplier contact details and request quotes."
+                }
+              </AlertDescription>
+            </Alert>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {suppliers.map((supplier) => (
