@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -83,7 +83,7 @@ const DroneMonitor: React.FC<DroneMonitorProps> = ({ userRole, user, builderUniq
   ]);
 
   // Filter drones based on user role and access - Admin only for controls
-  const accessibleDrones = React.useMemo(() => {
+  const accessibleDrones = useMemo(() => {
     if (userRole === 'admin') {
       return drones; // Admin can see and control all drones
     } else if (userRole === 'builder' && user) {
