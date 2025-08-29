@@ -175,7 +175,7 @@ const SuppliersContent = () => {
         </section>
 
         <main className="container mx-auto px-4 py-8">
-          {/* Business Transparency Alert */}
+          {/* Business Transparency Notice */}
           <SecurityAlert 
             isAuthenticated={!!user}
             userRole={userRole}

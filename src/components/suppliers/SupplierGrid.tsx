@@ -344,8 +344,8 @@ export const SupplierGrid = ({ onSupplierSelect, onQuoteRequest }: SupplierGridP
                   supplier={supplier}
                   onViewCatalog={handleViewCatalog}
                   onRequestQuote={handleRequestQuote}
-                  isAdminView={userRole === 'admin'}
-                  showSensitiveInfo={isAuthenticated}
+                  isAuthenticated={isAuthenticated}
+                  userRole={userRole}
                 />
               ))}
             </div>

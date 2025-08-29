@@ -5,40 +5,28 @@ import { Star, MapPin, Package, Store, Shield, Lock } from "lucide-react";
 import { Supplier } from "@/types/supplier";
 
 interface SecureSupplierCardProps {
-  supplier: Supplier | any; // For the limited data structure
+  supplier: Supplier | any;
   onViewCatalog: (supplier: any) => void;
   onRequestQuote: (supplier: any) => void;
-  isAdminView?: boolean;
-  showSensitiveInfo?: boolean;
+  isAuthenticated?: boolean;
+  userRole?: string;
 }
 
 export const SecureSupplierCard = ({ 
   supplier, 
   onViewCatalog, 
   onRequestQuote,
-  isAdminView = false,
-  showSensitiveInfo = false 
+  isAuthenticated = false,
+  userRole
 }: SecureSupplierCardProps) => {
   
-  // Business transparency - show contact info to authenticated users
-  const displayAddress = () => {
-    if (showSensitiveInfo && supplier.address) {
-      return supplier.address;
-    }
-    // Show city only for unauthenticated users
-    return supplier.location_city || supplier.address?.split(',').slice(-1)[0]?.trim() || 'Location Available';
-  };
-
+  // Business transparency - show contact info to all authenticated users
   const displayContactInfo = () => {
-    if (!showSensitiveInfo) {
+    if (!isAuthenticated) {
       return (
-        <div className="mt-2 pt-2 border-t space-y-1">
-          <div className="text-xs text-muted-foreground flex items-center gap-1">
-            <Lock className="h-3 w-3" />
-            <span>Login Required for Contact Info</span>
-          </div>
+        <div className="mt-2 pt-2 border-t">
           <p className="text-xs text-muted-foreground">
-            Register to view business contacts
+            Sign in to view business contact information
           </p>
         </div>
       );
@@ -46,10 +34,7 @@ export const SecureSupplierCard = ({
     
     return (
       <div className="mt-2 pt-2 border-t space-y-1">
-        <div className="text-xs text-muted-foreground flex items-center gap-1">
-          <Shield className="h-3 w-3" />
-          <span>Business Contact Information</span>
-        </div>
+        <div className="text-xs text-primary font-medium">Business Contact</div>
         {supplier.contact_person && (
           <p className="text-xs">Contact: {supplier.contact_person}</p>
         )}
@@ -58,6 +43,9 @@ export const SecureSupplierCard = ({
         )}
         {supplier.phone && (
           <p className="text-xs">Phone: {supplier.phone}</p>
+        )}
+        {supplier.address && (
+          <p className="text-xs">Address: {supplier.address}</p>
         )}
       </div>
     );
@@ -73,30 +61,25 @@ export const SecureSupplierCard = ({
           <div className="flex-1 min-w-0">
             <CardTitle className="text-lg truncate flex items-center gap-2">
               {supplier.company_name}
-              {isAdminView && (
-                <Shield className="h-4 w-4 text-primary" />
+              {supplier.is_verified && (
+                <Shield className="h-4 w-4 text-green-600" />
               )}
             </CardTitle>
             <CardDescription className="flex items-center gap-2 mt-1">
               <MapPin className="h-4 w-4 flex-shrink-0" />
-              <span className="truncate">{displayAddress()}</span>
+              <span className="truncate">{supplier.address || 'Location Available'}</span>
             </CardDescription>
             {displayContactInfo()}
           </div>
           <div className="flex flex-col gap-1">
             {supplier.is_verified && (
               <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
-                Verified
+                Verified Business
               </Badge>
             )}
-            {isAdminView && (
+            {isAuthenticated && (
               <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                Admin View
-              </Badge>
-            )}
-            {showSensitiveInfo && !isAdminView && (
-              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                Business Access
+                Contact Available
               </Badge>
             )}
           </div>

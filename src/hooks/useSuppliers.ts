@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Supplier, SupplierFilters } from '@/types/supplier';
-import { useToast } from '@/hooks/use-toast';
 
 interface UseSuppliersResult {
   suppliers: Supplier[];
@@ -26,68 +25,53 @@ export const useSuppliers = (
       setLoading(true);
       setError(null);
       
-      // Use the business transparency function for authenticated users
+      // Check if user is authenticated for business info access
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        // No user authenticated - component will use demo data
+        // Unauthenticated users see demo data only
         setSuppliers([]);
         setTotalCount(0);
         return;
       }
 
-      // Use the secure business info function
-      const { data: businessSuppliers, error: businessError } = await supabase
-        .rpc('get_supplier_business_info');
+      // Get business info from suppliers table (now accessible to authenticated users)
+      let query = supabase
+        .from('suppliers')
+        .select('*', { count: 'exact' })
+        .range((page - 1) * limit, page * limit - 1)
+        .order('rating', { ascending: false });
 
-      if (businessError) {
-        console.log('Business suppliers query failed, using demo data');
-        setSuppliers([]);
-        setTotalCount(0);
-        return;
-      }
-
-      let filteredSuppliers = businessSuppliers || [];
-
-      // Apply client-side filters for better UX
+      // Apply filters
       if (filters.search) {
-        const searchLower = filters.search.toLowerCase();
-        filteredSuppliers = filteredSuppliers.filter((supplier: any) => 
-          supplier.company_name?.toLowerCase().includes(searchLower) ||
-          supplier.specialties?.some((s: string) => s.toLowerCase().includes(searchLower)) ||
-          supplier.materials_offered?.some((m: string) => m.toLowerCase().includes(searchLower))
-        );
+        query = query.or(`company_name.ilike.%${filters.search}%,specialties.cs.{${filters.search}},materials_offered.cs.{${filters.search}}`);
       }
 
       if (filters.category && filters.category !== 'All Categories') {
-        filteredSuppliers = filteredSuppliers.filter((supplier: any) =>
-          supplier.specialties?.includes(filters.category)
-        );
+        query = query.contains('specialties', [filters.category]);
       }
 
       if (filters.rating > 0) {
-        filteredSuppliers = filteredSuppliers.filter((supplier: any) => 
-          supplier.rating >= filters.rating
-        );
+        query = query.gte('rating', filters.rating);
       }
 
       if (filters.verified !== null) {
-        filteredSuppliers = filteredSuppliers.filter((supplier: any) => 
-          supplier.is_verified === filters.verified
-        );
+        query = query.eq('is_verified', filters.verified);
       }
 
-      // Apply pagination
-      const startIndex = (page - 1) * limit;
-      const endIndex = startIndex + limit;
-      const paginatedSuppliers = filteredSuppliers.slice(startIndex, endIndex);
+      const { data, error: fetchError, count } = await query;
       
-      setSuppliers(paginatedSuppliers);
-      setTotalCount(filteredSuppliers.length);
+      if (fetchError) {
+        setError('Unable to load supplier business information');
+        setSuppliers([]);
+        setTotalCount(0);
+        return;
+      }
+      
+      setSuppliers(data || []);
+      setTotalCount(count || 0);
     } catch (err) {
-      // For security, don't expose detailed error messages
-      console.log('Suppliers access restricted, using demo data');
-      setError(null);
+      setError('Network error accessing supplier directory');
       setSuppliers([]);
       setTotalCount(0);
     } finally {
