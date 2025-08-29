@@ -381,15 +381,15 @@ const DeliveryTracker: React.FC = () => {
                     Status: {statusFilter === 'all' ? 'All' : statusConfig[statusFilter as DeliveryStatus]?.label || statusFilter}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-background border-border shadow-lg z-50">
+                <DropdownMenuContent className="w-56 bg-background border-border shadow-lg z-50 max-h-80 overflow-y-auto">
                   <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setStatusFilter('all')} className="hover:bg-muted">
+                  <DropdownMenuItem onClick={() => setStatusFilter('all')} className="hover:bg-muted cursor-pointer">
                     <CheckCircle className="h-4 w-4 mr-2 opacity-50" />
                     All Statuses
                   </DropdownMenuItem>
                   {Object.entries(statusConfig).map(([status, config]) => (
-                    <DropdownMenuItem key={status} onClick={() => setStatusFilter(status)} className="hover:bg-muted">
+                    <DropdownMenuItem key={status} onClick={() => setStatusFilter(status)} className="hover:bg-muted cursor-pointer">
                       <config.icon className="h-4 w-4 mr-2" />
                       {config.label}
                     </DropdownMenuItem>
@@ -405,22 +405,22 @@ const DeliveryTracker: React.FC = () => {
                     Date: {dateFilter === 'all' ? 'All Time' : dateFilter === 'today' ? 'Today' : dateFilter === 'week' ? 'This Week' : 'This Month'}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-48 bg-background border-border shadow-lg z-50">
+                <DropdownMenuContent className="w-48 bg-background border-border shadow-lg z-50 max-h-80 overflow-y-auto">
                   <DropdownMenuLabel>Filter by Date</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setDateFilter('all')} className="hover:bg-muted">
+                  <DropdownMenuItem onClick={() => setDateFilter('all')} className="hover:bg-muted cursor-pointer">
                     <Calendar className="h-4 w-4 mr-2 opacity-50" />
                     All Time
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setDateFilter('today')} className="hover:bg-muted">
+                  <DropdownMenuItem onClick={() => setDateFilter('today')} className="hover:bg-muted cursor-pointer">
                     <Clock className="h-4 w-4 mr-2" />
                     Today
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setDateFilter('week')} className="hover:bg-muted">
+                  <DropdownMenuItem onClick={() => setDateFilter('week')} className="hover:bg-muted cursor-pointer">
                     <Calendar className="h-4 w-4 mr-2" />
                     This Week
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setDateFilter('month')} className="hover:bg-muted">
+                  <DropdownMenuItem onClick={() => setDateFilter('month')} className="hover:bg-muted cursor-pointer">
                     <Calendar className="h-4 w-4 mr-2" />
                     This Month
                   </DropdownMenuItem>
@@ -483,19 +483,19 @@ const DeliveryTracker: React.FC = () => {
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-48 bg-background border-border shadow-lg z-50" align="end">
+                <DropdownMenuContent className="w-48 bg-background border-border shadow-lg z-50 max-h-80 overflow-y-auto" align="end">
                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={exportDeliveries} className="hover:bg-muted">
+                  <DropdownMenuItem onClick={exportDeliveries} className="hover:bg-muted cursor-pointer">
                     <Download className="h-4 w-4 mr-2" />
                     Export Deliveries
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => toast({ title: "Analytics", description: "Analytics view coming soon" })} className="hover:bg-muted">
+                  <DropdownMenuItem onClick={() => toast({ title: "Analytics", description: "Analytics view coming soon" })} className="hover:bg-muted cursor-pointer">
                     <MapIcon className="h-4 w-4 mr-2" />
                     View Analytics
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => toast({ title: "Help", description: "Opening help documentation" })} className="hover:bg-muted">
+                  <DropdownMenuItem onClick={() => toast({ title: "Help", description: "Opening help documentation" })} className="hover:bg-muted cursor-pointer">
                     <Search className="h-4 w-4 mr-2" />
                     Help & Support
                   </DropdownMenuItem>
