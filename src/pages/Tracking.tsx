@@ -11,22 +11,12 @@ import SiteMaterialRegister from '@/components/SiteMaterialRegister';
 import { Package, Truck, Shield, Eye, Settings } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import DroneMonitor from '@/components/DroneMonitor';
-import { SecurityAlert } from '@/components/security/SecurityAlert';
-import { useSecurityMonitor } from '@/hooks/useSecurityMonitor';
 
 const Tracking = () => {
   const [activeTab, setActiveTab] = useState('delivery');
   const [userRole, setUserRole] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  
-  // Enhanced security monitoring
-  const { 
-    validateSession, 
-    monitorDataAccess, 
-    checkRateLimit, 
-    logSecurityEvent 
-  } = useSecurityMonitor();
 
   useEffect(() => {
     checkAuth();
@@ -34,33 +24,9 @@ const Tracking = () => {
 
   const checkAuth = async () => {
     try {
-      // Enhanced security: Validate session and check rate limits
-      const sessionValid = await validateSession();
-      if (!sessionValid) {
-        logSecurityEvent('invalid_session_access', 'Invalid session detected on tracking page', 'high');
-        setLoading(false);
-        return;
-      }
-
-      // Check rate limiting for tracking page access
-      const rateLimitOk = await checkRateLimit('tracking_page', 50);
-      if (!rateLimitOk) {
-        logSecurityEvent('rate_limit_tracking', 'Rate limit exceeded for tracking page', 'medium');
-        setLoading(false);
-        return;
-      }
-
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUser(user);
-        
-        // Monitor data access for profile information
-        const accessAllowed = await monitorDataAccess('user_profiles', 'read');
-        if (!accessAllowed) {
-          logSecurityEvent('unauthorized_profile_access', 'Unauthorized profile access attempt', 'high');
-          setLoading(false);
-          return;
-        }
         
         const { data: profileData } = await supabase
           .from('profiles')
@@ -70,12 +36,10 @@ const Tracking = () => {
         
         if (profileData) {
           setUserRole(profileData.role);
-          logSecurityEvent('tracking_page_access', `User with role ${profileData.role} accessed tracking page`, 'low');
         }
       }
     } catch (error) {
       console.error('Auth check error:', error);
-      logSecurityEvent('auth_check_error', `Authentication check failed: ${error}`, 'medium');
     } finally {
       setLoading(false);
     }
@@ -92,7 +56,6 @@ const Tracking = () => {
   return (
     <DeliveryAccessGuard requiredAuth={false} allowedRoles={['builder', 'supplier', 'admin']} feature="tracking dashboard">
       <div className="min-h-screen flex flex-col bg-gradient-construction">
-        <SecurityAlert />
         <Navigation />
         <main className="flex-1">
           <div className="container mx-auto px-4 py-8">
