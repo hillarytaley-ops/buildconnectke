@@ -26,6 +26,22 @@ export default function Feedback() {
             </p>
           </div>
           
+          <div className="mb-8">
+            <div className="bg-background/90 backdrop-blur-sm p-6 rounded-lg border max-w-2xl mx-auto">
+              <div className="flex items-start space-x-3">
+                <div className="h-6 w-6 text-primary mt-0.5">🔒</div>
+                <div>
+                  <h3 className="font-semibold text-foreground mb-2">Privacy & Data Protection</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Your feedback is confidential and secure. We use industry-standard encryption 
+                    to protect your data and never share personal information with third parties. 
+                    Feedback is used solely for service improvement purposes.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <FeedbackForm />
         </div>
       </main>
