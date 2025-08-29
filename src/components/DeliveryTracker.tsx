@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
-import { MapPin, Clock, Truck, CheckCircle, Package, Phone, Building } from 'lucide-react';
+import { MapPin, Clock, Truck, CheckCircle, Package, Phone, Building, Filter, Search, Download, RefreshCw, MoreVertical, Calendar, MapIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import ProjectManager from './ProjectManager';
 
@@ -72,6 +73,14 @@ const DeliveryTracker: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [projectDeliveries, setProjectDeliveries] = useState<Delivery[]>([]);
   const [showProjectManager, setShowProjectManager] = useState(false);
+  
+  // Filter states
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [dateFilter, setDateFilter] = useState<string>('all');
+  const [materialFilter, setMaterialFilter] = useState<string>('all');
+  const [locationFilter, setLocationFilter] = useState<string>('');
+  const [refreshing, setRefreshing] = useState(false);
+  
   const { toast } = useToast();
 
   useEffect(() => {
@@ -232,6 +241,74 @@ const DeliveryTracker: React.FC = () => {
     return new Date(dateString).toLocaleString();
   };
 
+  // Refresh deliveries
+  const refreshDeliveries = async () => {
+    setRefreshing(true);
+    if (selectedProject) {
+      await fetchProjectDeliveries(selectedProject.id);
+    }
+    toast({
+      title: "Refreshed",
+      description: "Delivery data has been updated",
+    });
+    setRefreshing(false);
+  };
+
+  // Export deliveries (mock function)
+  const exportDeliveries = () => {
+    toast({
+      title: "Export Started", 
+      description: "Delivery data export will be ready shortly",
+    });
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setStatusFilter('all');
+    setDateFilter('all');
+    setMaterialFilter('all');
+    setLocationFilter('');
+    toast({
+      title: "Filters Cleared",
+      description: "All filters have been reset",
+    });
+  };
+
+  // Filter project deliveries based on current filters
+  const getFilteredProjectDeliveries = () => {
+    return projectDeliveries.filter(delivery => {
+      // Status filter
+      if (statusFilter !== 'all' && delivery.status !== statusFilter) return false;
+      
+      // Material filter
+      if (materialFilter !== 'all' && !delivery.material_type.toLowerCase().includes(materialFilter.toLowerCase())) return false;
+      
+      // Location filter
+      if (locationFilter && !delivery.delivery_address.toLowerCase().includes(locationFilter.toLowerCase())) return false;
+      
+      // Date filter
+      if (dateFilter !== 'all') {
+        const deliveryDate = new Date(delivery.created_at);
+        const now = new Date();
+        const daysDiff = Math.floor((now.getTime() - deliveryDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        switch (dateFilter) {
+          case 'today':
+            if (daysDiff !== 0) return false;
+            break;
+          case 'week':
+            if (daysDiff > 7) return false;
+            break;
+          case 'month':
+            if (daysDiff > 30) return false;
+            break;
+        }
+      }
+      
+      return true;
+    });
+  };
+
   const StatusIcon = delivery ? statusConfig[delivery.status].icon : Package;
 
   return (
@@ -290,6 +367,206 @@ const DeliveryTracker: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Comprehensive Dropdown Menu Bar */}
+      <Card className="bg-background/95 backdrop-blur-sm border-muted shadow-sm">
+        <CardContent className="p-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            {/* Left side - Filters */}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Status Filter Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="bg-background border-input hover:bg-muted/50">
+                    <Filter className="h-4 w-4 mr-2" />
+                    Status: {statusFilter === 'all' ? 'All' : statusConfig[statusFilter as DeliveryStatus]?.label || statusFilter}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56 bg-background border-border shadow-lg z-50">
+                  <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setStatusFilter('all')} className="hover:bg-muted">
+                    <CheckCircle className="h-4 w-4 mr-2 opacity-50" />
+                    All Statuses
+                  </DropdownMenuItem>
+                  {Object.entries(statusConfig).map(([status, config]) => (
+                    <DropdownMenuItem key={status} onClick={() => setStatusFilter(status)} className="hover:bg-muted">
+                      <config.icon className="h-4 w-4 mr-2" />
+                      {config.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Date Filter Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="bg-background border-input hover:bg-muted/50">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Date: {dateFilter === 'all' ? 'All Time' : dateFilter === 'today' ? 'Today' : dateFilter === 'week' ? 'This Week' : 'This Month'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-48 bg-background border-border shadow-lg z-50">
+                  <DropdownMenuLabel>Filter by Date</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setDateFilter('all')} className="hover:bg-muted">
+                    <Calendar className="h-4 w-4 mr-2 opacity-50" />
+                    All Time
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setDateFilter('today')} className="hover:bg-muted">
+                    <Clock className="h-4 w-4 mr-2" />
+                    Today
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setDateFilter('week')} className="hover:bg-muted">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    This Week
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setDateFilter('month')} className="hover:bg-muted">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    This Month
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Material Type Filter */}
+              <div className="flex items-center gap-2">
+                <Label htmlFor="material-filter" className="text-sm font-medium whitespace-nowrap">Material:</Label>
+                <Input
+                  id="material-filter"
+                  placeholder="Search materials..."
+                  value={materialFilter === 'all' ? '' : materialFilter}
+                  onChange={(e) => setMaterialFilter(e.target.value || 'all')}
+                  className="w-32 h-8 bg-background border-input"
+                />
+              </div>
+
+              {/* Location Filter */}
+              <div className="flex items-center gap-2">
+                <Label htmlFor="location-filter" className="text-sm font-medium whitespace-nowrap">Location:</Label>
+                <Input
+                  id="location-filter"
+                  placeholder="Search locations..."
+                  value={locationFilter}
+                  onChange={(e) => setLocationFilter(e.target.value)}
+                  className="w-32 h-8 bg-background border-input"
+                />
+              </div>
+            </div>
+
+            {/* Right side - Actions */}
+            <div className="flex items-center gap-2">
+              {/* Clear Filters */}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={clearFilters}
+                className="text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              >
+                Clear Filters
+              </Button>
+
+              {/* Refresh Button */}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={refreshDeliveries}
+                disabled={refreshing}
+                className="bg-background border-input hover:bg-muted/50"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+
+              {/* More Actions Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="bg-background border-input hover:bg-muted/50">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-48 bg-background border-border shadow-lg z-50" align="end">
+                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={exportDeliveries} className="hover:bg-muted">
+                    <Download className="h-4 w-4 mr-2" />
+                    Export Deliveries
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => toast({ title: "Analytics", description: "Analytics view coming soon" })} className="hover:bg-muted">
+                    <MapIcon className="h-4 w-4 mr-2" />
+                    View Analytics
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => toast({ title: "Help", description: "Opening help documentation" })} className="hover:bg-muted">
+                    <Search className="h-4 w-4 mr-2" />
+                    Help & Support
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+
+          {/* Active Filters Display */}
+          {(statusFilter !== 'all' || dateFilter !== 'all' || materialFilter !== 'all' || locationFilter) && (
+            <div className="mt-3 pt-3 border-t border-border">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm text-muted-foreground">Active filters:</span>
+                {statusFilter !== 'all' && (
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
+                    Status: {statusConfig[statusFilter as DeliveryStatus]?.label}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-auto p-0 ml-1 hover:bg-transparent"
+                      onClick={() => setStatusFilter('all')}
+                    >
+                      ×
+                    </Button>
+                  </Badge>
+                )}
+                {dateFilter !== 'all' && (
+                  <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
+                    Date: {dateFilter === 'today' ? 'Today' : dateFilter === 'week' ? 'This Week' : 'This Month'}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-auto p-0 ml-1 hover:bg-transparent"
+                      onClick={() => setDateFilter('all')}
+                    >
+                      ×
+                    </Button>
+                  </Badge>
+                )}
+                {materialFilter !== 'all' && (
+                  <Badge variant="secondary" className="bg-purple-100 text-purple-800 border-purple-200">
+                    Material: {materialFilter}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-auto p-0 ml-1 hover:bg-transparent"
+                      onClick={() => setMaterialFilter('all')}
+                    >
+                      ×
+                    </Button>
+                  </Badge>
+                )}
+                {locationFilter && (
+                  <Badge variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200">
+                    Location: {locationFilter}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-auto p-0 ml-1 hover:bg-transparent"
+                      onClick={() => setLocationFilter('')}
+                    >
+                      ×
+                    </Button>
+                  </Badge>
+                )}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {showProjectManager && (
         <ProjectManager 
           onProjectSelect={handleProjectSelect}
@@ -297,17 +574,17 @@ const DeliveryTracker: React.FC = () => {
         />
       )}
 
-      {selectedProject && projectDeliveries.length > 0 && (
+      {selectedProject && getFilteredProjectDeliveries().length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Project Deliveries</CardTitle>
             <CardDescription>
-              All deliveries for {selectedProject.name}
+              {getFilteredProjectDeliveries().length} of {projectDeliveries.length} deliveries for {selectedProject.name}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {projectDeliveries.map((projectDelivery) => (
+              {getFilteredProjectDeliveries().map((projectDelivery) => (
                 <Card key={projectDelivery.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-4">
                     <div className="space-y-2">
