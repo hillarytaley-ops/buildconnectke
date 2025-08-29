@@ -1,11 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building, ShoppingBag, FileText, Package, Store, Database, Users } from "lucide-react";
+import { Building, ShoppingBag, FileText, Package, Store, Database, Users, Receipt, QrCode, Truck } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SupplierRegistrationForm from "@/components/SupplierRegistrationForm";
 import QRCodeManager from "@/components/QRCodeManager";
 import DeliveryNoteForm from "@/components/DeliveryNoteForm";
+import SupplierPurchaseOrderManager from "@/components/suppliers/SupplierPurchaseOrderManager";
+import GoodsReceivedNoteViewer from "@/components/suppliers/GoodsReceivedNoteViewer";
+import SupplierInvoiceViewer from "@/components/suppliers/SupplierInvoiceViewer";
+import QRScanner from "@/components/QRScanner";
 import { SupplierGrid } from "@/components/suppliers/SupplierGrid";
 import { QuoteRequestModal } from "@/components/modals/QuoteRequestModal";
 import { SupplierCatalogModal } from "@/components/modals/SupplierCatalogModal";
@@ -141,8 +145,8 @@ const SuppliersContent = () => {
               )}
             </div>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-md mx-auto">
-              <TabsList className={`grid w-full ${userRole === 'supplier' ? 'grid-cols-4' : isAdmin ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-4xl mx-auto">
+              <TabsList className={`grid w-full ${userRole === 'supplier' ? 'grid-cols-7' : isAdmin ? 'grid-cols-3' : 'grid-cols-2'}`}>
                 <TabsTrigger value="suppliers" className="flex items-center gap-2">
                   <Building className="h-4 w-4" />
                   Suppliers
@@ -159,13 +163,29 @@ const SuppliersContent = () => {
                 )}
                 {userRole === 'supplier' && (
                   <>
+                    <TabsTrigger value="purchase-orders" className="flex items-center gap-2">
+                      <ShoppingBag className="h-4 w-4" />
+                      Purchase Orders
+                    </TabsTrigger>
                     <TabsTrigger value="qr-codes" className="flex items-center gap-2">
                       <Package className="h-4 w-4" />
                       QR Codes
                     </TabsTrigger>
+                    <TabsTrigger value="qr-scanner" className="flex items-center gap-2">
+                      <QrCode className="h-4 w-4" />
+                      QR Scanner
+                    </TabsTrigger>
                     <TabsTrigger value="delivery-notes" className="flex items-center gap-2">
                       <FileText className="h-4 w-4" />
                       Delivery Notes
+                    </TabsTrigger>
+                    <TabsTrigger value="grn-viewer" className="flex items-center gap-2">
+                      <Truck className="h-4 w-4" />
+                      GRN Viewer
+                    </TabsTrigger>
+                    <TabsTrigger value="invoices" className="flex items-center gap-2">
+                      <Receipt className="h-4 w-4" />
+                      Invoices
                     </TabsTrigger>
                   </>
                 )}
@@ -181,12 +201,30 @@ const SuppliersContent = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {userRole === 'supplier' && (
             <>
+              <TabsContent value="purchase-orders" className="space-y-8">
+                <SupplierPurchaseOrderManager />
+              </TabsContent>
+              
               <TabsContent value="qr-codes" className="space-y-8">
                 <QRCodeManager />
               </TabsContent>
               
+              <TabsContent value="qr-scanner" className="space-y-8">
+                <QRScanner onMaterialScanned={(material) => {
+                  console.log('Material scanned:', material);
+                }} />
+              </TabsContent>
+              
               <TabsContent value="delivery-notes" className="space-y-8">
                 <DeliveryNoteForm />
+              </TabsContent>
+              
+              <TabsContent value="grn-viewer" className="space-y-8">
+                <GoodsReceivedNoteViewer />
+              </TabsContent>
+              
+              <TabsContent value="invoices" className="space-y-8">
+                <SupplierInvoiceViewer />
               </TabsContent>
             </>
           )}
