@@ -61,7 +61,7 @@ const Navigation = () => {
   };
 
   return (
-    <header className="shadow-sm border-b sticky top-0 z-50 bg-gradient-primary">
+    <header className="shadow-sm border-b sticky top-0 z-50 bg-gradient-primary relative">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between relative z-10">
         <Link to="/" className="flex items-center">
           <div className="relative">
@@ -123,16 +123,16 @@ const Navigation = () => {
 
         {/* Mobile Menu Button */}
         <button
-          className="md:hidden text-text-on-dark bg-foreground/50 p-2 rounded-lg border border-border/30 backdrop-blur-sm hover:bg-foreground/70 transition-all duration-200"
+          className="md:hidden text-text-on-dark bg-background/20 p-2 rounded-lg border border-white/30 backdrop-blur-sm hover:bg-background/30 transition-all duration-200 z-50"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
           {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
-      {/* Mobile Navigation */}
+        {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className="md:hidden bg-background border-t">
+        <div className="md:hidden bg-background border-t shadow-lg z-50 absolute top-full left-0 right-0">
           <nav className="px-4 py-4 space-y-4">
             {navItems.map((item) => (
               <Link
