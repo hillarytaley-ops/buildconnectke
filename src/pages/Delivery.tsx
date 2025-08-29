@@ -51,7 +51,7 @@ const Delivery = () => {
 
   return (
     <DeliveryErrorBoundary>
-      <DeliveryAccessGuard requiredAuth={true} allowedRoles={['builder', 'supplier', 'admin']} feature="delivery management">
+      <DeliveryAccessGuard requiredAuth={false} allowedRoles={['builder', 'supplier', 'admin']} feature="delivery management">
       <div className="min-h-screen bg-gradient-construction">
         <Navigation />
         <main className="container mx-auto px-4 py-8">

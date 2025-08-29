@@ -53,7 +53,7 @@ const Tracking = () => {
   }
 
   return (
-    <DeliveryAccessGuard requiredAuth={true} allowedRoles={['builder', 'supplier', 'admin']} feature="tracking dashboard">
+    <DeliveryAccessGuard requiredAuth={false} allowedRoles={['builder', 'supplier', 'admin']} feature="tracking dashboard">
       <div className="min-h-screen flex flex-col bg-gradient-construction">
         <Navigation />
         <main className="flex-1">
