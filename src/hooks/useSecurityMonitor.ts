@@ -101,7 +101,7 @@ export const useSecurityMonitor = () => {
       }]);
 
       // Log to console in development for debugging
-      if (process.env.NODE_ENV === 'development') {
+      if (window.location.hostname === 'localhost' || window.location.hostname.includes('sandbox')) {
         console.log('Security Event:', securityLog);
       }
 
@@ -198,7 +198,7 @@ export const useSecurityMonitor = () => {
     }
 
     // Verify Supabase connection is secure
-    const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || '';
+    const supabaseUrl = 'https://wuuyjjpgzgeimiptuuws.supabase.co'; // Use the known Supabase URL
     if (!supabaseUrl.startsWith('https://')) {
       logSecurityEvent('insecure_api', 'Insecure API connection detected', 'high');
       return false;
