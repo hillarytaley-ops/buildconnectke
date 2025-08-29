@@ -201,15 +201,15 @@ const SupplierInvoiceViewer: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'draft':
-        return 'bg-gray-500';
+        return 'bg-muted';
       case 'sent':
-        return 'bg-blue-500';
+        return 'bg-secondary';
       case 'paid':
-        return 'bg-green-500';
+        return 'bg-primary';
       case 'overdue':
-        return 'bg-red-500';
+        return 'bg-destructive';
       default:
-        return 'bg-gray-500';
+        return 'bg-muted';
     }
   };
 
@@ -244,14 +244,14 @@ const SupplierInvoiceViewer: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Security Notice */}
-      <Card className="border-green-200 bg-green-50">
+      <Card className="border-border bg-muted/50">
         <CardHeader className="pb-3">
-          <div className="flex items-center gap-2 text-green-800">
+          <div className="flex items-center gap-2 text-primary">
             <Shield className="h-5 w-5" />
             <h3 className="font-semibold">Information Security Notice</h3>
           </div>
         </CardHeader>
-        <CardContent className="text-sm text-green-700">
+        <CardContent className="text-sm text-muted-foreground">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="flex items-center gap-2">
               <Lock className="h-4 w-4" />
@@ -262,7 +262,7 @@ const SupplierInvoiceViewer: React.FC = () => {
               <span>Access logs maintained for security</span>
             </div>
           </div>
-          <div className="mt-2 p-2 bg-green-100 rounded text-xs">
+          <div className="mt-2 p-2 bg-accent rounded text-xs">
             All invoice data is protected and only accessible to authorized parties.
           </div>
         </CardContent>
@@ -398,22 +398,22 @@ const SupplierInvoiceViewer: React.FC = () => {
                                 </div>
 
                                 {selectedInvoice.payment_terms && (
-                                  <div className="p-3 bg-blue-50 border border-blue-200 rounded">
-                                    <div className="flex items-center gap-2 text-blue-800 mb-1">
+                                  <div className="p-3 bg-muted border border-border rounded">
+                                    <div className="flex items-center gap-2 text-foreground mb-1">
                                       <CreditCard className="h-4 w-4" />
                                       <span className="font-medium">Payment Terms</span>
                                     </div>
-                                    <p className="text-blue-700 text-sm">{selectedInvoice.payment_terms}</p>
+                                    <p className="text-muted-foreground text-sm">{selectedInvoice.payment_terms}</p>
                                   </div>
                                 )}
 
                                 {selectedInvoice.notes && (
-                                  <div className="p-3 bg-gray-50 border border-gray-200 rounded">
-                                    <div className="flex items-center gap-2 text-gray-800 mb-1">
+                                  <div className="p-3 bg-muted border border-border rounded">
+                                    <div className="flex items-center gap-2 text-foreground mb-1">
                                       <FileText className="h-4 w-4" />
                                       <span className="font-medium">Notes</span>
                                     </div>
-                                    <p className="text-gray-700 text-sm">{selectedInvoice.notes}</p>
+                                    <p className="text-muted-foreground text-sm">{selectedInvoice.notes}</p>
                                   </div>
                                 )}
                               </div>

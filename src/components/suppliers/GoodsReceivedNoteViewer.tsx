@@ -171,28 +171,28 @@ const GoodsReceivedNoteViewer: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'draft':
-        return 'bg-gray-500';
+        return 'bg-muted';
       case 'submitted':
-        return 'bg-blue-500';
+        return 'bg-secondary';
       case 'approved':
-        return 'bg-green-500';
+        return 'bg-primary';
       case 'disputed':
-        return 'bg-red-500';
+        return 'bg-destructive';
       default:
-        return 'bg-gray-500';
+        return 'bg-muted';
     }
   };
 
   const getConditionColor = (condition: string) => {
     switch (condition.toLowerCase()) {
       case 'good':
-        return 'text-green-600';
+        return 'text-primary';
       case 'damaged':
-        return 'text-red-600';
+        return 'text-destructive';
       case 'partial':
-        return 'text-yellow-600';
+        return 'text-muted-foreground';
       default:
-        return 'text-gray-600';
+        return 'text-foreground';
     }
   };
 
@@ -227,14 +227,14 @@ const GoodsReceivedNoteViewer: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Security Notice */}
-      <Card className="border-green-200 bg-green-50">
+      <Card className="border-border bg-muted/50">
         <CardHeader className="pb-3">
-          <div className="flex items-center gap-2 text-green-800">
+          <div className="flex items-center gap-2 text-primary">
             <Shield className="h-5 w-5" />
             <h3 className="font-semibold">Information Security Notice</h3>
           </div>
         </CardHeader>
-        <CardContent className="text-sm text-green-700">
+        <CardContent className="text-sm text-muted-foreground">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="flex items-center gap-2">
               <Lock className="h-4 w-4" />
@@ -245,7 +245,7 @@ const GoodsReceivedNoteViewer: React.FC = () => {
               <span>Access logs maintained for security</span>
             </div>
           </div>
-          <div className="mt-2 p-2 bg-green-100 rounded text-xs">
+          <div className="mt-2 p-2 bg-accent rounded text-xs">
             All GRN data is protected and only accessible to authorized suppliers.
           </div>
         </CardContent>
@@ -368,22 +368,22 @@ const GoodsReceivedNoteViewer: React.FC = () => {
                                 </div>
 
                                 {selectedGRN.discrepancies && (
-                                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
-                                    <div className="flex items-center gap-2 text-yellow-800 mb-1">
+                                  <div className="p-3 bg-accent border border-border rounded">
+                                    <div className="flex items-center gap-2 text-foreground mb-1">
                                       <AlertCircle className="h-4 w-4" />
                                       <span className="font-medium">Discrepancies</span>
                                     </div>
-                                    <p className="text-yellow-700 text-sm">{selectedGRN.discrepancies}</p>
+                                    <p className="text-muted-foreground text-sm">{selectedGRN.discrepancies}</p>
                                   </div>
                                 )}
 
                                 {selectedGRN.additional_notes && (
-                                  <div className="p-3 bg-blue-50 border border-blue-200 rounded">
-                                    <div className="flex items-center gap-2 text-blue-800 mb-1">
+                                  <div className="p-3 bg-muted border border-border rounded">
+                                    <div className="flex items-center gap-2 text-foreground mb-1">
                                       <FileText className="h-4 w-4" />
                                       <span className="font-medium">Additional Notes</span>
                                     </div>
-                                    <p className="text-blue-700 text-sm">{selectedGRN.additional_notes}</p>
+                                    <p className="text-muted-foreground text-sm">{selectedGRN.additional_notes}</p>
                                   </div>
                                 )}
                               </div>

@@ -121,7 +121,7 @@ const SuppliersContent = () => {
       <Navigation />
 
       {/* Business-Focused Hero Section */}
-      <section className="bg-gradient-to-br from-green-600 via-blue-600 to-purple-600 text-white py-16">
+      <section className="bg-gradient-hero text-text-on-dark py-16">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl font-bold mb-4">
             🏗️ UjenziPro Supplier Directory
@@ -132,14 +132,14 @@ const SuppliersContent = () => {
             
             {/* Business Transparency Notice */}
             <div className="flex justify-center gap-4 mb-8">
-              <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
+              <Badge variant="secondary" className="bg-muted text-foreground border-border">
                 🤝 Business Transparency
               </Badge>
-              <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
+              <Badge variant="secondary" className="bg-secondary text-secondary-foreground border-border">
                 📞 Contact Information Available
               </Badge>
               {!user && (
-                <Badge variant="secondary" className="bg-amber-100 text-amber-800 border-amber-200">
+                <Badge variant="secondary" className="bg-accent text-accent-foreground border-border">
                   🔑 Login Required for Full Access
                 </Badge>
               )}
@@ -235,7 +235,7 @@ const SuppliersContent = () => {
                 <Users className="h-12 w-12 mx-auto mb-4 text-primary" />
                 <h3 className="text-2xl font-bold mb-4">Registered Users Management</h3>
                 <p className="text-lg mb-6 opacity-90">Admin view of all registered builders and suppliers</p>
-                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                <Badge variant="outline" className="bg-accent text-accent-foreground border-border">
                   Admin Dashboard - Coming Soon
                 </Badge>
               </div>

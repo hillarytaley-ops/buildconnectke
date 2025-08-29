@@ -164,17 +164,17 @@ const SupplierPurchaseOrderManager: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'bg-yellow-500';
+        return 'bg-muted';
       case 'confirmed':
-        return 'bg-green-500';
+        return 'bg-primary';
       case 'dispatched':
-        return 'bg-blue-500';
+        return 'bg-secondary';
       case 'delivered':
-        return 'bg-purple-500';
+        return 'bg-accent';
       case 'completed':
-        return 'bg-gray-500';
+        return 'bg-muted';
       default:
-        return 'bg-gray-500';
+        return 'bg-muted';
     }
   };
 
@@ -209,14 +209,14 @@ const SupplierPurchaseOrderManager: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Security Notice */}
-      <Card className="border-green-200 bg-green-50">
+      <Card className="border-border bg-muted/50">
         <CardHeader className="pb-3">
-          <div className="flex items-center gap-2 text-green-800">
+          <div className="flex items-center gap-2 text-primary">
             <Shield className="h-5 w-5" />
             <h3 className="font-semibold">Information Security Notice</h3>
           </div>
         </CardHeader>
-        <CardContent className="text-sm text-green-700">
+        <CardContent className="text-sm text-muted-foreground">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="flex items-center gap-2">
               <Lock className="h-4 w-4" />
@@ -227,7 +227,7 @@ const SupplierPurchaseOrderManager: React.FC = () => {
               <span>Access logs maintained for security</span>
             </div>
           </div>
-          <div className="mt-2 p-2 bg-green-100 rounded text-xs">
+          <div className="mt-2 p-2 bg-accent rounded text-xs">
             All purchase order data is protected and only accessible to authorized parties.
           </div>
         </CardContent>
