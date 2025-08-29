@@ -1,3 +1,18 @@
+/**
+ * CRITICAL: DROPDOWN MENU SCROLLING CONFIGURATION
+ * 
+ * The dropdown menus in this component MUST maintain the following properties to ensure all items are visible:
+ * - z-[999]: High z-index to appear above all content
+ * - max-h-[400px]: Fixed maximum height of 400px
+ * - overflow-y-auto: Vertical scrolling when content exceeds height
+ * - overflow-x-hidden: Prevent horizontal scrolling issues
+ * - position: 'fixed' in style prop: Force proper positioning
+ * - avoidCollisions={true}: Prevent viewport clipping
+ * - collisionPadding={20}: Safe boundaries for repositioning
+ * - sideOffset={5}: Proper spacing from trigger
+ * 
+ * DO NOT REMOVE OR MODIFY THESE PROPERTIES - THEY PREVENT RECURRING SCROLLING ISSUES
+ */
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import DeliveryReviewForm from './DeliveryReviewForm';
@@ -373,7 +388,7 @@ const DeliveryTracker: React.FC = () => {
           <div className="flex flex-wrap items-center justify-between gap-4">
             {/* Left side - Filters */}
             <div className="flex flex-wrap items-center gap-3">
-              {/* Status Filter Dropdown */}
+              {/* Status Filter Dropdown - CRITICAL: Keep scrolling properties intact */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="bg-background border-input hover:bg-muted/50">
@@ -382,10 +397,17 @@ const DeliveryTracker: React.FC = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent 
-                  className="w-56 bg-background border-border shadow-lg z-[999] max-h-[400px] overflow-y-auto overflow-x-hidden"
+                  className="w-56 bg-background border-border shadow-lg z-[999] max-h-[400px] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
                   sideOffset={5}
                   avoidCollisions={true}
                   collisionPadding={20}
+                  style={{ 
+                    maxHeight: '400px', 
+                    overflowY: 'auto', 
+                    overflowX: 'hidden',
+                    zIndex: 999,
+                    position: 'fixed' // Force proper positioning
+                  }}
                 >
                   <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
                   <DropdownMenuSeparator />
@@ -402,7 +424,7 @@ const DeliveryTracker: React.FC = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Date Filter Dropdown */}
+              {/* Date Filter Dropdown - CRITICAL: Keep scrolling properties intact */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="bg-background border-input hover:bg-muted/50">
@@ -411,10 +433,17 @@ const DeliveryTracker: React.FC = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent 
-                  className="w-48 bg-background border-border shadow-lg z-[999] max-h-[400px] overflow-y-auto overflow-x-hidden"
+                  className="w-48 bg-background border-border shadow-lg z-[999] max-h-[400px] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
                   sideOffset={5}
                   avoidCollisions={true}
                   collisionPadding={20}
+                  style={{ 
+                    maxHeight: '400px', 
+                    overflowY: 'auto', 
+                    overflowX: 'hidden',
+                    zIndex: 999,
+                    position: 'fixed' // Force proper positioning
+                  }}
                 >
                   <DropdownMenuLabel>Filter by Date</DropdownMenuLabel>
                   <DropdownMenuSeparator />
@@ -494,11 +523,18 @@ const DeliveryTracker: React.FC = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent 
-                  className="w-48 bg-background border-border shadow-lg z-[999] max-h-[400px] overflow-y-auto overflow-x-hidden" 
+                  className="w-48 bg-background border-border shadow-lg z-[999] max-h-[400px] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent" 
                   align="end"
                   sideOffset={5}
                   avoidCollisions={true}
                   collisionPadding={20}
+                  style={{ 
+                    maxHeight: '400px', 
+                    overflowY: 'auto', 
+                    overflowX: 'hidden',
+                    zIndex: 999,
+                    position: 'fixed' // Force proper positioning
+                  }}
                 >
                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
                   <DropdownMenuSeparator />
