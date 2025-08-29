@@ -90,8 +90,8 @@ const About: React.FC = () => {
             <Badge className="mb-4 bg-white/20 text-white border-white/30" aria-label="Proudly Kenyan company">
               🇰🇪 Proudly Kenyan
             </Badge>
-            <h1 id="hero-heading" className="text-5xl font-bold mb-6 text-white drop-shadow-lg">About UjenziPro</h1>
-            <p className="text-xl max-w-3xl mx-auto text-white font-medium drop-shadow-md">
+            <h1 id="hero-heading" className="text-5xl font-bold mb-6 text-construction-orange drop-shadow-lg">About UjenziPro</h1>
+            <p className="text-xl max-w-3xl mx-auto text-safety-yellow font-medium drop-shadow-md">
               We're on a mission to transform Kenya's construction industry by connecting builders
               with trusted suppliers, making construction projects more efficient, affordable, and successful.
             </p>
