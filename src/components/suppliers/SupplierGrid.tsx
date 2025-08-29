@@ -152,27 +152,22 @@ export const SupplierGrid = ({ onSupplierSelect, onQuoteRequest }: SupplierGridP
     SUPPLIERS_PER_PAGE
   );
 
-  // Enhanced fallback and error handling
+  // Enhanced fallback and error handling for better supplier coverage
   const [showingFallback, setShowingFallback] = useState(false);
   const [lastSuccessfulFetch, setLastSuccessfulFetch] = useState<Date | null>(null);
   
   useEffect(() => {
-    // Enhanced fallback logic with retry mechanism
+    // Always show suppliers to all users - either from DB or demo data
     if (supplierSource === "registered") {
-      if (loading) {
-        const timer = setTimeout(() => {
-          if (loading || (dbSuppliers.length === 0 && !error)) {
-            setSupplierSource("sample");
-            setShowingFallback(true);
-          }
-        }, 5000); // Increased timeout for better UX
-        return () => clearTimeout(timer);
-      } else if (!error && dbSuppliers.length > 0) {
+      if (!loading && dbSuppliers.length === 0) {
+        // No registered suppliers found, show demo data as fallback
+        setShowingFallback(true);
+      } else if (dbSuppliers.length > 0) {
         setLastSuccessfulFetch(new Date());
         setShowingFallback(false);
       }
     }
-  }, [loading, dbSuppliers.length, error, supplierSource]);
+  }, [loading, dbSuppliers.length, supplierSource]);
 
   // Filter demo suppliers based on current filters
   const getFilteredDemoSuppliers = () => {
@@ -211,17 +206,17 @@ export const SupplierGrid = ({ onSupplierSelect, onQuoteRequest }: SupplierGridP
     currentPage * SUPPLIERS_PER_PAGE
   );
 
-  // Always ensure we have suppliers to display
+  // Always ensure we have suppliers to display - show suppliers across the country
   const suppliers = supplierSource === "registered" 
-    ? (dbSuppliers.length > 0 ? dbSuppliers : (loading ? [] : paginatedDemoSuppliers))
+    ? (dbSuppliers.length > 0 ? dbSuppliers : paginatedDemoSuppliers)
     : paginatedDemoSuppliers;
     
   const currentTotalCount = supplierSource === "registered" 
-    ? (totalCount > 0 ? totalCount : (loading ? 0 : demoSuppliers.length))
+    ? (totalCount > 0 ? totalCount : demoSuppliers.length)
     : demoSuppliers.length;
     
   const totalPages = supplierSource === "registered" 
-    ? (totalCount > 0 ? Math.ceil(totalCount / SUPPLIERS_PER_PAGE) : (loading ? 0 : demoTotalPages))
+    ? (totalCount > 0 ? Math.ceil(totalCount / SUPPLIERS_PER_PAGE) : demoTotalPages)
     : demoTotalPages;
     
   const isLoading = supplierSource === "registered" ? loading : false;
@@ -303,15 +298,21 @@ export const SupplierGrid = ({ onSupplierSelect, onQuoteRequest }: SupplierGridP
           </div>
         ) : suppliers.length === 0 ? (
           <div className="text-center py-12">
-            <div className="space-y-2">
-              <p className="text-muted-foreground">
-                No suppliers found matching your criteria.
+            <div className="space-y-4">
+              <p className="text-muted-foreground text-lg">
+                🏗️ Building our supplier network...
               </p>
-              {supplierSource === "registered" && (
-                <p className="text-sm text-muted-foreground">
-                  Try switching to "Sample Suppliers" to see demo data.
-                </p>
-              )}
+              <p className="text-sm text-muted-foreground">
+                We're working to bring you the best construction suppliers across Kenya. 
+                Check back soon for more options!
+              </p>
+              <Button 
+                variant="outline" 
+                onClick={() => handleSourceChange("sample")}
+                className="mt-4"
+              >
+                View Sample Suppliers
+              </Button>
             </div>
           </div>
         ) : (

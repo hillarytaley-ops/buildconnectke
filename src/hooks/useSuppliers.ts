@@ -25,17 +25,8 @@ export const useSuppliers = (
       setLoading(true);
       setError(null);
       
-      // Check if user is authenticated for business info access
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        // Unauthenticated users see demo data only
-        setSuppliers([]);
-        setTotalCount(0);
-        return;
-      }
-
-      // Get business info from suppliers table (now accessible to authenticated users)
+      // Always try to fetch suppliers - public directory available to all
+      // Contact details will be controlled at the component level
       let query = supabase
         .from('suppliers')
         .select('*', { count: 'exact' })
@@ -62,18 +53,20 @@ export const useSuppliers = (
       const { data, error: fetchError, count } = await query;
       
       if (fetchError) {
-        setError('Unable to load supplier business information');
+        console.log('Suppliers query error, using demo data:', fetchError.message);
         setSuppliers([]);
         setTotalCount(0);
+        setError(null); // Don't show error, fallback to demo
         return;
       }
       
       setSuppliers(data || []);
       setTotalCount(count || 0);
     } catch (err) {
-      setError('Network error accessing supplier directory');
+      console.log('Network error, using demo data');
       setSuppliers([]);
       setTotalCount(0);
+      setError(null); // Don't show error, fallback to demo
     } finally {
       setLoading(false);
     }
