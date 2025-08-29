@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
 import { SupplierCard } from "./SupplierCard";
-import { SupplierFilters } from "./SupplierFilters";
+import { AdvancedFilters } from "./AdvancedFilters";
+import { DataSourceSelector } from "./DataSourceSelector";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { CustomPagination } from "@/components/ui/custom-pagination";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { Supplier, SupplierFilters as SupplierFiltersType } from "@/types/supplier";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Database, Users } from "lucide-react";
+import { AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 
 const SUPPLIERS_PER_PAGE = 12;
 
@@ -97,15 +97,23 @@ interface SupplierGridProps {
 }
 
 export const SupplierGrid = ({ onSupplierSelect, onQuoteRequest }: SupplierGridProps) => {
-  const [filters, setFilters] = useState<SupplierFiltersType>({
+  const [filters, setFilters] = useState<SupplierFiltersType & {
+    deliveryRadius?: number;
+    priceRange?: [number, number];
+    hasDelivery?: boolean;
+  }>({
     search: "",
     category: "All Categories",
     location: "",
     rating: 0,
     verified: null,
+    deliveryRadius: 50,
+    priceRange: [0, 10000],
+    hasDelivery: false,
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [supplierSource, setSupplierSource] = useState<SupplierSource>("sample");
+  const [retryCount, setRetryCount] = useState(0);
 
   const { suppliers: dbSuppliers, loading, error, totalCount, refetch } = useSuppliers(
     filters,
@@ -113,19 +121,25 @@ export const SupplierGrid = ({ onSupplierSelect, onQuoteRequest }: SupplierGridP
     SUPPLIERS_PER_PAGE
   );
 
-  // Always show demo suppliers as fallback to prevent empty displays
+  // Enhanced fallback and error handling
   const [showingFallback, setShowingFallback] = useState(false);
+  const [lastSuccessfulFetch, setLastSuccessfulFetch] = useState<Date | null>(null);
   
   useEffect(() => {
-    // If registered suppliers fail to load after 3 seconds, show demo data
-    if (supplierSource === "registered" && loading) {
-      const timer = setTimeout(() => {
-        if (loading || (dbSuppliers.length === 0 && !error)) {
-          setSupplierSource("sample");
-          setShowingFallback(true);
-        }
-      }, 3000);
-      return () => clearTimeout(timer);
+    // Enhanced fallback logic with retry mechanism
+    if (supplierSource === "registered") {
+      if (loading) {
+        const timer = setTimeout(() => {
+          if (loading || (dbSuppliers.length === 0 && !error)) {
+            setSupplierSource("sample");
+            setShowingFallback(true);
+          }
+        }, 5000); // Increased timeout for better UX
+        return () => clearTimeout(timer);
+      } else if (!error && dbSuppliers.length > 0) {
+        setLastSuccessfulFetch(new Date());
+        setShowingFallback(false);
+      }
     }
   }, [loading, dbSuppliers.length, error, supplierSource]);
 
@@ -191,7 +205,7 @@ export const SupplierGrid = ({ onSupplierSelect, onQuoteRequest }: SupplierGridP
     onQuoteRequest?.(supplier);
   };
 
-  const handleFiltersChange = (newFilters: SupplierFiltersType) => {
+  const handleFiltersChange = (newFilters: any) => {
     setFilters(newFilters);
     setCurrentPage(1); // Reset to first page when filters change
   };
@@ -199,20 +213,34 @@ export const SupplierGrid = ({ onSupplierSelect, onQuoteRequest }: SupplierGridP
   const handleSourceChange = (source: SupplierSource) => {
     setSupplierSource(source);
     setCurrentPage(1); // Reset to first page when source changes
+    setShowingFallback(false);
+  };
+
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    refetch();
   };
 
   if (error && supplierSource === "registered") {
     return (
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          {error}
-          <button 
-            onClick={refetch}
-            className="ml-2 underline hover:no-underline"
-          >
-            Try again
-          </button>
+        <AlertDescription className="flex items-center justify-between">
+          <div>
+            <p className="font-medium">Unable to load registered suppliers</p>
+            <p className="text-sm mt-1">
+              {error} {lastSuccessfulFetch && `(Last successful fetch: ${lastSuccessfulFetch.toLocaleTimeString()})`}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleRetry}>
+              <RefreshCw className="h-4 w-4 mr-1" />
+              Retry
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => handleSourceChange("sample")}>
+              View Sample Data
+            </Button>
+          </div>
         </AlertDescription>
       </Alert>
     );
@@ -221,52 +249,18 @@ export const SupplierGrid = ({ onSupplierSelect, onQuoteRequest }: SupplierGridP
   return (
     <ErrorBoundary>
       <div className="space-y-6">
-        {/* Source Selection */}
-        <div className="flex items-center justify-between bg-muted rounded-lg p-4">
-          <div className="flex items-center gap-4">
-            <h3 className="text-lg font-semibold">Supplier Directory</h3>
-            <div className="flex items-center gap-2">
-              <Button
-                variant={supplierSource === "registered" ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleSourceChange("registered")}
-                className="gap-2"
-              >
-                <Database className="h-4 w-4" />
-                Registered Suppliers
-                <Badge variant="secondary" className="ml-1">
-                  {supplierSource === "registered" ? (totalCount || "Loading...") : "Live"}
-                </Badge>
-              </Button>
-              <Button
-                variant={supplierSource === "sample" ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleSourceChange("sample")}
-                className="gap-2"
-              >
-                <Users className="h-4 w-4" />
-                Sample Suppliers
-                <Badge variant="secondary" className="ml-1">
-                  {DEMO_SUPPLIERS.length}
-                </Badge>
-              </Button>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {supplierSource === "sample" && (
-              <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                Demo Data
-              </Badge>
-            )}
-            {showingFallback && (
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                Fallback Mode
-              </Badge>
-            )}
-          </div>
-        </div>
+        {/* Enhanced Data Source Selection */}
+        <DataSourceSelector
+          currentSource={supplierSource}
+          onSourceChange={handleSourceChange}
+          registeredCount={totalCount}
+          sampleCount={DEMO_SUPPLIERS.length}
+          isLoading={isLoading}
+          hasError={!!error}
+          showingFallback={showingFallback}
+        />
 
-        <SupplierFilters
+        <AdvancedFilters
           filters={filters}
           onFiltersChange={handleFiltersChange}
           resultCount={currentTotalCount}

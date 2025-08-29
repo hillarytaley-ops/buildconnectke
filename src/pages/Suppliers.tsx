@@ -10,24 +10,31 @@ import { SupplierGrid } from "@/components/suppliers/SupplierGrid";
 import { QuoteRequestModal } from "@/components/modals/QuoteRequestModal";
 import { SupplierCatalogModal } from "@/components/modals/SupplierCatalogModal";
 import PurchasingWorkflow from "@/components/PurchasingWorkflow";
+import { RealTimeStats } from "@/components/suppliers/RealTimeStats";
 import { SecurityAlert } from "@/components/security/SecurityAlert";
 import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 import { supabase } from '@/integrations/supabase/client';
 import { Supplier } from "@/types/supplier";
 import { useToast } from "@/hooks/use-toast";
+import { ModalProvider, useModal } from "@/contexts/ModalContext";
 
-const Suppliers = () => {
+const SuppliersContent = () => {
   const [user, setUser] = useState<any>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("suppliers");
-  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
-  const [showQuoteModal, setShowQuoteModal] = useState(false);
-  const [showCatalogModal, setShowCatalogModal] = useState(false);
-  const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const { toast } = useToast();
+  const { 
+    modals, 
+    openQuoteModal, 
+    openCatalogModal, 
+    openRegistrationModal,
+    closeQuoteModal,
+    closeCatalogModal,
+    closeRegistrationModal
+  } = useModal();
 
   useEffect(() => {
     checkAuth();
@@ -82,17 +89,15 @@ const Suppliers = () => {
   };
 
   const handleSupplierSelect = (supplier: Supplier) => {
-    setSelectedSupplier(supplier);
-    setShowCatalogModal(true);
+    openCatalogModal(supplier);
   };
 
   const handleQuoteRequest = (supplier: Supplier) => {
-    setSelectedSupplier(supplier);
-    setShowQuoteModal(true);
+    openQuoteModal(supplier);
   };
 
   const handleShowRegistration = () => {
-    setShowRegistrationForm(true);
+    openRegistrationModal();
   };
 
   if (loading) {
@@ -193,7 +198,7 @@ const Suppliers = () => {
           )}
           
           <TabsContent value="suppliers" className="space-y-8">
-            {showRegistrationForm ? (
+            {modals.registrationModal.isOpen ? (
               <SupplierRegistrationForm />
             ) : (
               <SupplierGrid 
@@ -202,7 +207,7 @@ const Suppliers = () => {
               />
             )}
             
-            {!showRegistrationForm && (
+            {!modals.registrationModal.isOpen && (
               <div className="bg-accent rounded-lg p-8 text-center">
                 <h3 className="text-2xl font-bold mb-4">Ready to Grow Your Business?</h3>
                 <p className="text-lg mb-6 opacity-90">Join our marketplace and connect with builders across Kenya</p>
@@ -225,51 +230,37 @@ const Suppliers = () => {
       </main>
 
       {/* Quote Request Modal */}
-      {selectedSupplier && (
+      {modals.quoteModal.supplier && (
         <QuoteRequestModal
-          supplier={selectedSupplier}
-          isOpen={showQuoteModal}
-          onClose={() => setShowQuoteModal(false)}
+          supplier={modals.quoteModal.supplier}
+          isOpen={modals.quoteModal.isOpen}
+          onClose={closeQuoteModal}
         />
       )}
 
       {/* Catalog Modal */}
-      {selectedSupplier && (
+      {modals.catalogModal.supplier && (
         <SupplierCatalogModal
-          supplier={selectedSupplier}
-          isOpen={showCatalogModal}
-          onClose={() => setShowCatalogModal(false)}
+          supplier={modals.catalogModal.supplier}
+          isOpen={modals.catalogModal.isOpen}
+          onClose={closeCatalogModal}
           onRequestQuote={handleQuoteRequest}
         />
       )}
 
-
-      {/* Stats Section */}
-      <section className="py-12 bg-muted">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-3xl font-bold text-primary">500+</div>
-              <div className="text-muted-foreground">Verified Suppliers</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-green-600">15,000+</div>
-              <div className="text-muted-foreground">Products Listed</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-red-600">47</div>
-              <div className="text-muted-foreground">Counties Served</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-primary">24/7</div>
-              <div className="text-muted-foreground">Customer Support</div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Real-time Stats Section */}
+      <RealTimeStats />
 
       <Footer />
     </div>
+  );
+};
+
+const Suppliers = () => {
+  return (
+    <ModalProvider>
+      <SuppliersContent />
+    </ModalProvider>
   );
 };
 
