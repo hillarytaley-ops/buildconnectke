@@ -102,9 +102,9 @@ const About: React.FC = () => {
         <section className="py-20 bg-muted" role="main" aria-labelledby="story-heading">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
-              <h2 id="story-heading" className="text-4xl font-bold text-center mb-12 text-primary">Our Story</h2>
+              <h2 id="story-heading" className="text-4xl font-bold text-center mb-12">Our Story</h2>
               <div className="prose prose-lg mx-auto">
-                <p className="text-xl leading-relaxed mb-6 text-primary font-semibold">
+                <p className="text-lg leading-relaxed mb-6 text-muted-foreground">
                   UjenziPro was born from a simple observation: Kenya's construction industry needed
                   not just better connections, but complete project visibility. As builders struggled to find 
                   reliable suppliers and track their material deliveries, while suppliers couldn't efficiently 
