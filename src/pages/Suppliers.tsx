@@ -176,12 +176,7 @@ const SuppliersContent = () => {
 
         <main className="container mx-auto px-4 py-8">
           {/* Business Transparency Notice */}
-          <SecurityAlert 
-            isAuthenticated={!!user}
-            userRole={userRole}
-            showContactInfo={!!user}
-            adminMessage="🏗️ BUSINESS DIRECTORY: Supplier contact information is available to registered users for business purposes. Financial details remain protected."
-          />
+          <SecurityAlert />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {userRole === 'supplier' && (

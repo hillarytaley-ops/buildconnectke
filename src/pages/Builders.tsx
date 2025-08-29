@@ -124,11 +124,7 @@ const Builders = () => {
 
       <main className="container mx-auto px-4 py-8">
         {/* Security Alert */}
-        <SecurityAlert 
-          isAuthenticated={!!userProfile}
-          userRole={userProfile?.role}
-          showContactInfo={isAdmin || userProfile?.role === 'builder'}
-        />
+        <SecurityAlert />
 
         {/* Dashboard for authenticated builders */}
         {showDashboard && canAccessDashboard ? (

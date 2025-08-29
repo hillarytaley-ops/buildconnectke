@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useSecurityMonitor } from './useSecurityMonitor';
 
 interface SecureDeliveryData {
   id: string;
@@ -29,6 +30,7 @@ export const useSecureDeliveryData = () => {
   const [error, setError] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const { toast } = useToast();
+  const { validateSession, monitorDataAccess, checkRateLimit, logSecurityEvent } = useSecurityMonitor();
 
   useEffect(() => {
     fetchSecureDeliveries();
@@ -38,6 +40,18 @@ export const useSecureDeliveryData = () => {
     try {
       setLoading(true);
       setError(null);
+
+      // Enhanced security: Validate session first
+      const sessionValid = await validateSession();
+      if (!sessionValid) {
+        throw new Error('Invalid session - please re-authenticate');
+      }
+
+      // Check rate limiting for delivery data access
+      const rateLimitOk = await checkRateLimit('delivery_data', 100);
+      if (!rateLimitOk) {
+        throw new Error('Rate limit exceeded - please wait before retrying');
+      }
 
       // Get user role first
       const { data: { user } } = await supabase.auth.getUser();
@@ -56,6 +70,12 @@ export const useSecureDeliveryData = () => {
       }
 
       setUserRole(profile.role);
+
+      // Monitor data access for delivery information
+      const accessAllowed = await monitorDataAccess('delivery_data', 'read');
+      if (!accessAllowed) {
+        throw new Error('Access denied - insufficient permissions');
+      }
 
       // Use secure function to get deliveries with appropriate data filtering
       const { data, error } = await supabase.rpc('get_user_deliveries');
@@ -76,9 +96,24 @@ export const useSecureDeliveryData = () => {
       }));
 
       setDeliveries(secureDeliveries);
+      
+      // Log successful data access
+      logSecurityEvent('delivery_data_access', `Successfully loaded ${secureDeliveries.length} delivery records`, 'low');
     } catch (err: any) {
       console.error('Error fetching secure deliveries:', err);
       setError(err.message || 'Failed to fetch delivery data');
+      
+      // Log security events for different error types
+      if (err.message.includes('Invalid session')) {
+        logSecurityEvent('session_invalid_data_access', 'Invalid session during data access', 'high');
+      } else if (err.message.includes('Rate limit')) {
+        logSecurityEvent('rate_limit_data_access', 'Rate limit exceeded during data access', 'medium');
+      } else if (err.message.includes('Access denied')) {
+        logSecurityEvent('unauthorized_data_access', 'Unauthorized data access attempt', 'high');
+      } else {
+        logSecurityEvent('data_access_error', `Data access error: ${err.message}`, 'medium');
+      }
+      
       toast({
         variant: "destructive",
         title: "Access Error",
