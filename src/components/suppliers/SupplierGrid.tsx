@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { SupplierCard } from "./SupplierCard";
+import { SecureSupplierCard } from "./SecureSupplierCard";
 import { AdvancedFilters } from "./AdvancedFilters";
 import { DataSourceSelector } from "./DataSourceSelector";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -8,8 +8,9 @@ import { CustomPagination } from "@/components/ui/custom-pagination";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { Supplier, SupplierFilters as SupplierFiltersType } from "@/types/supplier";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, RefreshCw } from "lucide-react";
+import { AlertCircle, RefreshCw, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 const SUPPLIERS_PER_PAGE = 12;
 
@@ -114,6 +115,29 @@ export const SupplierGrid = ({ onSupplierSelect, onQuoteRequest }: SupplierGridP
   const [currentPage, setCurrentPage] = useState(1);
   const [supplierSource, setSupplierSource] = useState<SupplierSource>("sample");
   const [retryCount, setRetryCount] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('user_id', user.id)
+            .single();
+          
+          setIsAdmin(profile?.role === 'admin');
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+      }
+    };
+    
+    checkAdminStatus();
+  }, []);
 
   const { suppliers: dbSuppliers, loading, error, totalCount, refetch } = useSuppliers(
     filters,
@@ -285,13 +309,26 @@ export const SupplierGrid = ({ onSupplierSelect, onQuoteRequest }: SupplierGridP
           </div>
         ) : (
           <>
+            {/* Admin Security Notice */}
+            {isAdmin && (
+              <Alert className="border-amber-200 bg-amber-50">
+                <Shield className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Admin Notice:</strong> You are viewing the secure supplier directory with full contact information. 
+                  All supplier data including emails, phone numbers, and addresses are visible to you.
+                </AlertDescription>
+              </Alert>
+            )}
+            
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {suppliers.map((supplier) => (
-                <SupplierCard
+                <SecureSupplierCard
                   key={supplier.id}
                   supplier={supplier}
                   onViewCatalog={handleViewCatalog}
                   onRequestQuote={handleRequestQuote}
+                  isAdminView={isAdmin}
+                  showSensitiveInfo={isAdmin}
                 />
               ))}
             </div>

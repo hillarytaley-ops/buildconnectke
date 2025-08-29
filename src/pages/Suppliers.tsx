@@ -12,6 +12,7 @@ import { SupplierCatalogModal } from "@/components/modals/SupplierCatalogModal";
 import PurchasingWorkflow from "@/components/PurchasingWorkflow";
 import { RealTimeStats } from "@/components/suppliers/RealTimeStats";
 import { SecurityAlert } from "@/components/security/SecurityAlert";
+import { AdminAccessGuard } from "@/components/security/AdminAccessGuard";
 import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 import { supabase } from '@/integrations/supabase/client';
@@ -112,64 +113,71 @@ const SuppliersContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-construction">
-      <Navigation />
+    <AdminAccessGuard requiredRole="admin">
+      <div className="min-h-screen bg-gradient-construction">
+        <Navigation />
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-black via-red-600 to-green-600 text-white py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl font-bold mb-4">Construction Materials & Supplies Marketplace</h1>
-          <p className="text-xl mb-8 opacity-90">Connect with verified suppliers and find quality construction materials nationwide</p>
-          
-          {/* Admin Controls */}
-          <div className="flex justify-center gap-4 mb-8">
-            {isAdmin && (
+        {/* Admin-Only Hero Section */}
+        <section className="bg-gradient-to-br from-black via-red-600 to-green-600 text-white py-16">
+          <div className="container mx-auto px-4 text-center">
+            <h1 className="text-4xl font-bold mb-4">
+              🔒 Secure Supplier Directory - Admin Access
+            </h1>
+            <p className="text-xl mb-8 opacity-90">
+              Confidential supplier database with full contact information and business details
+            </p>
+            
+            {/* Security Notice */}
+            <div className="flex justify-center gap-4 mb-8">
               <Badge variant="secondary" className="bg-red-100 text-red-800 border-red-200">
-                Admin View - Full Access
+                🛡️ Admin Only - Sensitive Data
               </Badge>
-            )}
-          </div>
+              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                📊 {isAdmin ? 'Full Access' : 'Limited View'}
+              </Badge>
+            </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-md mx-auto">
-            <TabsList className={`grid w-full ${userRole === 'supplier' ? 'grid-cols-4' : isAdmin ? 'grid-cols-3' : 'grid-cols-2'}`}>
-              <TabsTrigger value="suppliers" className="flex items-center gap-2">
-                <Building className="h-4 w-4" />
-                Suppliers
-              </TabsTrigger>
-              <TabsTrigger value="purchase" className="flex items-center gap-2">
-                <ShoppingBag className="h-4 w-4" />
-                Purchase
-              </TabsTrigger>
-              {isAdmin && (
-                <TabsTrigger value="registered-users" className="flex items-center gap-2">
-                  <Database className="h-4 w-4" />
-                  Registered Users
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-md mx-auto">
+              <TabsList className={`grid w-full ${userRole === 'supplier' ? 'grid-cols-4' : isAdmin ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                <TabsTrigger value="suppliers" className="flex items-center gap-2">
+                  <Building className="h-4 w-4" />
+                  Suppliers
                 </TabsTrigger>
-              )}
-              {userRole === 'supplier' && (
-                <>
-                  <TabsTrigger value="qr-codes" className="flex items-center gap-2">
-                    <Package className="h-4 w-4" />
-                    QR Codes
+                <TabsTrigger value="purchase" className="flex items-center gap-2">
+                  <ShoppingBag className="h-4 w-4" />
+                  Purchase
+                </TabsTrigger>
+                {isAdmin && (
+                  <TabsTrigger value="registered-users" className="flex items-center gap-2">
+                    <Database className="h-4 w-4" />
+                    Registered Users
                   </TabsTrigger>
-                  <TabsTrigger value="delivery-notes" className="flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    Delivery Notes
-                  </TabsTrigger>
-                </>
-              )}
-            </TabsList>
-          </Tabs>
-        </div>
-      </section>
+                )}
+                {userRole === 'supplier' && (
+                  <>
+                    <TabsTrigger value="qr-codes" className="flex items-center gap-2">
+                      <Package className="h-4 w-4" />
+                      QR Codes
+                    </TabsTrigger>
+                    <TabsTrigger value="delivery-notes" className="flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Delivery Notes
+                    </TabsTrigger>
+                  </>
+                )}
+              </TabsList>
+            </Tabs>
+          </div>
+        </section>
 
-      <main className="container mx-auto px-4 py-8">
-        {/* Security Alert */}
-        <SecurityAlert 
-          isAuthenticated={!!user}
-          userRole={userRole}
-          showContactInfo={isAdmin || userRole === 'supplier'}
-        />
+        <main className="container mx-auto px-4 py-8">
+          {/* Enhanced Security Alert for Admin */}
+          <SecurityAlert 
+            isAuthenticated={!!user}
+            userRole={userRole}
+            showContactInfo={isAdmin || userRole === 'supplier'}
+            adminMessage="⚠️ ADMIN ACCESS: You are viewing sensitive supplier data including contact information, addresses, and business details. Handle with care."
+          />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {userRole === 'supplier' && (
@@ -253,6 +261,7 @@ const SuppliersContent = () => {
 
       <Footer />
     </div>
+  </AdminAccessGuard>
   );
 };
 

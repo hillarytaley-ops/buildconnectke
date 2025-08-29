@@ -6,9 +6,10 @@ interface SecurityAlertProps {
   isAuthenticated: boolean;
   userRole?: string | null;
   showContactInfo: boolean;
+  adminMessage?: string;
 }
 
-export const SecurityAlert = ({ isAuthenticated, userRole, showContactInfo }: SecurityAlertProps) => {
+export const SecurityAlert = ({ isAuthenticated, userRole, showContactInfo, adminMessage }: SecurityAlertProps) => {
   if (!isAuthenticated) {
     return (
       <Alert className="mb-6 border-amber-200 bg-amber-50">
@@ -41,16 +42,19 @@ export const SecurityAlert = ({ isAuthenticated, userRole, showContactInfo }: Se
   }
 
   return (
-    <Alert className="mb-6 border-green-200 bg-green-50">
+    <Alert className={`mb-6 ${userRole === 'admin' ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'}`}>
       <Eye className="h-4 w-4 text-green-600" />
-      <AlertTitle className="text-green-800 flex items-center gap-2">
-        Full Access Active
-        <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
-          {userRole === 'admin' ? 'Admin' : 'Verified User'}
+      <AlertTitle className={`${userRole === 'admin' ? 'text-red-800' : 'text-green-800'} flex items-center gap-2`}>
+        {userRole === 'admin' ? 'Admin Access - Sensitive Data' : 'Full Access Active'}
+        <Badge variant="secondary" className={`text-xs ${userRole === 'admin' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+          {userRole === 'admin' ? 'Administrator' : 'Verified User'}
         </Badge>
       </AlertTitle>
-      <AlertDescription className="text-green-700">
-        You have access to contact information. Please use responsibly and respect privacy.
+      <AlertDescription className={`${userRole === 'admin' ? 'text-red-700' : 'text-green-700'}`}>
+        {adminMessage || (userRole === 'admin' 
+          ? "You have administrative access to all supplier data including sensitive contact information. Handle with extreme care."
+          : "You have access to contact information. Please use responsibly and respect privacy."
+        )}
       </AlertDescription>
     </Alert>
   );

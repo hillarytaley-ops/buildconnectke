@@ -2550,6 +2550,18 @@ export type Database = {
           specialties: string[]
         }[]
       }
+      get_supplier_directory_for_builders: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          company_name: string
+          id: string
+          is_verified: boolean
+          location_city: string
+          materials_offered: string[]
+          rating: number
+          specialties: string[]
+        }[]
+      }
       get_supplier_qr_codes: {
         Args: { _supplier_id: string }
         Returns: {
