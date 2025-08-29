@@ -41,8 +41,8 @@ export const BuilderCard = ({ builder, onContactClick, onViewProfile }: BuilderC
           </div>
           {builder.rating && (
             <div className="flex items-center gap-1 text-sm">
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-              <span>{builder.rating.toFixed(1)}</span>
+              <Star className="h-4 w-4 fill-accent text-accent" />
+              <span className="font-medium">{builder.rating.toFixed(1)}</span>
             </div>
           )}
         </div>

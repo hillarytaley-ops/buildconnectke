@@ -94,7 +94,7 @@ const Builders = () => {
       <Navigation />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white py-16">
+      <section className="bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground py-16">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl font-bold mb-4">Professional Builders Directory</h1>
           <p className="text-xl mb-8 opacity-90">
@@ -104,7 +104,7 @@ const Builders = () => {
           {/* Admin/Builder Controls */}
           <div className="flex justify-center gap-4">
             {isAdmin && (
-              <Badge variant="secondary" className="bg-red-100 text-red-800 border-red-200">
+              <Badge variant="secondary" className="bg-destructive/10 text-destructive border-destructive/20">
                 Admin View
               </Badge>
             )}
@@ -116,6 +116,15 @@ const Builders = () => {
               >
                 <Settings className="h-4 w-4" />
                 {showDashboard ? 'View Public Directory' : 'Builder Dashboard'}
+              </Button>
+            )}
+            {!userProfile && (
+              <Button
+                variant="outline"
+                onClick={() => window.location.href = '/builders/register'}
+                className="bg-background/10 backdrop-blur-sm border-primary-foreground/20 text-primary-foreground hover:bg-background/20"
+              >
+                Register as Builder
               </Button>
             )}
           </div>
@@ -181,11 +190,11 @@ const Builders = () => {
               <div className="text-muted-foreground">Certified Builders</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-blue-600">500+</div>
+              <div className="text-3xl font-bold text-secondary">500+</div>
               <div className="text-muted-foreground">Completed Projects</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-green-600">47</div>
+              <div className="text-3xl font-bold text-accent">47</div>
               <div className="text-muted-foreground">Counties Served</div>
             </div>
             <div>
