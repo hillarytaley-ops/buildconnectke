@@ -8,7 +8,7 @@ export default function Feedback() {
       <Navigation />
       
       <main 
-        className="container mx-auto px-4 py-16 bg-powder-blue relative"
+        className="container mx-auto px-4 py-16 bg-muted/20 relative"
         style={{
           backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/lovable-uploads/7cfcf7b9-f15f-4327-809e-aa6ddc908424.png')`,
           backgroundSize: 'cover',
