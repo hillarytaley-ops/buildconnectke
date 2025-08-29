@@ -34,15 +34,24 @@ const Tracking = () => {
   const checkAuth = async () => {
     try {
       setError(null);
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
       
-      if (userError) {
-        throw new Error(`Authentication failed: ${userError.message}`);
+      // Check if there's an active session first
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.warn('Session check error:', sessionError);
+        // Continue without authentication - allow guest access
+        setUser(null);
+        setUserRole('guest');
+        setLoading(false);
+        return;
       }
 
-      if (user) {
+      if (session?.user) {
+        const user = session.user;
         setUser(user);
         
+        // Try to get user profile
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('role, is_professional, user_type')
@@ -50,10 +59,9 @@ const Tracking = () => {
           .single();
         
         if (profileError && profileError.code !== 'PGRST116') {
-          throw new Error(`Profile fetch failed: ${profileError.message}`);
-        }
-        
-        if (profileData) {
+          console.warn('Profile fetch error:', profileError);
+          setUserRole('user'); // Default role if profile fetch fails
+        } else if (profileData) {
           setUserRole(profileData.role);
         } else {
           setUserRole('user'); // Default role if no profile found
@@ -63,16 +71,16 @@ const Tracking = () => {
             variant: "default"
           });
         }
+      } else {
+        // No active session - allow guest access
+        setUser(null);
+        setUserRole('guest');
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load tracking dashboard';
-      setError(errorMessage);
-      console.error('Auth check error:', error);
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive"
-      });
+      console.warn('Auth check error:', error);
+      // Allow guest access on any auth error
+      setUser(null);
+      setUserRole('guest');
     } finally {
       setLoading(false);
     }
@@ -130,7 +138,7 @@ const Tracking = () => {
   }
 
   return (
-    <DeliveryAccessGuard requiredAuth={false} allowedRoles={['builder', 'supplier', 'admin']} feature="tracking dashboard">
+    <DeliveryAccessGuard requiredAuth={false} allowedRoles={['builder', 'supplier', 'admin', 'guest']} feature="tracking dashboard">
       <ErrorBoundary>
         <div className="min-h-screen flex flex-col bg-gradient-construction">
           <Navigation />
@@ -154,7 +162,7 @@ const Tracking = () => {
                     </Badge>
                     {userRole && (
                       <Badge variant="outline" className="capitalize" aria-label={`Current role: ${userRole}`}>
-                        {userRole} Dashboard
+                        {userRole === 'guest' ? 'Guest Access' : `${userRole} Dashboard`}
                       </Badge>
                     )}
                   </div>
@@ -177,7 +185,7 @@ const Tracking = () => {
                   onKeyDown={handleKeyDown}
                 >
                   <TabsList 
-                    className={`grid w-full mb-8 ${userRole === 'admin' ? 'grid-cols-3' : userRole === 'builder' ? 'grid-cols-2' : 'grid-cols-1'}`}
+                    className={`grid w-full mb-8 ${userRole === 'admin' ? 'grid-cols-3' : (userRole === 'builder') ? 'grid-cols-2' : 'grid-cols-1'}`}
                     role="tablist"
                     aria-label="Tracking dashboard sections"
                     aria-describedby="main-description"
