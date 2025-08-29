@@ -5,12 +5,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { MapPin, Package, Truck, Calendar } from "lucide-react";
+import { MapPin, Package, Truck, Calendar, Shield, AlertTriangle } from "lucide-react";
 
 const DeliveryRequest = () => {
   const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     pickupAddress: "",
     deliveryAddress: "",
@@ -19,14 +24,71 @@ const DeliveryRequest = () => {
     specialInstructions: "",
     budgetRange: "",
     requiredVehicleType: "",
-    materialType: ""
+    materialType: "",
+    quantity: "",
+    weight: ""
   });
   const { toast } = useToast();
 
+  useEffect(() => {
+    checkUserAccess();
+  }, []);
+
+  const checkUserAccess = async () => {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, is_professional, user_type')
+        .eq('user_id', user.id)
+        .single();
+
+      setUserRole(profile?.role || null);
+    } catch (error) {
+      console.error('Error checking user access:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.materialType) newErrors.materialType = "Material type is required";
+    if (!formData.pickupAddress.trim()) newErrors.pickupAddress = "Pickup address is required";
+    if (!formData.deliveryAddress.trim()) newErrors.deliveryAddress = "Delivery address is required";
+    if (!formData.preferredDate) newErrors.preferredDate = "Preferred date is required";
+    if (!formData.quantity) newErrors.quantity = "Quantity is required";
+
+    // Date validation
+    const selectedDate = new Date(formData.preferredDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (selectedDate < today) {
+      newErrors.preferredDate = "Delivery date cannot be in the past";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    
+    if (!validateForm()) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Please correct the errors in the form"
+      });
+      return;
+    }
+
+    setSubmitting(true);
 
     try {
       // Get current user profile
@@ -35,28 +97,36 @@ const DeliveryRequest = () => {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('id')
+        .select('id, role')
         .eq('user_id', user.id)
         .single();
 
       if (!profile) throw new Error('User profile not found');
 
-      // Create delivery request
+      // Security check - only allow certain roles to create delivery requests
+      if (!['builder', 'admin'].includes(profile.role)) {
+        throw new Error('Insufficient permissions to create delivery requests');
+      }
+
+      // Create delivery request with enhanced validation
+      const requestData = {
+        builder_id: profile.id,
+        pickup_address: formData.pickupAddress.trim(),
+        delivery_address: formData.deliveryAddress.trim(),
+        pickup_date: formData.preferredDate,
+        preferred_time: formData.preferredTime || null,
+        special_instructions: formData.specialInstructions.trim() || null,
+        budget_range: formData.budgetRange || null,
+        required_vehicle_type: formData.requiredVehicleType || null,
+        material_type: formData.materialType,
+        quantity: parseInt(formData.quantity) || 1,
+        weight_kg: parseFloat(formData.weight) || null,
+        status: 'pending'
+      };
+
       const { error } = await supabase
         .from('delivery_requests')
-        .insert({
-          builder_id: profile.id,
-          pickup_address: formData.pickupAddress,
-          delivery_address: formData.deliveryAddress,
-          pickup_date: formData.preferredDate,
-          preferred_time: formData.preferredTime,
-          special_instructions: formData.specialInstructions,
-          budget_range: formData.budgetRange,
-          required_vehicle_type: formData.requiredVehicleType,
-          material_type: formData.materialType || 'Mixed Materials',
-          quantity: 1,
-          status: 'pending'
-        });
+        .insert(requestData);
 
       if (error) throw error;
 
@@ -74,22 +144,38 @@ const DeliveryRequest = () => {
         specialInstructions: "",
         budgetRange: "",
         requiredVehicleType: "",
-        materialType: ""
+        materialType: "",
+        quantity: "",
+        weight: ""
       });
-    } catch (error) {
+      setErrors({});
+    } catch (error: any) {
       console.error('Error submitting delivery request:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to submit delivery request"
+        description: error.message || "Failed to submit delivery request"
       });
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
+  if (loading) {
+    return <LoadingSpinner message="Loading delivery request form..." />;
+  }
+
   return (
     <div className="space-y-6">
+      {/* Security Notice */}
+      <Alert className="border-blue-200 bg-blue-50">
+        <Shield className="h-4 w-4" />
+        <AlertDescription>
+          <strong>Secure Delivery Request:</strong> Your delivery information is protected. 
+          Addresses and personal details are only shared with verified delivery providers.
+        </AlertDescription>
+      </Alert>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -97,19 +183,19 @@ const DeliveryRequest = () => {
             Request Delivery Service
           </CardTitle>
           <CardDescription>
-            Submit a delivery request for construction materials - Open to all buyers and stakeholders
+            Submit a secure delivery request for construction materials
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="materialType">Material Type</Label>
+                <Label htmlFor="materialType">Material Type *</Label>
                 <Select
                   value={formData.materialType}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, materialType: value }))}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className={errors.materialType ? "border-red-500" : ""}>
                     <SelectValue placeholder="Select material type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -122,6 +208,44 @@ const DeliveryRequest = () => {
                     <SelectItem value="mixed">Mixed Materials</SelectItem>
                   </SelectContent>
                 </Select>
+                {errors.materialType && (
+                  <p className="text-sm text-red-500 flex items-center gap-1">
+                    <AlertTriangle className="h-3 w-3" />
+                    {errors.materialType}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="quantity">Quantity *</Label>
+                <Input
+                  id="quantity"
+                  type="number"
+                  min="1"
+                  placeholder="Enter quantity"
+                  value={formData.quantity}
+                  onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
+                  className={errors.quantity ? "border-red-500" : ""}
+                />
+                {errors.quantity && (
+                  <p className="text-sm text-red-500 flex items-center gap-1">
+                    <AlertTriangle className="h-3 w-3" />
+                    {errors.quantity}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="weight">Weight (kg)</Label>
+                <Input
+                  id="weight"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  placeholder="Enter weight in kg"
+                  value={formData.weight}
+                  onChange={(e) => setFormData(prev => ({ ...prev, weight: e.target.value }))}
+                />
               </div>
 
               <div className="space-y-2">
@@ -228,9 +352,13 @@ const DeliveryRequest = () => {
               />
             </div>
 
-            <Button type="submit" disabled={loading} className="w-full">
+            <Button 
+              type="submit" 
+              disabled={submitting || loading} 
+              className="w-full"
+            >
               <Truck className="h-4 w-4 mr-2" />
-              {loading ? "Submitting..." : "Submit Delivery Request"}
+              {submitting ? "Submitting..." : "Submit Secure Delivery Request"}
             </Button>
           </form>
         </CardContent>
