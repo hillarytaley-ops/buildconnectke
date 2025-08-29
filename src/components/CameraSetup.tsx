@@ -83,7 +83,7 @@ const CameraSetup: React.FC<CameraSetupProps> = ({ onCameraConnected }) => {
         setIsAuthorized(false);
       } else {
         const userRole = profileData?.role;
-        setIsAuthorized(userRole === 'admin' || userRole === 'supplier');
+        setIsAuthorized(userRole === 'admin'); // Only admin can access camera setup
         
       }
     } catch (error) {
@@ -186,7 +186,7 @@ const CameraSetup: React.FC<CameraSetupProps> = ({ onCameraConnected }) => {
             <Lock className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
             <h3 className="text-lg font-medium mb-2">Access Restricted</h3>
             <p className="text-muted-foreground mb-4">
-              Camera setup is only available to authorized personnel (Admins and Suppliers).
+              Camera setup is only available to administrators for security purposes.
             </p>
             <p className="text-sm text-muted-foreground">
               Please contact your administrator if you need access to camera management features.

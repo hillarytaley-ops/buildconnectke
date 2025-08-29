@@ -10,6 +10,7 @@ import DeliveryManagement from '@/components/DeliveryManagement';
 import SiteMaterialRegister from '@/components/SiteMaterialRegister';
 import { Package, Truck, Shield, Eye, Settings } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import DroneMonitor from '@/components/DroneMonitor';
 
 const Tracking = () => {
   const [activeTab, setActiveTab] = useState('delivery');
@@ -92,36 +93,55 @@ const Tracking = () => {
             </div>
 
             {/* Simplified Tab Navigation */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className={`grid w-full mb-8 ${userRole === 'admin' ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                <TabsTrigger value="delivery" className="flex items-center gap-2">
-                  <Package className="h-4 w-4" />
-                  Delivery Hub
-                </TabsTrigger>
-                {userRole === 'admin' && (
-                  <TabsTrigger value="register" className="flex items-center gap-2">
-                    <Settings className="h-4 w-4" />
-                    Material Register
-                  </TabsTrigger>
-                )}
-              </TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className={`grid w-full mb-8 ${userRole === 'admin' ? 'grid-cols-3' : userRole === 'builder' ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            <TabsTrigger value="delivery" className="flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              Delivery Hub
+            </TabsTrigger>
+            {(userRole === 'builder' || userRole === 'admin') && (
+              <TabsTrigger value="drone" className="flex items-center gap-2">
+                <Eye className="h-4 w-4" />
+                Drone Observation
+              </TabsTrigger>
+            )}
+            {userRole === 'admin' && (
+              <TabsTrigger value="register" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Material Register
+              </TabsTrigger>
+            )}
+          </TabsList>
 
-              <TabsContent value="delivery" className="space-y-6">
-                <DeliveryManagement userRole={userRole} user={user} />
-              </TabsContent>
+          <TabsContent value="delivery" className="space-y-6">
+            <DeliveryManagement userRole={userRole} user={user} />
+          </TabsContent>
 
-              {userRole === 'admin' && (
-                <TabsContent value="register" className="space-y-6">
-                  <Alert className="border-amber-200 bg-amber-50 mb-6">
-                    <Settings className="h-4 w-4" />
-                    <AlertDescription>
-                      <strong>Admin Feature:</strong> Material register management is restricted to administrators. 
-                      All data modifications are logged for security.
-                    </AlertDescription>
-                  </Alert>
-                  <SiteMaterialRegister />
-                </TabsContent>
-              )}
+          {(userRole === 'builder' || userRole === 'admin') && (
+            <TabsContent value="drone" className="space-y-6">
+              <Alert className="border-blue-200 bg-blue-50 mb-6">
+                <Eye className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Drone Observation:</strong> Aerial monitoring for remote site observation. 
+                  {userRole === 'admin' ? 'Full control available for administrators.' : 'View-only access for builders.'}
+                </AlertDescription>
+              </Alert>
+              <DroneMonitor userRole={userRole} user={user} />
+            </TabsContent>
+          )}
+
+          {userRole === 'admin' && (
+            <TabsContent value="register" className="space-y-6">
+              <Alert className="border-amber-200 bg-amber-50 mb-6">
+                <Settings className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Admin Feature:</strong> Material register management is restricted to administrators. 
+                  All data modifications are logged for security.
+                </AlertDescription>
+              </Alert>
+              <SiteMaterialRegister />
+            </TabsContent>
+          )}
             </Tabs>
           </div>
         </main>
