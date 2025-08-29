@@ -1,5 +1,4 @@
 import React, { useState, useEffect, memo } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -101,30 +100,19 @@ const Tracking = () => {
 
   if (loading) {
     return (
-      <>
-        <Helmet>
-          <title>Loading Tracking Dashboard | UjenziPro</title>
-          <meta name="description" content="Loading secure tracking and monitoring dashboard for construction deliveries and materials management." />
-        </Helmet>
-        <div className="min-h-screen bg-gradient-construction flex items-center justify-center" role="status" aria-live="polite">
-          <LoadingSpinner message="Loading tracking dashboard..." />
-        </div>
-      </>
+      <div className="min-h-screen bg-gradient-construction flex items-center justify-center" role="status" aria-live="polite">
+        <LoadingSpinner message="Loading tracking dashboard..." />
+      </div>
     );
   }
 
   if (error) {
     return (
-      <>
-        <Helmet>
-          <title>Error - Tracking Dashboard | UjenziPro</title>
-          <meta name="description" content="Error loading tracking dashboard. Please try again or contact support." />
-        </Helmet>
-        <div className="min-h-screen bg-gradient-construction flex items-center justify-center">
-          <div className="text-center max-w-md mx-auto p-6">
-            <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
-            <h1 className="text-2xl font-bold mb-2">Unable to Load Dashboard</h1>
-            <p className="text-muted-foreground mb-4">{error}</p>
+      <div className="min-h-screen bg-gradient-construction flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-2">Unable to Load Dashboard</h1>
+          <p className="text-muted-foreground mb-4">{error}</p>
             <button 
               onClick={() => {
                 setError(null);
@@ -135,48 +123,28 @@ const Tracking = () => {
               aria-label="Retry loading dashboard"
             >
               Try Again
-            </button>
-          </div>
+          </button>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
-      <Helmet>
-        <title>Secure Tracking & Monitoring | UjenziPro</title>
-        <meta name="description" content="Monitor construction deliveries and manage materials with advanced privacy protection. Track your projects securely with role-based access control." />
-        <meta name="keywords" content="construction tracking, delivery monitoring, material management, secure tracking, construction logistics" />
-        <meta property="og:title" content="Secure Tracking & Monitoring | UjenziPro" />
-        <meta property="og:description" content="Monitor construction deliveries and manage materials with advanced privacy protection." />
-        <meta property="og:type" content="website" />
-        <link rel="canonical" href="/tracking" />
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebApplication",
-            "name": "UjenziPro Tracking Dashboard",
-            "description": "Secure tracking and monitoring dashboard for construction deliveries and materials management",
-            "applicationCategory": "BusinessApplication"
-          })}
-        </script>
-      </Helmet>
-      <DeliveryAccessGuard requiredAuth={false} allowedRoles={['builder', 'supplier', 'admin']} feature="tracking dashboard">
-        <ErrorBoundary>
-          <div className="min-h-screen flex flex-col bg-gradient-construction">
-            <Navigation />
-            <main className="flex-1" role="main">
-              <div className="container mx-auto px-4 py-8">
-                {/* Enhanced Header with better accessibility */}
-                <header className="text-center mb-8">
-                  <h1 className="text-4xl font-bold mb-4 flex items-center justify-center gap-2" id="main-heading">
-                    <Shield className="h-8 w-8 text-primary" aria-hidden="true" />
-                    Secure Tracking & Monitoring
-                  </h1>
-                  <p className="text-lg text-muted-foreground mb-4" id="main-description">
-                    Monitor deliveries and manage materials with privacy protection
-                  </p>
+    <DeliveryAccessGuard requiredAuth={false} allowedRoles={['builder', 'supplier', 'admin']} feature="tracking dashboard">
+      <ErrorBoundary>
+        <div className="min-h-screen flex flex-col bg-gradient-construction">
+          <Navigation />
+          <main className="flex-1" role="main">
+            <div className="container mx-auto px-4 py-8">
+              {/* Enhanced Header with better accessibility */}
+              <header className="text-center mb-8">
+                <h1 className="text-4xl font-bold mb-4 flex items-center justify-center gap-2" id="main-heading">
+                  <Shield className="h-8 w-8 text-primary" aria-hidden="true" />
+                  Secure Tracking & Monitoring
+                </h1>
+                <p className="text-lg text-muted-foreground mb-4" id="main-description">
+                  Monitor deliveries and manage materials with privacy protection
+                </p>
 
                   {/* Access Control Notice with better accessibility */}
                   <div className="flex justify-center gap-2 mb-6" role="status" aria-label="Access level information">
@@ -304,13 +272,12 @@ const Tracking = () => {
                     </TabsContent>
                   )}
                 </Tabs>
-              </div>
-            </main>
-            <Footer />
-          </div>
-        </ErrorBoundary>
-      </DeliveryAccessGuard>
-    </>
+            </div>
+          </main>
+          <Footer />
+        </div>
+      </ErrorBoundary>
+    </DeliveryAccessGuard>
   );
 };
 
