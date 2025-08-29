@@ -381,7 +381,12 @@ const DeliveryTracker: React.FC = () => {
                     Status: {statusFilter === 'all' ? 'All' : statusConfig[statusFilter as DeliveryStatus]?.label || statusFilter}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-background border-border shadow-lg z-50 max-h-80 overflow-y-auto">
+                <DropdownMenuContent 
+                  className="w-56 bg-background border-border shadow-lg z-[999] max-h-[400px] overflow-y-auto overflow-x-hidden"
+                  sideOffset={5}
+                  avoidCollisions={true}
+                  collisionPadding={20}
+                >
                   <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => setStatusFilter('all')} className="hover:bg-muted cursor-pointer">
@@ -405,7 +410,12 @@ const DeliveryTracker: React.FC = () => {
                     Date: {dateFilter === 'all' ? 'All Time' : dateFilter === 'today' ? 'Today' : dateFilter === 'week' ? 'This Week' : 'This Month'}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-48 bg-background border-border shadow-lg z-50 max-h-80 overflow-y-auto">
+                <DropdownMenuContent 
+                  className="w-48 bg-background border-border shadow-lg z-[999] max-h-[400px] overflow-y-auto overflow-x-hidden"
+                  sideOffset={5}
+                  avoidCollisions={true}
+                  collisionPadding={20}
+                >
                   <DropdownMenuLabel>Filter by Date</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => setDateFilter('all')} className="hover:bg-muted cursor-pointer">
@@ -483,7 +493,13 @@ const DeliveryTracker: React.FC = () => {
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-48 bg-background border-border shadow-lg z-50 max-h-80 overflow-y-auto" align="end">
+                <DropdownMenuContent 
+                  className="w-48 bg-background border-border shadow-lg z-[999] max-h-[400px] overflow-y-auto overflow-x-hidden" 
+                  align="end"
+                  sideOffset={5}
+                  avoidCollisions={true}
+                  collisionPadding={20}
+                >
                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={exportDeliveries} className="hover:bg-muted cursor-pointer">
