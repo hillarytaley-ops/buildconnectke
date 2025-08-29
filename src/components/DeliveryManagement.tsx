@@ -27,6 +27,7 @@ import DroneMonitor from './DroneMonitor';
 import DeliveryCommunication from './DeliveryCommunication';
 import DeliveryStats from './delivery/DeliveryStats';
 import CreateDeliveryDialog from './delivery/CreateDeliveryDialog';
+import { LiveAnalyticsDashboard } from './LiveAnalyticsDashboard';
 import DeliveryTable from './delivery/DeliveryTable';
 
 type DeliveryStatus = 'pending' | 'picked_up' | 'in_transit' | 'out_for_delivery' | 'delivered' | 'cancelled';
@@ -81,6 +82,7 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
   const [activeTab, setActiveTab] = useState('tracker');
   const [projects, setProjects] = useState<any[]>([]);
   const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
+  const [showHiddenAnalytics, setShowHiddenAnalytics] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -91,7 +93,27 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
     } else {
       checkAuth();
     }
-  }, [propUserRole, propUser]);
+   }, [propUserRole, propUser]);
+
+  // Hidden analytics access for UjenziPro staff
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      // Secret key combination: Ctrl + Shift + A (for Analytics)
+      if (event.ctrlKey && event.shiftKey && event.key === 'A' && userRole === 'admin') {
+        setShowHiddenAnalytics(!showHiddenAnalytics);
+        if (!showHiddenAnalytics) {
+          setActiveTab('hidden-analytics');
+          toast({
+            title: "UjenziPro Analytics Enabled",
+            description: "Live site analytics dashboard activated",
+          });
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, [showHiddenAnalytics, userRole]);
 
   useEffect(() => {
     if (user && userRole) {
@@ -528,6 +550,26 @@ const DeliveryManagement: React.FC<DeliveryManagementProps> = ({ userRole: propU
               </AlertDescription>
             </Alert>
             <RoleAssignment />
+          </TabsContent>
+        )}
+
+        {/* Hidden Analytics Dashboard - Only accessible to UjenziPro staff */}
+        {showHiddenAnalytics && userRole === 'admin' && (
+          <TabsContent value="hidden-analytics" className="space-y-6">
+            <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-4 rounded-lg border border-primary/20">
+              <div className="flex items-center gap-2 mb-2">
+                <Eye className="h-5 w-5 text-primary" />
+                <h2 className="text-xl font-semibold text-primary">UjenziPro Analytics Dashboard</h2>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Live building materials monitoring and analytics from cameras, drones, and scanners.
+                This dashboard is exclusively for UjenziPro staff.
+              </p>
+              <div className="mt-2 text-xs text-muted-foreground">
+                Access: Admin Only • Data Source: Live Site Monitoring • Update Frequency: Real-time
+              </div>
+            </div>
+            <LiveAnalyticsDashboard />
           </TabsContent>
         )}
       </Tabs>
