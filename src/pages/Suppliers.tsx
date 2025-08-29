@@ -9,6 +9,7 @@ import DeliveryNoteForm from "@/components/DeliveryNoteForm";
 import { SupplierGrid } from "@/components/suppliers/SupplierGrid";
 import { QuoteRequestModal } from "@/components/modals/QuoteRequestModal";
 import { SupplierCatalogModal } from "@/components/modals/SupplierCatalogModal";
+import PurchasingWorkflow from "@/components/PurchasingWorkflow";
 import { SecurityAlert } from "@/components/security/SecurityAlert";
 import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
@@ -125,10 +126,14 @@ const Suppliers = () => {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-md mx-auto">
-            <TabsList className={`grid w-full ${userRole === 'supplier' ? 'grid-cols-3' : isAdmin ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            <TabsList className={`grid w-full ${userRole === 'supplier' ? 'grid-cols-4' : isAdmin ? 'grid-cols-3' : 'grid-cols-2'}`}>
               <TabsTrigger value="suppliers" className="flex items-center gap-2">
                 <Building className="h-4 w-4" />
                 Suppliers
+              </TabsTrigger>
+              <TabsTrigger value="purchase" className="flex items-center gap-2">
+                <ShoppingBag className="h-4 w-4" />
+                Purchase
               </TabsTrigger>
               {isAdmin && (
                 <TabsTrigger value="registered-users" className="flex items-center gap-2">
@@ -211,6 +216,10 @@ const Suppliers = () => {
                 </Button>
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="purchase" className="space-y-8">
+            <PurchasingWorkflow />
           </TabsContent>
         </Tabs>
       </main>
