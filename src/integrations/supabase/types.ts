@@ -182,6 +182,42 @@ export type Database = {
           },
         ]
       }
+      delivery_access_log: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          resource_id: string | null
+          resource_type: string
+          sensitive_fields_accessed: string[] | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          resource_id?: string | null
+          resource_type: string
+          sensitive_fields_accessed?: string[] | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          resource_id?: string | null
+          resource_type?: string
+          sensitive_fields_accessed?: string[] | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       delivery_acknowledgements: {
         Row: {
           acknowledged_by: string
@@ -2653,6 +2689,15 @@ export type Database = {
       is_supplier: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      log_delivery_access: {
+        Args: {
+          action_param: string
+          fields_param?: string[]
+          resource_id_param?: string
+          resource_type_param: string
+        }
+        Returns: undefined
       }
       log_driver_info_access: {
         Args: { access_type_param: string; delivery_uuid: string }

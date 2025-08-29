@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { DeliveryAccessGuard } from "@/components/security/DeliveryAccessGuard";
+import { DeliveryErrorBoundary } from "@/components/security/DeliveryErrorBoundary";
 import DeliveryRequest from "@/components/DeliveryRequest";
 import DeliveryProviders from "@/components/DeliveryProviders";
 import DelivererApplication from "@/components/DelivererApplication";
@@ -49,7 +50,8 @@ const Delivery = () => {
   }
 
   return (
-    <DeliveryAccessGuard requiredAuth={true} allowedRoles={['builder', 'supplier', 'admin']} feature="delivery management">
+    <DeliveryErrorBoundary>
+      <DeliveryAccessGuard requiredAuth={true} allowedRoles={['builder', 'supplier', 'admin']} feature="delivery management">
       <div className="min-h-screen bg-gradient-construction">
         <Navigation />
         <main className="container mx-auto px-4 py-8">
@@ -142,7 +144,8 @@ const Delivery = () => {
       </main>
       <Footer />
     </div>
-  </DeliveryAccessGuard>
+      </DeliveryAccessGuard>
+    </DeliveryErrorBoundary>
   );
 };
 
