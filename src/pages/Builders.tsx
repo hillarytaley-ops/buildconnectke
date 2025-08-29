@@ -10,6 +10,7 @@ import { BuilderGrid } from "@/components/builders/BuilderGrid";
 import { ContactBuilderModal } from "@/components/modals/ContactBuilderModal";
 import { BuilderProfileModal } from "@/components/modals/BuilderProfileModal";
 import { SecurityAlert } from "@/components/security/SecurityAlert";
+import ProfessionalBuilderDashboard from "@/components/ProfessionalBuilderDashboard";
 import { UserProfile } from "@/types/userProfile";
 import { useToast } from "@/hooks/use-toast";
 
@@ -88,6 +89,8 @@ const Builders = () => {
 
   // If user is authenticated and a builder, show option to access dashboard
   const canAccessDashboard = userProfile && userProfile.role === 'builder';
+  const isProfessionalBuilder = userProfile && userProfile.role === 'builder' && 
+    (userProfile.is_professional || userProfile.user_type === 'company');
 
   return (
     <div className="min-h-screen bg-background">
@@ -137,21 +140,26 @@ const Builders = () => {
 
         {/* Dashboard for authenticated builders */}
         {showDashboard && canAccessDashboard ? (
-          <div className="space-y-6">
-            <div className="bg-muted rounded-lg p-8 text-center">
-              <h2 className="text-2xl font-bold mb-4">Builder Dashboard</h2>
-              <p className="text-muted-foreground mb-6">
-                Access your projects, manage materials, and track deliveries
-              </p>
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Dashboard Under Construction</AlertTitle>
-                <AlertDescription>
-                  The builder dashboard is being developed. For now, explore the public directory below.
-                </AlertDescription>
-              </Alert>
+          isProfessionalBuilder ? (
+            <ProfessionalBuilderDashboard />
+          ) : (
+            <div className="space-y-6">
+              <div className="bg-muted rounded-lg p-8 text-center">
+                <h2 className="text-2xl font-bold mb-4">Individual Builder Dashboard</h2>
+                <p className="text-muted-foreground mb-6">
+                  Access basic builder features and public directory
+                </p>
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Limited Access</AlertTitle>
+                  <AlertDescription>
+                    As an individual builder, you have access to basic features. 
+                    Professional builders and companies have access to the full workflow management system.
+                  </AlertDescription>
+                </Alert>
+              </div>
             </div>
-          </div>
+          )
         ) : (
           /* Public Directory */
           <BuilderGrid 
