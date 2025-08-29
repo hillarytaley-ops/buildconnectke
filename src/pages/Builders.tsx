@@ -5,12 +5,16 @@ import Footer from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Settings } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertCircle, Settings, Shield, ShoppingCart, Camera } from "lucide-react";
 import { BuilderGrid } from "@/components/builders/BuilderGrid";
 import { ContactBuilderModal } from "@/components/modals/ContactBuilderModal";
 import { BuilderProfileModal } from "@/components/modals/BuilderProfileModal";
 import { SecurityAlert } from "@/components/security/SecurityAlert";
 import ProfessionalBuilderDashboard from "@/components/ProfessionalBuilderDashboard";
+import PrivateBuilderDirectPurchase from "@/components/PrivateBuilderDirectPurchase";
+import MonitoringServiceRequest from "@/components/MonitoringServiceRequest";
 import { UserProfile } from "@/types/userProfile";
 import { useToast } from "@/hooks/use-toast";
 
@@ -144,20 +148,40 @@ const Builders = () => {
             <ProfessionalBuilderDashboard />
           ) : (
             <div className="space-y-6">
-              <div className="bg-muted rounded-lg p-8 text-center">
-                <h2 className="text-2xl font-bold mb-4">Individual Builder Dashboard</h2>
-                <p className="text-muted-foreground mb-6">
-                  Access basic builder features and public directory
-                </p>
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Limited Access</AlertTitle>
-                  <AlertDescription>
-                    As an individual builder, you have access to basic features. 
-                    Professional builders and companies have access to the full workflow management system.
-                  </AlertDescription>
-                </Alert>
-              </div>
+              {/* Private Builder Header */}
+              <Card className="border-primary bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-primary">
+                    <Shield className="h-5 w-5" />
+                    Private Builder Dashboard
+                  </CardTitle>
+                  <CardDescription>
+                    Direct material purchase and project monitoring services with enhanced security features.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              {/* Tabs for Private Builder Features */}
+              <Tabs defaultValue="direct-purchase" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="direct-purchase" className="flex items-center gap-2">
+                    <ShoppingCart className="h-4 w-4" />
+                    Direct Purchase
+                  </TabsTrigger>
+                  <TabsTrigger value="monitoring" className="flex items-center gap-2">
+                    <Camera className="h-4 w-4" />
+                    Project Monitoring
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="direct-purchase" className="space-y-6">
+                  <PrivateBuilderDirectPurchase />
+                </TabsContent>
+
+                <TabsContent value="monitoring" className="space-y-6">
+                  <MonitoringServiceRequest />
+                </TabsContent>
+              </Tabs>
             </div>
           )
         ) : (
