@@ -47,6 +47,56 @@ export type Database = {
         }
         Relationships: []
       }
+      camera_access_log: {
+        Row: {
+          access_type: string
+          accessed_at: string | null
+          authorized: boolean
+          camera_id: string | null
+          id: string
+          ip_address: unknown | null
+          project_id: string | null
+          session_duration: unknown | null
+          stream_url_accessed: boolean | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          access_type: string
+          accessed_at?: string | null
+          authorized?: boolean
+          camera_id?: string | null
+          id?: string
+          ip_address?: unknown | null
+          project_id?: string | null
+          session_duration?: unknown | null
+          stream_url_accessed?: boolean | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          access_type?: string
+          accessed_at?: string | null
+          authorized?: boolean
+          camera_id?: string | null
+          id?: string
+          ip_address?: unknown | null
+          project_id?: string | null
+          session_duration?: unknown | null
+          stream_url_accessed?: boolean | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "camera_access_log_camera_id_fkey"
+            columns: ["camera_id"]
+            isOneToOne: false
+            referencedRelation: "cameras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cameras: {
         Row: {
           created_at: string
@@ -2645,6 +2695,21 @@ export type Database = {
           payment_reference: string
           payment_status: string
           signed_document_path: string
+          updated_at: string
+        }[]
+      }
+      get_secure_camera_info: {
+        Args: { camera_uuid: string }
+        Returns: {
+          can_view_stream: boolean
+          created_at: string
+          general_location: string
+          id: string
+          is_active: boolean
+          location: string
+          name: string
+          project_id: string
+          stream_access_message: string
           updated_at: string
         }[]
       }
