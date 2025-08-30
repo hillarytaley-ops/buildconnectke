@@ -204,19 +204,19 @@ const About: React.FC = () => {
           <div className="container mx-auto px-4 relative z-10">
             <h2 id="stats-heading" className="text-4xl font-bold text-center mb-12">Our Impact</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
-              <div className="focus-within:ring-2 focus-within:ring-brown rounded-lg p-4" tabIndex={0}>
+              <div className="focus-within:ring-2 focus-within:ring-black rounded-lg p-4" tabIndex={0}>
                 <div className="text-4xl font-bold mb-2" aria-label="One thousand plus">1,000+</div>
                 <div className="text-lg opacity-90">Active Builders</div>
               </div>
-              <div className="focus-within:ring-2 focus-within:ring-brown rounded-lg p-4" tabIndex={0}>
+              <div className="focus-within:ring-2 focus-within:ring-black rounded-lg p-4" tabIndex={0}>
                 <div className="text-4xl font-bold mb-2" aria-label="Five hundred plus">500+</div>
                 <div className="text-lg opacity-90">Verified Suppliers</div>
               </div>
-              <div className="focus-within:ring-2 focus-within:ring-brown rounded-lg p-4" tabIndex={0}>
+              <div className="focus-within:ring-2 focus-within:ring-black rounded-lg p-4" tabIndex={0}>
                 <div className="text-4xl font-bold mb-2" aria-label="Ten thousand plus">10,000+</div>
                 <div className="text-lg opacity-90">Successful Connections</div>
               </div>
-              <div className="focus-within:ring-2 focus-within:ring-brown rounded-lg p-4" tabIndex={0}>
+              <div className="focus-within:ring-2 focus-within:ring-black rounded-lg p-4" tabIndex={0}>
                 <div className="text-4xl font-bold mb-2" aria-label="Two billion Kenyan Shillings plus">KSh 2B+</div>
                 <div className="text-lg opacity-90">Total Transactions</div>
               </div>
