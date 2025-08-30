@@ -2,7 +2,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, MapPin, Phone } from "lucide-react";
+import { Eye, MapPin, Phone, Shield, Lock } from "lucide-react";
+import { useSecureDeliveries } from "@/hooks/useSecureDeliveries";
 
 type DeliveryStatus = 'pending' | 'picked_up' | 'in_transit' | 'out_for_delivery' | 'delivered' | 'cancelled';
 
@@ -17,13 +18,15 @@ interface Delivery {
   estimated_delivery_time: string;
   actual_delivery_time?: string;
   status: DeliveryStatus;
-  driver_name?: string;
-  driver_phone?: string;
+  // Driver information is now handled securely
+  has_driver_assigned?: boolean;
+  driver_display_name?: string; // Safe display name only
   vehicle_details?: string;
   notes?: string;
   created_at: string;
   updated_at: string;
   builder_id?: string;
+  security_message?: string;
 }
 
 interface DeliveryTableProps {
@@ -43,6 +46,7 @@ const statusConfig = {
 };
 
 const DeliveryTable = ({ deliveries, userRole, onStatusUpdate, onViewDetails }: DeliveryTableProps) => {
+  const { getSecureDeliveryInfo, logDriverContactAccess } = useSecureDeliveries();
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
@@ -118,15 +122,33 @@ const DeliveryTable = ({ deliveries, userRole, onStatusUpdate, onViewDetails }: 
                 </div>
               </TableCell>
               <TableCell>
-                {delivery.driver_name ? (
+                {delivery.has_driver_assigned ? (
                   <div className="space-y-1">
-                    <div className="font-medium text-sm">{delivery.driver_name}</div>
-                    {delivery.driver_phone && (
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Phone className="h-3 w-3" />
-                        {delivery.driver_phone}
-                      </div>
-                    )}
+                    <div className="font-medium text-sm flex items-center gap-2">
+                      <Shield className="h-3 w-3 text-green-600" />
+                      {delivery.driver_display_name || 'Driver assigned'}
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Lock className="h-3 w-3" />
+                      Contact secured
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-1"
+                      onClick={async () => {
+                        await logDriverContactAccess(delivery.id, 'Delivery coordination');
+                        const secureInfo = await getSecureDeliveryInfo(delivery.id);
+                        if (secureInfo?.can_view_driver_contact && secureInfo.driver_contact_info) {
+                          alert(`Driver Contact: ${secureInfo.driver_contact_info}`);
+                        } else {
+                          alert(secureInfo?.security_message || 'Driver contact not available');
+                        }
+                      }}
+                    >
+                      <Phone className="h-3 w-3 mr-1" />
+                      Contact
+                    </Button>
                     {delivery.vehicle_details && (
                       <div className="text-xs text-muted-foreground">
                         {delivery.vehicle_details}

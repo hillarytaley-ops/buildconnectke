@@ -1138,6 +1138,56 @@ export type Database = {
           },
         ]
       }
+      driver_contact_access_log: {
+        Row: {
+          access_type: string
+          accessed_at: string | null
+          authorized: boolean
+          business_justification: string | null
+          delivery_id: string | null
+          delivery_status: string | null
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+          user_id: string | null
+          user_role: string | null
+        }
+        Insert: {
+          access_type: string
+          accessed_at?: string | null
+          authorized?: boolean
+          business_justification?: string | null
+          delivery_id?: string | null
+          delivery_status?: string | null
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Update: {
+          access_type?: string
+          accessed_at?: string | null
+          authorized?: boolean
+          business_justification?: string | null
+          delivery_id?: string | null
+          delivery_status?: string | null
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_contact_access_log_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: false
+            referencedRelation: "deliveries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       driver_info_access_log: {
         Row: {
           access_type: string
