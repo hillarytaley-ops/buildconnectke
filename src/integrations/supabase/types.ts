@@ -2618,6 +2618,19 @@ export type Database = {
           rating: number
         }[]
       }
+      get_public_supplier_info: {
+        Args: { supplier_row: Database["public"]["Tables"]["suppliers"]["Row"] }
+        Returns: {
+          company_name: string
+          created_at: string
+          id: string
+          is_verified: boolean
+          materials_offered: string[]
+          rating: number
+          specialties: string[]
+          updated_at: string
+        }[]
+      }
       get_secure_acknowledgement: {
         Args: { acknowledgement_uuid: string }
         Returns: {
