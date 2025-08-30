@@ -42,6 +42,7 @@ interface SafeDeliveryListing {
   supplier_id?: string;
   has_driver_assigned: boolean;
   general_location: string;
+  can_request_driver_contact: boolean;
 }
 
 interface UseSecureDeliveriesResult {
@@ -79,9 +80,9 @@ export const useSecureDeliveries = (): UseSecureDeliveriesResult => {
           
           setUserRole(profile?.role || null);
 
-          // Fetch safe delivery listings using secure function
+          // Use enhanced secure delivery listings function
           const { data, error: fetchError } = await supabase
-            .rpc('get_safe_delivery_listings');
+            .rpc('get_secure_delivery_listings');
 
           if (fetchError) {
             throw fetchError;
@@ -105,8 +106,9 @@ export const useSecureDeliveries = (): UseSecureDeliveriesResult => {
 
   const getSecureDeliveryInfo = async (deliveryId: string): Promise<SecureDeliveryData | null> => {
     try {
+      // Use enhanced secure function that properly protects driver data
       const { data, error } = await supabase
-        .rpc('get_secure_delivery_info', { delivery_uuid: deliveryId });
+        .rpc('get_delivery_with_secure_driver_info', { delivery_uuid: deliveryId });
 
       if (error) {
         console.error('Error fetching secure delivery info:', error);

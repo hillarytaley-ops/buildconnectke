@@ -35,10 +35,11 @@ export const SecureDriverContact = ({
 
     setLoading(true);
     try {
-      // Log the access request
-      await logDriverContactAccess(deliveryId, `Driver contact needed for ${deliveryStatus} delivery`);
+      // Log the access request with enhanced business justification
+      const justification = `Driver contact needed for ${deliveryStatus} delivery - business coordination purposes`;
+      await logDriverContactAccess(deliveryId, justification);
       
-      // Fetch secure delivery information
+      // Fetch secure delivery information using enhanced security function
       const secureInfo = await getSecureDeliveryInfo(deliveryId);
       setDriverInfo(secureInfo);
       setHasRequested(true);
