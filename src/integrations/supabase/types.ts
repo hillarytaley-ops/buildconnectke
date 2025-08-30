@@ -3123,6 +3123,15 @@ export type Database = {
           weight_kg: number
         }[]
       }
+      get_secure_driver_contact: {
+        Args: { delivery_uuid: string }
+        Returns: {
+          can_view_driver_contact: boolean
+          driver_contact_info: string
+          driver_display_name: string
+          security_message: string
+        }[]
+      }
       get_secure_provider_data: {
         Args: Record<PropertyKey, never>
         Returns: {
