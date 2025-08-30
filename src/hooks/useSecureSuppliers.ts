@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-interface SecureSupplier {
+interface SecureSupplierData {
   id: string;
   company_name: string;
   contact_person?: string;
@@ -17,85 +17,85 @@ interface SecureSupplier {
   can_view_contact?: boolean;
 }
 
-export const useSecureSuppliers = () => {
-  const [suppliers, setSuppliers] = useState<SecureSupplier[]>([]);
+interface UseSecureSuppliersResult {
+  suppliers: SecureSupplierData[];
+  loading: boolean;
+  error: string | null;
+  isAuthenticated: boolean;
+  userRole: string | null;
+  getSupplierWithContact: (supplierId: string) => Promise<SecureSupplierData | null>;
+}
+
+export const useSecureSuppliers = (): UseSecureSuppliersResult => {
+  const [suppliers, setSuppliers] = useState<SecureSupplierData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
-  const fetchSecureSuppliers = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Check authentication status
-      const { data: { user } } = await supabase.auth.getUser();
-      setIsAuthenticated(!!user);
-
-      if (user) {
-        // For authenticated users, try to get suppliers with contact info
-        const { data: secureSuppliers, error: secureError } = await supabase
-          .from('suppliers')
-          .select('*')
-          .order('rating', { ascending: false });
-
-        if (secureError) {
-          throw secureError;
+  useEffect(() => {
+    const checkAuthAndFetchSuppliers = async () => {
+      try {
+        setLoading(true);
+        
+        // Check authentication status
+        const { data: { user } } = await supabase.auth.getUser();
+        setIsAuthenticated(!!user);
+        
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('user_id', user.id)
+            .single();
+          
+          setUserRole(profile?.role || null);
         }
 
-        // Transform data to include contact access status
-        const transformedSuppliers = (secureSuppliers || []).map(supplier => ({
-          ...supplier,
-          can_view_contact: true, // Will be determined by RLS policies
-        }));
-
-        setSuppliers(transformedSuppliers);
-      } else {
-        // For public users, use the public directory function
-        const { data: publicSuppliers, error: publicError } = await supabase
+        // Fetch suppliers using secure function
+        const { data, error: fetchError } = await supabase
           .rpc('get_suppliers_directory');
 
-        if (publicError) {
-          throw publicError;
+        if (fetchError) {
+          throw fetchError;
         }
 
-        setSuppliers(publicSuppliers || []);
+        setSuppliers(data || []);
+      } catch (err) {
+        console.error('Error fetching secure suppliers:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch suppliers');
+        setSuppliers([]);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Error fetching secure suppliers:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch suppliers');
-      setSuppliers([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  const getSupplierWithContact = async (supplierId: string) => {
+    checkAuthAndFetchSuppliers();
+  }, []);
+
+  const getSupplierWithContact = async (supplierId: string): Promise<SecureSupplierData | null> => {
     try {
       const { data, error } = await supabase
         .rpc('get_supplier_with_contact', { supplier_id: supplierId });
 
       if (error) {
-        throw error;
+        console.error('Error fetching supplier contact:', error);
+        return null;
       }
 
       return data?.[0] || null;
     } catch (err) {
-      console.error('Error fetching supplier contact:', err);
+      console.error('Error in getSupplierWithContact:', err);
       return null;
     }
   };
-
-  useEffect(() => {
-    fetchSecureSuppliers();
-  }, []);
 
   return {
     suppliers,
     loading,
     error,
     isAuthenticated,
-    refetch: fetchSecureSuppliers,
-    getSupplierWithContact,
+    userRole,
+    getSupplierWithContact
   };
 };

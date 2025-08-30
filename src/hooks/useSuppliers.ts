@@ -25,28 +25,32 @@ export const useSuppliers = (
       setLoading(true);
       setError(null);
       
-      // Use secure function to get suppliers directory (no contact info for public)
-      const { data: publicSuppliers, error: publicError } = await supabase
+      // Use secure function to get suppliers directory
+      // This protects contact information from unauthorized access
+      const { data, error: fetchError } = await supabase
         .rpc('get_suppliers_directory');
 
-      if (publicError) {
-        console.log('Public suppliers query error:', publicError.message);
+      if (fetchError) {
+        console.log('Secure suppliers query error, using demo data:', fetchError.message);
         setSuppliers([]);
         setTotalCount(0);
         setError(null);
         return;
       }
 
-      // Apply client-side filters since we're using RPC
-      let filteredData = publicSuppliers || [];
-
-      // Apply client-side filters
+      // Apply client-side filters to secure data
+      let filteredData = data || [];
+      
       if (filters.search) {
         const searchTerm = filters.search.toLowerCase();
         filteredData = filteredData.filter(supplier => 
           supplier.company_name.toLowerCase().includes(searchTerm) ||
-          supplier.specialties.some(s => s.toLowerCase().includes(searchTerm)) ||
-          supplier.materials_offered.some(m => m.toLowerCase().includes(searchTerm))
+          supplier.specialties.some((specialty: string) => 
+            specialty.toLowerCase().includes(searchTerm)
+          ) ||
+          supplier.materials_offered.some((material: string) => 
+            material.toLowerCase().includes(searchTerm)
+          )
         );
       }
 
@@ -57,30 +61,23 @@ export const useSuppliers = (
       }
 
       if (filters.rating > 0) {
-        filteredData = filteredData.filter(supplier => supplier.rating >= filters.rating);
+        filteredData = filteredData.filter(supplier => 
+          supplier.rating >= filters.rating
+        );
       }
 
       if (filters.verified !== null) {
-        filteredData = filteredData.filter(supplier => supplier.is_verified === filters.verified);
+        filteredData = filteredData.filter(supplier => 
+          supplier.is_verified === filters.verified
+        );
       }
 
       // Apply pagination
-      const totalCount = filteredData.length;
       const startIndex = (page - 1) * limit;
       const paginatedData = filteredData.slice(startIndex, startIndex + limit);
       
-      // Transform data to match Supplier interface
-      const transformedData = paginatedData.map(supplier => ({
-        ...supplier,
-        user_id: '', // Not available in public directory
-        contact_person: undefined, // Not available in public directory
-        email: undefined, // Not available in public directory
-        phone: undefined, // Not available in public directory
-        address: undefined, // Not available in public directory
-      }));
-      
-      setSuppliers(transformedData);
-      setTotalCount(totalCount);
+      setSuppliers(paginatedData);
+      setTotalCount(filteredData.length);
     } catch (err) {
       console.log('Network error, using demo data');
       setSuppliers([]);
