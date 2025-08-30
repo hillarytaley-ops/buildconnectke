@@ -11,7 +11,9 @@ export interface Supplier {
   is_verified: boolean;
   created_at: string;
   updated_at: string;
-  user_id: string;
+  user_id?: string;
+  contact_info_status?: string;
+  can_view_contact?: boolean;
 }
 
 export interface Material {

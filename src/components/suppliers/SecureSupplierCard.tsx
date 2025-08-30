@@ -20,32 +20,51 @@ export const SecureSupplierCard = ({
   userRole
 }: SecureSupplierCardProps) => {
   
-  // Business transparency - show contact info to all authenticated users
+  // Secure contact info display - only show to authenticated users with access
   const displayContactInfo = () => {
     if (!isAuthenticated) {
       return (
         <div className="mt-2 pt-2 border-t">
-          <p className="text-xs text-muted-foreground">
-            Sign in to view business contact information
+          <p className="text-xs text-muted-foreground flex items-center gap-1">
+            <Lock className="h-3 w-3" />
+            Sign in to view contact information
           </p>
         </div>
       );
     }
     
+    // For authenticated users, show what's available based on access rights
+    const hasContactAccess = supplier.can_view_contact !== false;
+    
     return (
       <div className="mt-2 pt-2 border-t space-y-1">
-        <div className="text-xs text-primary font-medium">Business Contact</div>
-        {supplier.contact_person && (
-          <p className="text-xs">Contact: {supplier.contact_person}</p>
-        )}
-        {supplier.email && (
-          <p className="text-xs">Email: {supplier.email}</p>
-        )}
-        {supplier.phone && (
-          <p className="text-xs">Phone: {supplier.phone}</p>
-        )}
-        {supplier.address && (
-          <p className="text-xs">Address: {supplier.address}</p>
+        <div className="text-xs text-primary font-medium flex items-center gap-1">
+          {hasContactAccess ? (
+            <Shield className="h-3 w-3 text-green-600" />
+          ) : (
+            <Lock className="h-3 w-3 text-orange-600" />
+          )}
+          Business Contact
+        </div>
+        {hasContactAccess ? (
+          <>
+            {supplier.contact_person && supplier.contact_person !== 'Contact available to business partners' && (
+              <p className="text-xs">Contact: {supplier.contact_person}</p>
+            )}
+            {supplier.email && (
+              <p className="text-xs">Email: {supplier.email}</p>
+            )}
+            {supplier.phone && (
+              <p className="text-xs">Phone: {supplier.phone}</p>
+            )}
+            {supplier.address && supplier.address !== 'Location available to business partners' && (
+              <p className="text-xs">Address: {supplier.address}</p>
+            )}
+          </>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            Contact details available after business engagement
+          </p>
         )}
       </div>
     );

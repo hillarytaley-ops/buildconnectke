@@ -25,43 +25,62 @@ export const useSuppliers = (
       setLoading(true);
       setError(null);
       
-      // Always try to fetch suppliers - public directory available to all
-      // Contact details will be controlled at the component level
-      let query = supabase
-        .from('suppliers')
-        .select('*', { count: 'exact' })
-        .range((page - 1) * limit, page * limit - 1)
-        .order('rating', { ascending: false });
+      // Use secure function to get suppliers directory (no contact info for public)
+      const { data: publicSuppliers, error: publicError } = await supabase
+        .rpc('get_suppliers_directory');
 
-      // Apply filters
+      if (publicError) {
+        console.log('Public suppliers query error:', publicError.message);
+        setSuppliers([]);
+        setTotalCount(0);
+        setError(null);
+        return;
+      }
+
+      // Apply client-side filters since we're using RPC
+      let filteredData = publicSuppliers || [];
+
+      // Apply client-side filters
       if (filters.search) {
-        query = query.or(`company_name.ilike.%${filters.search}%,specialties.cs.{${filters.search}},materials_offered.cs.{${filters.search}}`);
+        const searchTerm = filters.search.toLowerCase();
+        filteredData = filteredData.filter(supplier => 
+          supplier.company_name.toLowerCase().includes(searchTerm) ||
+          supplier.specialties.some(s => s.toLowerCase().includes(searchTerm)) ||
+          supplier.materials_offered.some(m => m.toLowerCase().includes(searchTerm))
+        );
       }
 
       if (filters.category && filters.category !== 'All Categories') {
-        query = query.contains('specialties', [filters.category]);
+        filteredData = filteredData.filter(supplier => 
+          supplier.specialties.includes(filters.category)
+        );
       }
 
       if (filters.rating > 0) {
-        query = query.gte('rating', filters.rating);
+        filteredData = filteredData.filter(supplier => supplier.rating >= filters.rating);
       }
 
       if (filters.verified !== null) {
-        query = query.eq('is_verified', filters.verified);
+        filteredData = filteredData.filter(supplier => supplier.is_verified === filters.verified);
       }
 
-      const { data, error: fetchError, count } = await query;
+      // Apply pagination
+      const totalCount = filteredData.length;
+      const startIndex = (page - 1) * limit;
+      const paginatedData = filteredData.slice(startIndex, startIndex + limit);
       
-      if (fetchError) {
-        console.log('Suppliers query error, using demo data:', fetchError.message);
-        setSuppliers([]);
-        setTotalCount(0);
-        setError(null); // Don't show error, fallback to demo
-        return;
-      }
+      // Transform data to match Supplier interface
+      const transformedData = paginatedData.map(supplier => ({
+        ...supplier,
+        user_id: '', // Not available in public directory
+        contact_person: undefined, // Not available in public directory
+        email: undefined, // Not available in public directory
+        phone: undefined, // Not available in public directory
+        address: undefined, // Not available in public directory
+      }));
       
-      setSuppliers(data || []);
-      setTotalCount(count || 0);
+      setSuppliers(transformedData);
+      setTotalCount(totalCount);
     } catch (err) {
       console.log('Network error, using demo data');
       setSuppliers([]);
