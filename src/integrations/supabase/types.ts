@@ -2611,6 +2611,35 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_delivery_info_secure: {
+        Args: { delivery_uuid: string }
+        Returns: {
+          actual_delivery_time: string
+          builder_id: string
+          can_view_driver_details: boolean
+          created_at: string
+          delivery_address: string
+          delivery_date: string
+          driver_contact_access_message: string
+          driver_display_info: string
+          estimated_delivery_time: string
+          has_driver_assigned: boolean
+          id: string
+          material_type: string
+          notes: string
+          pickup_address: string
+          pickup_date: string
+          project_id: string
+          quantity: number
+          security_level: string
+          status: string
+          supplier_id: string
+          tracking_number: string
+          updated_at: string
+          vehicle_details: string
+          weight_kg: number
+        }[]
+      }
       get_delivery_summaries: {
         Args: Record<PropertyKey, never>
         Returns: {
