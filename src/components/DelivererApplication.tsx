@@ -28,7 +28,12 @@ const DelivererApplication = () => {
     drivingLicenseExpiry: "",
     contactPerson: ""
   });
-  const [licenseFile, setLicenseFile] = useState<File | null>(null);
+  const [documents, setDocuments] = useState({
+    cv: null as File | null,
+    drivingLicense: null as File | null,
+    nationalId: null as File | null,
+    goodConduct: null as File | null
+  });
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const { toast } = useToast();
 
@@ -68,40 +73,67 @@ const DelivererApplication = () => {
     }));
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDocumentUpload = (documentType: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit for documents
         toast({
           variant: "destructive",
           title: "File too large",
-          description: "Please upload a file smaller than 5MB"
+          description: "Please upload a file smaller than 10MB"
         });
         return;
       }
-      setLicenseFile(file);
+
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          variant: "destructive",
+          title: "Invalid file type",
+          description: "Please upload PDF, JPG, or PNG files only"
+        });
+        return;
+      }
+
+      setDocuments(prev => ({
+        ...prev,
+        [documentType]: file
+      }));
     }
   };
 
-  const uploadLicenseDocument = async (userId: string) => {
-    if (!licenseFile) return null;
+  const uploadDocument = async (userId: string, documentType: string, file: File) => {
+    if (!file) return null;
 
-    const fileExt = licenseFile.name.split('.').pop();
-    const fileName = `${userId}/driving-license.${fileExt}`;
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${userId}/${documentType}.${fileExt}`;
 
     const { data, error } = await supabase.storage
-      .from('driving-licenses')
-      .upload(fileName, licenseFile, {
+      .from('provider-documents')
+      .upload(fileName, file, {
         cacheControl: '3600',
         upsert: true
       });
 
     if (error) {
-      console.error('Error uploading license:', error);
+      console.error(`Error uploading ${documentType}:`, error);
       throw error;
     }
 
     return data.path;
+  };
+
+  const uploadAllDocuments = async (userId: string) => {
+    const documentPaths: any = {};
+
+    for (const [docType, file] of Object.entries(documents)) {
+      if (file) {
+        documentPaths[`${docType}_document_path`] = await uploadDocument(userId, docType, file);
+      }
+    }
+
+    return documentPaths;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -150,11 +182,8 @@ const DelivererApplication = () => {
 
       if (!profile) throw new Error('User profile not found');
 
-      // Upload license document if provided
-      let licensePath = null;
-      if (licenseFile) {
-        licensePath = await uploadLicenseDocument(profile.id);
-      }
+      // Upload all documents
+      const documentPaths = await uploadAllDocuments(profile.id);
 
       // Create delivery provider application
       const { error } = await supabase
@@ -175,7 +204,7 @@ const DelivererApplication = () => {
           driving_license_number: formData.drivingLicenseNumber,
           driving_license_class: formData.drivingLicenseClass,
           driving_license_expiry: formData.drivingLicenseExpiry || null,
-          driving_license_document_path: licensePath,
+          driving_license_document_path: documentPaths.drivingLicense_document_path || null,
           driving_license_verified: false,
           is_verified: false,
           is_active: true
@@ -205,7 +234,12 @@ const DelivererApplication = () => {
         drivingLicenseExpiry: "",
         contactPerson: ""
       });
-      setLicenseFile(null);
+      setDocuments({
+        cv: null,
+        drivingLicense: null,
+        nationalId: null,
+        goodConduct: null
+      });
       setAgreedToTerms(false);
 
     } catch (error) {
@@ -446,23 +480,110 @@ const DelivererApplication = () => {
                   />
                 </div>
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="licenseUpload">Upload Driving License (PDF, JPG, PNG - Max 5MB)</Label>
-                <div className="flex items-center gap-4">
-                  <Input
-                    id="licenseUpload"
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={handleFileUpload}
-                    className="cursor-pointer"
-                  />
-                  {licenseFile && (
-                    <span className="text-sm text-green-600 flex items-center gap-1">
-                      <Upload className="h-4 w-4" />
-                      {licenseFile.name}
-                    </span>
-                  )}
+            {/* Document Upload Portal */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Upload className="h-5 w-5" />
+                Required Documents Upload Portal
+              </h3>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-800 mb-4">
+                  Please upload all required documents. All files must be in PDF, JPG, or PNG format and under 10MB.
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* CV/Resume Upload */}
+                  <div className="space-y-2">
+                    <Label htmlFor="cvUpload" className="font-medium text-gray-700">
+                      CV/Resume *
+                    </Label>
+                    <Input
+                      id="cvUpload"
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={(e) => handleDocumentUpload('cv', e)}
+                      className="cursor-pointer"
+                      required
+                    />
+                    {documents.cv && (
+                      <span className="text-sm text-green-600 flex items-center gap-1">
+                        <FileText className="h-4 w-4" />
+                        {documents.cv.name}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Driving License Upload */}
+                  <div className="space-y-2">
+                    <Label htmlFor="drivingLicenseUpload" className="font-medium text-gray-700">
+                      Driving License *
+                    </Label>
+                    <Input
+                      id="drivingLicenseUpload"
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={(e) => handleDocumentUpload('drivingLicense', e)}
+                      className="cursor-pointer"
+                      required
+                    />
+                    {documents.drivingLicense && (
+                      <span className="text-sm text-green-600 flex items-center gap-1">
+                        <FileText className="h-4 w-4" />
+                        {documents.drivingLicense.name}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* National ID/Passport Upload */}
+                  <div className="space-y-2">
+                    <Label htmlFor="nationalIdUpload" className="font-medium text-gray-700">
+                      National ID/Passport *
+                    </Label>
+                    <Input
+                      id="nationalIdUpload"
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={(e) => handleDocumentUpload('nationalId', e)}
+                      className="cursor-pointer"
+                      required
+                    />
+                    {documents.nationalId && (
+                      <span className="text-sm text-green-600 flex items-center gap-1">
+                        <FileText className="h-4 w-4" />
+                        {documents.nationalId.name}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Certificate of Good Conduct Upload */}
+                  <div className="space-y-2">
+                    <Label htmlFor="goodConductUpload" className="font-medium text-gray-700">
+                      Certificate of Good Conduct (CID) *
+                    </Label>
+                    <Input
+                      id="goodConductUpload"
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={(e) => handleDocumentUpload('goodConduct', e)}
+                      className="cursor-pointer"
+                      required
+                    />
+                    {documents.goodConduct && (
+                      <span className="text-sm text-green-600 flex items-center gap-1">
+                        <FileText className="h-4 w-4" />
+                        {documents.goodConduct.name}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                  <p className="text-sm text-yellow-800">
+                    <strong>Note:</strong> Certificate of Good Conduct must be obtained from Kenya's Criminal Investigation Department (CID). 
+                    All documents will be securely stored and used only for verification purposes.
+                  </p>
                 </div>
               </div>
             </div>
