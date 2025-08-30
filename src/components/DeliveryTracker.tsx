@@ -15,6 +15,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useSecureDeliveryData } from '@/hooks/useSecureDeliveryData';
 import DeliveryReviewForm from './DeliveryReviewForm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -42,7 +43,7 @@ interface Delivery {
   actual_delivery?: string;
   status: DeliveryStatus;
   driver_name?: string;
-  driver_phone?: string;
+  driver_phone?: string; // SECURITY: This will be controlled by secure access
   vehicle_number?: string;
   special_instructions?: string;
   project_id?: string;

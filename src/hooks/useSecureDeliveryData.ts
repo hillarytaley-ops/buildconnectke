@@ -1,216 +1,145 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { useSecurityMonitor } from './useSecurityMonitor';
 
-interface SecureDeliveryData {
+interface SecureDeliveryInfo {
+  id: string;
+  tracking_number: string;
+  material_type: string;
+  quantity: number;
+  weight_kg?: number;
+  pickup_address: string;
+  delivery_address: string;
+  status: string;
+  pickup_date?: string;
+  delivery_date?: string;
+  estimated_delivery_time?: string;
+  actual_delivery_time?: string;
+  vehicle_details?: string;
+  notes?: string;
+  builder_id: string;
+  supplier_id?: string;
+  project_id?: string;
+  created_at: string;
+  updated_at: string;
+  can_view_driver_contact: boolean;
+  driver_display_name: string;
+  driver_contact_info?: string;
+  security_message: string;
+}
+
+interface SafeDeliveryListing {
   id: string;
   tracking_number: string;
   material_type: string;
   quantity: number;
   status: string;
+  pickup_date?: string;
+  delivery_date?: string;
   estimated_delivery_time?: string;
-  actual_delivery_time?: string;
   created_at: string;
-  updated_at: string;
-  // Conditionally included sensitive data
-  pickup_address?: string;
-  delivery_address?: string;
-  driver_name?: string;
-  driver_phone?: string;
-  budget_range?: string;
-  can_view_addresses: boolean;
-  can_view_contact: boolean;
-  can_view_financial: boolean;
+  builder_id: string;
+  supplier_id?: string;
+  has_driver_assigned: boolean;
+  general_location: string;
 }
 
-export const useSecureDeliveryData = () => {
-  const [deliveries, setDeliveries] = useState<SecureDeliveryData[]>([]);
+interface UseSecureDeliveryDataResult {
+  deliveries: SafeDeliveryListing[];
+  loading: boolean;
+  error: string | null;
+  isAuthenticated: boolean;
+  userRole: string | null;
+  getDeliveryDetails: (deliveryId: string) => Promise<SecureDeliveryInfo | null>;
+  refreshDeliveries: () => void;
+}
+
+export const useSecureDeliveryData = (): UseSecureDeliveryDataResult => {
+  const [deliveries, setDeliveries] = useState<SafeDeliveryListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const { toast } = useToast();
-  const { validateSession, monitorDataAccess, checkRateLimit, logSecurityEvent } = useSecurityMonitor();
 
-  useEffect(() => {
-    fetchSecureDeliveries();
-  }, []);
-
-  const fetchSecureDeliveries = async () => {
+  const fetchDeliveries = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Enhanced security: Validate session first
-      const sessionValid = await validateSession();
-      if (!sessionValid) {
-        throw new Error('Invalid session - please re-authenticate');
-      }
-
-      // Check rate limiting for delivery data access
-      const rateLimitOk = await checkRateLimit('delivery_data', 100);
-      if (!rateLimitOk) {
-        throw new Error('Rate limit exceeded - please wait before retrying');
-      }
-
-      // Get user role first
+      // Check authentication status
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('Authentication required');
-      }
+      setIsAuthenticated(!!user);
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role, is_professional, user_type')
-        .eq('user_id', user.id)
-        .single();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('user_id', user.id)
+          .single();
 
-      if (!profile) {
-        throw new Error('User profile not found');
-      }
+        setUserRole(profile?.role || null);
 
-      setUserRole(profile.role);
+        // Fetch safe delivery listings using secure function
+        const { data, error: fetchError } = await supabase
+          .rpc('get_safe_delivery_listings');
 
-      // Monitor data access for delivery information
-      const accessAllowed = await monitorDataAccess('delivery_data', 'read');
-      if (!accessAllowed) {
-        throw new Error('Access denied - insufficient permissions');
-      }
+        if (fetchError) {
+          throw fetchError;
+        }
 
-      // Use secure function to get deliveries with appropriate data filtering
-      const { data, error } = await supabase.rpc('get_user_deliveries');
-
-      if (error) {
-        throw error;
-      }
-
-      // Transform data to include access control flags
-      const secureDeliveries = (data || []).map((delivery: any) => ({
-        ...delivery,
-        // Sensitive data access control
-        pickup_address: delivery.can_view_locations ? delivery.pickup_address : 'Address available to authorized parties',
-        delivery_address: delivery.can_view_locations ? delivery.delivery_address : 'Address available to authorized parties',
-        driver_name: delivery.can_view_driver_contact ? delivery.driver_name : 'Driver assigned',
-        driver_phone: delivery.can_view_driver_contact ? delivery.driver_phone : null,
-        budget_range: profile.role === 'admin' ? delivery.budget_range : null, // Financial data only for admins
-      }));
-
-      setDeliveries(secureDeliveries);
-      
-      // Log successful data access
-      logSecurityEvent('delivery_data_access', `Successfully loaded ${secureDeliveries.length} delivery records`, 'low');
-    } catch (err: any) {
-      console.error('Error fetching secure deliveries:', err);
-      setError(err.message || 'Failed to fetch delivery data');
-      
-      // Log security events for different error types
-      if (err.message.includes('Invalid session')) {
-        logSecurityEvent('session_invalid_data_access', 'Invalid session during data access', 'high');
-      } else if (err.message.includes('Rate limit')) {
-        logSecurityEvent('rate_limit_data_access', 'Rate limit exceeded during data access', 'medium');
-      } else if (err.message.includes('Access denied')) {
-        logSecurityEvent('unauthorized_data_access', 'Unauthorized data access attempt', 'high');
+        setDeliveries(data || []);
       } else {
-        logSecurityEvent('data_access_error', `Data access error: ${err.message}`, 'medium');
+        setDeliveries([]);
+        setUserRole(null);
       }
-      
-      toast({
-        variant: "destructive",
-        title: "Access Error",
-        description: "Unable to load delivery data. Please check your permissions."
-      });
+    } catch (err) {
+      console.error('Error fetching secure delivery data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch deliveries');
+      setDeliveries([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const updateDeliveryStatus = async (deliveryId: string, newStatus: string) => {
+  const getDeliveryDetails = async (deliveryId: string): Promise<SecureDeliveryInfo | null> => {
     try {
-      if (userRole !== 'supplier' && userRole !== 'admin') {
-        throw new Error('Insufficient permissions to update delivery status');
+      const { data, error } = await supabase
+        .rpc('get_secure_delivery_info', { delivery_uuid: deliveryId });
+
+      if (error) {
+        console.error('Error fetching delivery details:', error);
+        return null;
       }
 
-      const { error } = await supabase
-        .from('deliveries')
-        .update({ 
-          status: newStatus,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', deliveryId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Delivery status updated successfully"
-      });
-
-      // Refresh data
-      await fetchSecureDeliveries();
-    } catch (err: any) {
-      console.error('Error updating delivery status:', err);
-      toast({
-        variant: "destructive",
-        title: "Update Failed",
-        description: err.message || "Failed to update delivery status"
-      });
+      return data?.[0] || null;
+    } catch (err) {
+      console.error('Error in getDeliveryDetails:', err);
+      return null;
     }
   };
 
-  const createDeliveryRequest = async (requestData: any) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Authentication required');
+  useEffect(() => {
+    fetchDeliveries();
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id, role')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!profile) throw new Error('User profile not found');
-
-      // Validate required fields
-      if (!requestData.material_type || !requestData.pickup_address || !requestData.delivery_address) {
-        throw new Error('Missing required fields');
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setIsAuthenticated(!!session?.user);
+        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+          fetchDeliveries();
+        }
       }
+    );
 
-      const { error } = await supabase
-        .from('delivery_requests')
-        .insert({
-          builder_id: profile.id,
-          ...requestData,
-          status: 'pending',
-          created_at: new Date().toISOString()
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Delivery request submitted successfully"
-      });
-
-      // Refresh data
-      await fetchSecureDeliveries();
-    } catch (err: any) {
-      console.error('Error creating delivery request:', err);
-      toast({
-        variant: "destructive",
-        title: "Request Failed",
-        description: err.message || "Failed to create delivery request"
-      });
-      throw err;
-    }
-  };
+    return () => subscription.unsubscribe();
+  }, []);
 
   return {
     deliveries,
     loading,
     error,
+    isAuthenticated,
     userRole,
-    refetch: fetchSecureDeliveries,
-    updateDeliveryStatus,
-    createDeliveryRequest
+    getDeliveryDetails,
+    refreshDeliveries: fetchDeliveries
   };
 };

@@ -2561,6 +2561,24 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_safe_delivery_listings: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          builder_id: string
+          created_at: string
+          delivery_date: string
+          estimated_delivery_time: string
+          general_location: string
+          has_driver_assigned: boolean
+          id: string
+          material_type: string
+          pickup_date: string
+          quantity: number
+          status: string
+          supplier_id: string
+          tracking_number: string
+        }[]
+      }
       get_secure_acknowledgement: {
         Args: { acknowledgement_uuid: string }
         Returns: {
@@ -2600,6 +2618,34 @@ export type Database = {
           pickup_date: string
           project_id: string
           quantity: number
+          status: string
+          supplier_id: string
+          tracking_number: string
+          updated_at: string
+          vehicle_details: string
+          weight_kg: number
+        }[]
+      }
+      get_secure_delivery_info: {
+        Args: { delivery_uuid: string }
+        Returns: {
+          actual_delivery_time: string
+          builder_id: string
+          can_view_driver_contact: boolean
+          created_at: string
+          delivery_address: string
+          delivery_date: string
+          driver_contact_info: string
+          driver_display_name: string
+          estimated_delivery_time: string
+          id: string
+          material_type: string
+          notes: string
+          pickup_address: string
+          pickup_date: string
+          project_id: string
+          quantity: number
+          security_message: string
           status: string
           supplier_id: string
           tracking_number: string
