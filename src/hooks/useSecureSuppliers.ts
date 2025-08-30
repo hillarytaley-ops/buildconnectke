@@ -57,7 +57,7 @@ export const useSecureSuppliers = (): UseSecureSuppliersResult => {
 
         // Fetch suppliers using enhanced secure directory function
         const { data, error: fetchError } = await supabase
-          .rpc('get_secure_suppliers_directory');
+          .rpc('get_suppliers_directory_secure');
 
         if (fetchError) {
           throw fetchError;
@@ -80,7 +80,7 @@ export const useSecureSuppliers = (): UseSecureSuppliersResult => {
     try {
       // Use enhanced secure contact access function
       const { data, error } = await supabase
-        .rpc('get_supplier_with_secure_contact', { supplier_uuid: supplierId });
+        .rpc('get_supplier_contact_secure', { supplier_uuid: supplierId });
 
       if (error) {
         console.error('Error fetching supplier contact:', error);

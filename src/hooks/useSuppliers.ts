@@ -28,7 +28,7 @@ export const useSuppliers = (
       // Use secure function to get suppliers directory
       // This protects contact information from unauthorized access
       const { data, error: fetchError } = await supabase
-        .rpc('get_suppliers_directory');
+        .rpc('get_suppliers_directory_secure');
 
       if (fetchError) {
         console.log('Secure suppliers query error, using demo data:', fetchError.message);

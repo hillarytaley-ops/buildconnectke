@@ -3047,6 +3047,25 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_supplier_contact_secure: {
+        Args: { supplier_uuid: string }
+        Returns: {
+          address: string
+          can_view_contact: boolean
+          company_name: string
+          contact_access_reason: string
+          contact_person: string
+          created_at: string
+          email: string
+          id: string
+          is_verified: boolean
+          materials_offered: string[]
+          phone: string
+          rating: number
+          specialties: string[]
+          updated_at: string
+        }[]
+      }
       get_supplier_directory_for_builders: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -3111,6 +3130,20 @@ export type Database = {
         }[]
       }
       get_suppliers_directory: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          company_name: string
+          contact_info_status: string
+          created_at: string
+          id: string
+          is_verified: boolean
+          materials_offered: string[]
+          rating: number
+          specialties: string[]
+          updated_at: string
+        }[]
+      }
+      get_suppliers_directory_secure: {
         Args: Record<PropertyKey, never>
         Returns: {
           company_name: string
