@@ -193,13 +193,13 @@ const About: React.FC = () => {
           <div 
             className="absolute inset-0 bg-black/70"
             style={{
-              backgroundImage: `url('/lovable-uploads/6ea15a8f-a981-4c02-a56e-64ed62ab7a57.png')`,
+              backgroundImage: `url('/lovable-uploads/4fe464c2-b189-4f87-9cd5-a347c90f1310.png')`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat'
             }}
             role="img"
-            aria-label="Construction site background for statistics"
+            aria-label="Construction materials including cement, bricks, steel, and pipes"
           />
           <div className="container mx-auto px-4 relative z-10">
             <h2 id="stats-heading" className="text-4xl font-bold text-center mb-12">Our Impact</h2>
