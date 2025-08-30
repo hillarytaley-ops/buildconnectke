@@ -2328,6 +2328,45 @@ export type Database = {
         }
         Relationships: []
       }
+      supplier_contact_access_audit: {
+        Row: {
+          access_granted: boolean
+          access_type: string
+          accessed_fields: string[] | null
+          business_justification: string | null
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          supplier_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          access_granted?: boolean
+          access_type: string
+          accessed_fields?: string[] | null
+          business_justification?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          supplier_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          access_granted?: boolean
+          access_type?: string
+          accessed_fields?: string[] | null
+          business_justification?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          supplier_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       supplier_contact_access_log: {
         Row: {
           access_type: string
@@ -2975,6 +3014,21 @@ export type Database = {
           specialties: string[]
         }[]
       }
+      get_secure_suppliers_directory: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          business_verified: boolean
+          company_name: string
+          contact_info_status: string
+          created_at: string
+          id: string
+          is_verified: boolean
+          materials_offered: string[]
+          rating: number
+          specialties: string[]
+          updated_at: string
+        }[]
+      }
       get_supplier_business_info: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -3025,6 +3079,25 @@ export type Database = {
           address: string
           can_view_contact: boolean
           company_name: string
+          contact_person: string
+          created_at: string
+          email: string
+          id: string
+          is_verified: boolean
+          materials_offered: string[]
+          phone: string
+          rating: number
+          specialties: string[]
+          updated_at: string
+        }[]
+      }
+      get_supplier_with_secure_contact: {
+        Args: { supplier_uuid: string }
+        Returns: {
+          address: string
+          can_view_contact: boolean
+          company_name: string
+          contact_access_reason: string
           contact_person: string
           created_at: string
           email: string
@@ -3160,6 +3233,15 @@ export type Database = {
       log_supplier_contact_access: {
         Args: {
           access_type_param: string
+          fields_accessed?: string[]
+          supplier_uuid: string
+        }
+        Returns: undefined
+      }
+      log_supplier_contact_access_enhanced: {
+        Args: {
+          access_type_param: string
+          business_justification?: string
           fields_accessed?: string[]
           supplier_uuid: string
         }

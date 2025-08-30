@@ -20,50 +20,32 @@ export const SecureSupplierCard = ({
   userRole
 }: SecureSupplierCardProps) => {
   
-  // Secure contact info display - only show to authenticated users with access
+  // Secure contact info display based on new security model
   const displayContactInfo = () => {
     if (!isAuthenticated) {
       return (
         <div className="mt-2 pt-2 border-t">
           <p className="text-xs text-muted-foreground flex items-center gap-1">
             <Lock className="h-3 w-3" />
-            Sign in to view contact information
+            {supplier.contact_info_status || 'Sign up to view contact information'}
           </p>
         </div>
       );
     }
     
-    // For authenticated users, show what's available based on access rights
-    const hasContactAccess = supplier.can_view_contact !== false;
-    
+    // Show status based on new secure data structure
     return (
       <div className="mt-2 pt-2 border-t space-y-1">
         <div className="text-xs text-primary font-medium flex items-center gap-1">
-          {hasContactAccess ? (
-            <Shield className="h-3 w-3 text-green-600" />
-          ) : (
-            <Lock className="h-3 w-3 text-orange-600" />
-          )}
-          Business Contact
+          <Shield className="h-3 w-3 text-blue-600" />
+          Business Contact Status
         </div>
-        {hasContactAccess ? (
-          <>
-            {supplier.contact_person && supplier.contact_person !== 'Contact available to business partners' && (
-              <p className="text-xs">Contact: {supplier.contact_person}</p>
-            )}
-            {supplier.email && (
-              <p className="text-xs">Email: {supplier.email}</p>
-            )}
-            {supplier.phone && (
-              <p className="text-xs">Phone: {supplier.phone}</p>
-            )}
-            {supplier.address && supplier.address !== 'Location available to business partners' && (
-              <p className="text-xs">Address: {supplier.address}</p>
-            )}
-          </>
-        ) : (
-          <p className="text-xs text-muted-foreground">
-            Contact details available after business engagement
+        <p className="text-xs text-muted-foreground">
+          {supplier.contact_info_status || 'Contact available to registered users'}
+        </p>
+        {supplier.business_verified && (
+          <p className="text-xs text-green-600 font-medium">
+            ✓ Verified Business Partner
           </p>
         )}
       </div>
@@ -86,19 +68,19 @@ export const SecureSupplierCard = ({
             </CardTitle>
             <CardDescription className="flex items-center gap-2 mt-1">
               <MapPin className="h-4 w-4 flex-shrink-0" />
-              <span className="truncate">{supplier.address || 'Location Available'}</span>
+              <span className="truncate">Business Location</span>
             </CardDescription>
             {displayContactInfo()}
           </div>
           <div className="flex flex-col gap-1">
             {supplier.is_verified && (
               <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
-                Verified Business
+                Verified
               </Badge>
             )}
-            {isAuthenticated && (
+            {supplier.business_verified && (
               <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                Contact Available
+                Business Partner
               </Badge>
             )}
           </div>

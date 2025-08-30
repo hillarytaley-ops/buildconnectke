@@ -15,6 +15,9 @@ interface SecureSupplierData {
   created_at: string;
   updated_at: string;
   can_view_contact?: boolean;
+  contact_info_status?: string;
+  business_verified?: boolean;
+  contact_access_reason?: string;
 }
 
 interface UseSecureSuppliersResult {
@@ -52,9 +55,9 @@ export const useSecureSuppliers = (): UseSecureSuppliersResult => {
           setUserRole(profile?.role || null);
         }
 
-        // Fetch suppliers using secure function
+        // Fetch suppliers using enhanced secure directory function
         const { data, error: fetchError } = await supabase
-          .rpc('get_suppliers_directory');
+          .rpc('get_secure_suppliers_directory');
 
         if (fetchError) {
           throw fetchError;
@@ -75,8 +78,9 @@ export const useSecureSuppliers = (): UseSecureSuppliersResult => {
 
   const getSupplierWithContact = async (supplierId: string): Promise<SecureSupplierData | null> => {
     try {
+      // Use enhanced secure contact access function
       const { data, error } = await supabase
-        .rpc('get_supplier_with_contact', { supplier_id: supplierId });
+        .rpc('get_supplier_with_secure_contact', { supplier_uuid: supplierId });
 
       if (error) {
         console.error('Error fetching supplier contact:', error);
