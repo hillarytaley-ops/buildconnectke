@@ -13,6 +13,8 @@ import { supabase } from '@/integrations/supabase/client';
 import DroneMonitor from '@/components/DroneMonitor';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { useToast } from '@/hooks/use-toast';
+import { AppTrackingMonitor } from '@/components/security/AppTrackingMonitor';
+import { CameraAccessControl } from '@/components/security/CameraAccessControl';
 
 // Memoized components for performance
 const MemoizedDeliveryManagement = memo(DeliveryManagement);
@@ -236,6 +238,17 @@ const Tracking = () => {
                     <ErrorBoundary>
                       <MemoizedDeliveryManagement userRole={userRole} user={user} />
                     </ErrorBoundary>
+                    
+                    {/* App-to-App Tracking Monitor */}
+                    {(userRole === 'admin' || userRole === 'builder') && (
+                      <ErrorBoundary>
+                        <AppTrackingMonitor 
+                          userRole={userRole} 
+                          builderId={user?.id}
+                          className="mt-6"
+                        />
+                      </ErrorBoundary>
+                    )}
                   </TabsContent>
 
                   {(userRole === 'builder' || userRole === 'admin') && (
@@ -249,10 +262,22 @@ const Tracking = () => {
                       <Alert className="border-blue-200 bg-blue-50 mb-6" role="alert">
                         <Eye className="h-4 w-4" aria-hidden="true" />
                         <AlertDescription>
-                          <strong>Drone Observation:</strong> Aerial monitoring for remote site observation. 
-                          {userRole === 'admin' ? 'Full control available for administrators.' : 'View-only access for builders.'}
+                          <strong>Live Stream Access:</strong> Secure camera monitoring with project-specific access control. 
+                          {userRole === 'admin' ? 'Full administrative access to all camera categories.' : 'Project-restricted access using your unique ID.'}
                         </AlertDescription>
                       </Alert>
+                      
+                      {/* Physical Camera Categories - Replaces Physical Camera item */}
+                      <ErrorBoundary>
+                        <CameraAccessControl 
+                          userRole={userRole} 
+                          userId={user?.id}
+                          builderId={user?.id}
+                          accessId={`builder-${user?.id?.slice(-8)}`} // Unique builder access ID
+                          className="mb-6"
+                        />
+                      </ErrorBoundary>
+                      
                       <ErrorBoundary>
                         <MemoizedDroneMonitor userRole={userRole} user={user} />
                       </ErrorBoundary>

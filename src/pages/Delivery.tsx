@@ -10,6 +10,7 @@ import { DeliveryErrorBoundary } from "@/components/security/DeliveryErrorBounda
 import DeliveryRequest from "@/components/DeliveryRequest";
 import DeliveryProviders from "@/components/DeliveryProviders";
 import DelivererApplication from "@/components/DelivererApplication";
+import { AddressLocationManager } from "@/components/security/AddressLocationManager";
 import { Shield, Truck, UserCheck, Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
