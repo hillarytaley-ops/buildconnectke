@@ -205,7 +205,13 @@ const DelivererApplication = () => {
           driving_license_class: formData.drivingLicenseClass,
           driving_license_expiry: formData.drivingLicenseExpiry || null,
           driving_license_document_path: documentPaths.drivingLicense_document_path || null,
+          cv_document_path: documentPaths.cv_document_path || null,
+          national_id_document_path: documentPaths.nationalId_document_path || null,
+          good_conduct_document_path: documentPaths.goodConduct_document_path || null,
           driving_license_verified: false,
+          cv_verified: false,
+          national_id_verified: false,
+          good_conduct_verified: false,
           is_verified: false,
           is_active: true
         });
