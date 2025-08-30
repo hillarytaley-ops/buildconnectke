@@ -180,6 +180,13 @@ export type Database = {
             referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "deliveries_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers_directory"
+            referencedColumns: ["id"]
+          },
         ]
       }
       delivery_access_log: {
@@ -1355,6 +1362,13 @@ export type Database = {
             referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "invoices_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers_directory"
+            referencedColumns: ["id"]
+          },
         ]
       }
       location_data_access_log: {
@@ -2047,6 +2061,13 @@ export type Database = {
             referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "receipt_uploads_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers_directory"
+            referencedColumns: ["id"]
+          },
         ]
       }
       scanned_receivables: {
@@ -2193,6 +2214,13 @@ export type Database = {
             referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "scanned_supplies_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers_directory"
+            referencedColumns: ["id"]
+          },
         ]
       }
       security_events: {
@@ -2265,6 +2293,13 @@ export type Database = {
             columns: ["supplier_id"]
             isOneToOne: false
             referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_contact_access_log_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -2395,7 +2430,42 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      suppliers_directory: {
+        Row: {
+          company_name: string | null
+          contact_info_status: string | null
+          created_at: string | null
+          id: string | null
+          is_verified: boolean | null
+          materials_offered: string[] | null
+          rating: number | null
+          specialties: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_name?: string | null
+          contact_info_status?: never
+          created_at?: string | null
+          id?: string | null
+          is_verified?: boolean | null
+          materials_offered?: string[] | null
+          rating?: number | null
+          specialties?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_name?: string | null
+          contact_info_status?: never
+          created_at?: string | null
+          id?: string | null
+          is_verified?: boolean | null
+          materials_offered?: string[] | null
+          rating?: number | null
+          specialties?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_access_driver_contact: {
