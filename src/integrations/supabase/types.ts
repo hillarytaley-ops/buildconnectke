@@ -731,17 +731,24 @@ export type Database = {
           created_at: string
           current_latitude: number | null
           current_longitude: number | null
+          cv_document_path: string | null
+          cv_verified: boolean | null
+          documents_complete: boolean | null
           driving_license_class: string | null
           driving_license_document_path: string | null
           driving_license_expiry: string | null
           driving_license_number: string | null
           driving_license_verified: boolean | null
           email: string | null
+          good_conduct_document_path: string | null
+          good_conduct_verified: boolean | null
           hourly_rate: number | null
           id: string
           is_active: boolean | null
           is_verified: boolean | null
           last_location_update: string | null
+          national_id_document_path: string | null
+          national_id_verified: boolean | null
           per_km_rate: number | null
           phone: string
           provider_name: string
@@ -761,17 +768,24 @@ export type Database = {
           created_at?: string
           current_latitude?: number | null
           current_longitude?: number | null
+          cv_document_path?: string | null
+          cv_verified?: boolean | null
+          documents_complete?: boolean | null
           driving_license_class?: string | null
           driving_license_document_path?: string | null
           driving_license_expiry?: string | null
           driving_license_number?: string | null
           driving_license_verified?: boolean | null
           email?: string | null
+          good_conduct_document_path?: string | null
+          good_conduct_verified?: boolean | null
           hourly_rate?: number | null
           id?: string
           is_active?: boolean | null
           is_verified?: boolean | null
           last_location_update?: string | null
+          national_id_document_path?: string | null
+          national_id_verified?: boolean | null
           per_km_rate?: number | null
           phone: string
           provider_name: string
@@ -791,17 +805,24 @@ export type Database = {
           created_at?: string
           current_latitude?: number | null
           current_longitude?: number | null
+          cv_document_path?: string | null
+          cv_verified?: boolean | null
+          documents_complete?: boolean | null
           driving_license_class?: string | null
           driving_license_document_path?: string | null
           driving_license_expiry?: string | null
           driving_license_number?: string | null
           driving_license_verified?: boolean | null
           email?: string | null
+          good_conduct_document_path?: string | null
+          good_conduct_verified?: boolean | null
           hourly_rate?: number | null
           id?: string
           is_active?: boolean | null
           is_verified?: boolean | null
           last_location_update?: string | null
+          national_id_document_path?: string | null
+          national_id_verified?: boolean | null
           per_km_rate?: number | null
           phone?: string
           provider_name?: string
