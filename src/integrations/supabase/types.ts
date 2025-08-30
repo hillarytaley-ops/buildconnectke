@@ -1581,6 +1581,54 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string | null
+          description: string | null
+          id: string
+          phone_number: string | null
+          provider: string
+          provider_response: Json | null
+          reference: string
+          status: string
+          transaction_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          id?: string
+          phone_number?: string | null
+          provider: string
+          provider_response?: Json | null
+          reference: string
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          id?: string
+          phone_number?: string | null
+          provider?: string
+          provider_response?: Json | null
+          reference?: string
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profile_access_log: {
         Row: {
           access_type: string
@@ -2147,6 +2195,39 @@ export type Database = {
           },
         ]
       }
+      security_events: {
+        Row: {
+          created_at: string
+          details: Json | null
+          device_fingerprint: Json | null
+          event_type: string
+          id: string
+          severity: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          device_fingerprint?: Json | null
+          event_type: string
+          id?: string
+          severity: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          device_fingerprint?: Json | null
+          event_type?: string
+          id?: string
+          severity?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       supplier_contact_access_log: {
         Row: {
           access_type: string
@@ -2278,6 +2359,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      trusted_devices: {
+        Row: {
+          created_at: string
+          device_name: string | null
+          fingerprint_hash: string
+          id: string
+          is_active: boolean | null
+          last_used_at: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_name?: string | null
+          fingerprint_hash: string
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_name?: string | null
+          fingerprint_hash?: string
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {

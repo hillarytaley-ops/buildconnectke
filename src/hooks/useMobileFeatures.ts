@@ -18,7 +18,7 @@ export const useMobileFeatures = () => {
     try {
       // Check if running in native app
       const appInfo = await App.getInfo();
-      setIsNativeApp(appInfo.platform !== 'web');
+      setIsNativeApp(appInfo.name !== 'CapacitorWebView');
 
       // Network monitoring
       const status = await Network.getStatus();
@@ -29,7 +29,7 @@ export const useMobileFeatures = () => {
       });
 
       // Initialize push notifications
-      if (appInfo.platform !== 'web') {
+      if (appInfo.name !== 'CapacitorWebView') {
         await initializePushNotifications();
       }
 

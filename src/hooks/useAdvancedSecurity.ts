@@ -67,13 +67,16 @@ export const useAdvancedSecurity = () => {
 
     // Log to Supabase
     try {
-      await supabase.from('security_events').insert({
-        event_type: event.type,
-        severity: event.severity,
-        details: event.details,
-        device_fingerprint: deviceFingerprint,
-        created_at: new Date().toISOString()
-      });
+      const user = (await supabase.auth.getUser()).data.user;
+      if (user) {
+        await supabase.from('security_events').insert({
+          user_id: user.id,
+          event_type: event.type,
+          severity: event.severity,
+          details: event.details as any,
+          device_fingerprint: deviceFingerprint as any
+        });
+      }
     } catch (error) {
       console.error('Failed to log security event:', error);
     }
@@ -82,10 +85,13 @@ export const useAdvancedSecurity = () => {
   // Validate device trust
   const validateDeviceTrust = useCallback(async (fingerprint: DeviceFingerprint) => {
     try {
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) return false;
+
       const { data: trustedDevices } = await supabase
         .from('trusted_devices')
         .select('*')
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .eq('user_id', user.id)
         .eq('fingerprint_hash', btoa(JSON.stringify(fingerprint)));
 
       const isTrusted = trustedDevices && trustedDevices.length > 0;
@@ -142,8 +148,8 @@ export const useAdvancedSecurity = () => {
     const { data: session } = await supabase.auth.getSession();
     
     if (session?.session) {
-      // Check session age
-      const sessionAge = Date.now() - new Date(session.session.created_at).getTime();
+      // Check session age (using expires_at instead of created_at)
+      const sessionAge = Date.now() - (session.session.expires_at ? new Date(session.session.expires_at).getTime() - (session.session.expires_in || 3600) * 1000 : Date.now());
       
       if (sessionAge > securityConfig.sessionTimeout) {
         await logSecurityEvent({

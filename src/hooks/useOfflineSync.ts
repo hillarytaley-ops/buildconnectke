@@ -67,13 +67,13 @@ export const useOfflineSync = () => {
       try {
         switch (operation.operation) {
           case 'insert':
-            await supabase.from(operation.table).insert(operation.data);
+            await (supabase as any).from(operation.table).insert(operation.data);
             break;
           case 'update':
-            await supabase.from(operation.table).update(operation.data).eq('id', operation.data.id);
+            await (supabase as any).from(operation.table).update(operation.data).eq('id', operation.data.id);
             break;
           case 'delete':
-            await supabase.from(operation.table).delete().eq('id', operation.data.id);
+            await (supabase as any).from(operation.table).delete().eq('id', operation.data.id);
             break;
         }
         successful.push(operation.id);
@@ -93,11 +93,11 @@ export const useOfflineSync = () => {
       try {
         switch (operation) {
           case 'insert':
-            return await supabase.from(table).insert(data);
+            return await (supabase as any).from(table).insert(data);
           case 'update':
-            return await supabase.from(table).update(data).eq('id', data.id);
+            return await (supabase as any).from(table).update(data).eq('id', data.id);
           case 'delete':
-            return await supabase.from(table).delete().eq('id', data.id);
+            return await (supabase as any).from(table).delete().eq('id', data.id);
         }
       } catch (error) {
         console.error('Online operation failed, queuing for offline sync:', error);
