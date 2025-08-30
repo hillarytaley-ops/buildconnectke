@@ -15,9 +15,9 @@ interface SecureSupplierData {
   created_at: string;
   updated_at: string;
   can_view_contact?: boolean;
+  contact_access_reason?: string;
   contact_info_status?: string;
   business_verified?: boolean;
-  contact_access_reason?: string;
 }
 
 interface UseSecureSuppliersResult {
