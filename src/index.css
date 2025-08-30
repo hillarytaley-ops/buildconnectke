@@ -44,6 +44,10 @@ All colors MUST be HSL.
     --text-primary-light: 45 15% 95%; /* Light text for dark sections */
     --text-secondary-light: 45 8% 75%; /* Muted light text */
     --text-accent: 25 95% 55%; /* Accent orange text */
+    
+    /* New semantic colors for About page */
+    --text-dark-green: 150 80% 25%; /* Dark green for text */
+    --text-medium-blue: 210 75% 35%; /* Medium blue for text */
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -103,6 +107,10 @@ All colors MUST be HSL.
     --text-on-light: 25 15% 15%; /* Dark text for light backgrounds */
     --text-primary-dark: 25 15% 25%; /* Primary dark text */
     --text-secondary-dark: 25 8% 35%; /* Muted dark text */
+    
+    /* New semantic colors for About page dark mode */
+    --text-dark-green: 150 70% 40%; /* Lighter dark green for dark mode */
+    --text-medium-blue: 210 70% 50%; /* Lighter medium blue for dark mode */
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;

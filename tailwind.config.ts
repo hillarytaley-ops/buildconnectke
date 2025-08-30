@@ -58,6 +58,8 @@ export default {
 				'text-on-light': 'hsl(var(--text-on-light))',
 				'text-primary-dark': 'hsl(var(--text-primary-dark))',
 				'text-secondary-dark': 'hsl(var(--text-secondary-dark))',
+				'text-dark-green': 'hsl(var(--text-dark-green))',
+				'text-medium-blue': 'hsl(var(--text-medium-blue))',
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
 					foreground: 'hsl(var(--popover-foreground))'
