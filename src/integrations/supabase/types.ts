@@ -2736,6 +2736,16 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_secure_camera_stream: {
+        Args: { camera_uuid: string }
+        Returns: {
+          access_message: string
+          camera_id: string
+          camera_name: string
+          can_access: boolean
+          stream_url: string
+        }[]
+      }
       get_secure_delivery: {
         Args: { delivery_uuid: string }
         Returns: {

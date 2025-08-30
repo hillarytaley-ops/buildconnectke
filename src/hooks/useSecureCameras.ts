@@ -1,37 +1,40 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-interface SafeCameraData {
+interface SecureCameraData {
   id: string;
   name: string;
-  general_location: string;
+  location: string;
   project_id?: string;
   is_active: boolean;
-  can_request_access: boolean;
-  access_requirements: string;
+  created_at: string;
+  updated_at: string;
+  can_view_stream: boolean;
+  stream_access_message: string;
+  general_location: string;
 }
 
-interface SecureCameraAccess {
+interface CameraStreamData {
   camera_id: string;
   camera_name: string;
-  can_access_stream: boolean;
-  stream_url?: string;
+  stream_url: string;
+  can_access: boolean;
   access_message: string;
-  access_level: string;
 }
 
 interface UseSecureCamerasResult {
-  cameras: SafeCameraData[];
+  cameras: SecureCameraData[];
   loading: boolean;
   error: string | null;
   isAuthenticated: boolean;
   userRole: string | null;
-  requestCameraAccess: (cameraId: string) => Promise<SecureCameraAccess | null>;
+  getSecureCameraInfo: (cameraId: string) => Promise<SecureCameraData | null>;
+  getSecureCameraStream: (cameraId: string) => Promise<CameraStreamData | null>;
   logCameraAccess: (cameraId: string, accessType: string) => Promise<void>;
 }
 
 export const useSecureCameras = (): UseSecureCamerasResult => {
-  const [cameras, setCameras] = useState<SafeCameraData[]>([]);
+  const [cameras, setCameras] = useState<SecureCameraData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -54,17 +57,33 @@ export const useSecureCameras = (): UseSecureCamerasResult => {
             .single();
           
           setUserRole(profile?.role || null);
+
+          // Fetch cameras using secure policies
+          // Only cameras user has access to will be returned
+          const { data, error: fetchError } = await supabase
+            .from('cameras')
+            .select('id, name, location, project_id, is_active, created_at, updated_at')
+            .eq('is_active', true);
+
+          if (fetchError) {
+            // If access is denied, user sees no cameras (secure default)
+            console.log('Camera access restricted:', fetchError.message);
+            setCameras([]);
+          } else {
+            // Transform data to secure format
+            const secureCameras = (data || []).map(camera => ({
+              ...camera,
+              can_view_stream: false, // Will be determined per-camera
+              stream_access_message: 'Stream access requires authorization',
+              general_location: camera.location ? 
+                camera.location.split(',').pop()?.trim() || 'Construction site' : 
+                'Construction site'
+            }));
+            setCameras(secureCameras);
+          }
+        } else {
+          setCameras([]);
         }
-
-        // Fetch safe camera directory using secure function
-        const { data, error: fetchError } = await supabase
-          .rpc('get_safe_camera_directory');
-
-        if (fetchError) {
-          throw fetchError;
-        }
-
-        setCameras(data || []);
       } catch (err) {
         console.error('Error fetching secure cameras:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch cameras');
@@ -77,19 +96,36 @@ export const useSecureCameras = (): UseSecureCamerasResult => {
     checkAuthAndFetchCameras();
   }, []);
 
-  const requestCameraAccess = async (cameraId: string): Promise<SecureCameraAccess | null> => {
+  const getSecureCameraInfo = async (cameraId: string): Promise<SecureCameraData | null> => {
     try {
       const { data, error } = await supabase
-        .rpc('get_camera_stream_access', { camera_uuid: cameraId });
+        .rpc('get_secure_camera_info', { camera_uuid: cameraId });
 
       if (error) {
-        console.error('Error requesting camera access:', error);
+        console.error('Error fetching secure camera info:', error);
         return null;
       }
 
       return data?.[0] || null;
     } catch (err) {
-      console.error('Error in requestCameraAccess:', err);
+      console.error('Error in getSecureCameraInfo:', err);
+      return null;
+    }
+  };
+
+  const getSecureCameraStream = async (cameraId: string): Promise<CameraStreamData | null> => {
+    try {
+      const { data, error } = await supabase
+        .rpc('get_secure_camera_stream', { camera_uuid: cameraId });
+
+      if (error) {
+        console.error('Error fetching secure camera stream:', error);
+        return null;
+      }
+
+      return data?.[0] || null;
+    } catch (err) {
+      console.error('Error in getSecureCameraStream:', err);
       return null;
     }
   };
@@ -102,6 +138,13 @@ export const useSecureCameras = (): UseSecureCamerasResult => {
         throw new Error('User not authenticated');
       }
 
+      // Get camera project for logging
+      const { data: camera } = await supabase
+        .from('cameras')
+        .select('project_id')
+        .eq('id', cameraId)
+        .single();
+
       // Log the access attempt
       const { error } = await supabase
         .from('camera_access_log')
@@ -109,7 +152,8 @@ export const useSecureCameras = (): UseSecureCamerasResult => {
           user_id: user.id,
           camera_id: cameraId,
           access_type: accessType,
-          authorized: isAuthenticated
+          project_id: camera?.project_id,
+          authorized: true // If we get here, user has some level of access
         }]);
 
       if (error) {
@@ -126,7 +170,8 @@ export const useSecureCameras = (): UseSecureCamerasResult => {
     error,
     isAuthenticated,
     userRole,
-    requestCameraAccess,
+    getSecureCameraInfo,
+    getSecureCameraStream,
     logCameraAccess
   };
 };
