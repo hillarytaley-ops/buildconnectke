@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { Camera, Plus, Settings, Wifi, WifiOff, Eye, Trash2, Lock } from 'lucide-react';
 import { physicalCameraService, CameraConfig } from '@/services/PhysicalCameraService';
 import { supabase } from '@/integrations/supabase/client';
+import { useSecureCameras } from '@/hooks/useSecureCameras';
 
 interface CameraSetupProps {
   onCameraConnected: (camera: CameraConfig) => void;
@@ -21,6 +22,7 @@ const CameraSetup: React.FC<CameraSetupProps> = ({ onCameraConnected }) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { isAuthenticated, userRole, logCameraAccess } = useSecureCameras();
   const [formData, setFormData] = useState({
     name: '',
     type: 'ip' as const,

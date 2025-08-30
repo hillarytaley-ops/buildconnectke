@@ -2553,6 +2553,17 @@ export type Database = {
         }
         Returns: string
       }
+      get_camera_stream_access: {
+        Args: { camera_uuid: string }
+        Returns: {
+          access_level: string
+          access_message: string
+          camera_id: string
+          camera_name: string
+          can_access_stream: boolean
+          stream_url: string
+        }[]
+      }
       get_current_user_profile_id: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -2659,6 +2670,18 @@ export type Database = {
           rating: number
           specialties: string[]
           updated_at: string
+        }[]
+      }
+      get_safe_camera_directory: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          access_requirements: string
+          can_request_access: boolean
+          general_location: string
+          id: string
+          is_active: boolean
+          name: string
+          project_id: string
         }[]
       }
       get_safe_delivery_listings: {
